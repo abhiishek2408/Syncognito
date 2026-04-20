@@ -208,12 +208,18 @@ export default function NglScreen({ navigation }: any) {
                      <Text style={styles.linkSub} numberOfLines={1}>syncognito-nine.vercel.app/anon/{anonSlug || (auth.user?._id ? auth.user._id.substring(0, 8) : '...')}</Text>
                    </View>
                 </View>
-                <TouchableOpacity style={styles.editLinkBtn} onPress={() => { triggerHaptic('light'); setShowSlugModal(true); }}>
-                   <MaterialCommunityIcons name="pencil" size={14} color="#000" />
-                </TouchableOpacity>
+                <View style={styles.bannerActions}>
+                  <TouchableOpacity style={styles.copyLinkBtn} onPress={copyNglLink}>
+                    <MaterialCommunityIcons name="content-copy" size={16} color="#000" />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.editLinkBtn} onPress={() => { triggerHaptic('light'); setShowSlugModal(true); }}>
+                    <MaterialCommunityIcons name="pencil" size={16} color="#000" />
+                  </TouchableOpacity>
+                </View>
               </TouchableOpacity>
             </>
           }
+
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <View style={styles.emptyIconCircle}>
@@ -480,7 +486,9 @@ const styles = StyleSheet.create({
   shareConfirm: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, borderRadius: 20, backgroundColor: '#1DB954', shadowColor: '#1DB954', shadowOpacity: 0.3, shadowRadius: 15, elevation: 5 },
   shareConfirmText: { color: '#000', fontWeight: '800', fontSize: 10, marginTop: 4, letterSpacing: 1.5 },
 
-  editLinkBtn: { width: 30, height: 30, borderRadius: 10, backgroundColor: '#1DB954', justifyContent: 'center', alignItems: 'center', marginRight: 12, shadowColor: '#1DB954', shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
+  bannerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  copyLinkBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: '#1DB954', justifyContent: 'center', alignItems: 'center', shadowColor: '#1DB954', shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+  editLinkBtn: { width: 34, height: 34, borderRadius: 10, backgroundColor: '#1DB954', justifyContent: 'center', alignItems: 'center', shadowColor: '#1DB954', shadowOpacity: 0.2, shadowRadius: 8, elevation: 4 },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 20 },
   slugModal: { backgroundColor: '#0D0D0D', borderRadius: 32, padding: 30, width: '100%', borderWidth: 1, borderColor: '#1F1F1F', shadowColor: '#1DB954', shadowOpacity: 0.1, shadowRadius: 30, elevation: 10 },
   slugModalTitle: { color: '#FFF', fontSize: 16, fontWeight: '800', marginBottom: 10, letterSpacing: 0.5 },
