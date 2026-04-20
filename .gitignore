@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.expo/
+dist/
+build/
+.next/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.log
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
+**/serviceAccountKey.json
+
+# Native build folders
+MusicSyncApp/android/build/
+MusicSyncApp/ios/build/
+MusicSyncApp/android/.gradle/
+MusicSyncApp/ios/Pods/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+.venv/
+
+# Artifacts
+artifacts/
+scratch/

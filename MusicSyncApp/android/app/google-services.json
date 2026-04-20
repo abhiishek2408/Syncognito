@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "52547985097",
+    "project_id": "musicsync-be470",
+    "storage_bucket": "musicsync-be470.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:52547985097:android:fce41be4a22d0acd433718",
+        "android_client_info": {
+          "package_name": "com.musicsyncapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDRB6iNTkhEYqVnjvpXoV-92QhWj_48o3A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
