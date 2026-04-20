@@ -69,18 +69,55 @@ export const googleLogin = async (req, res) => {
 		let user = null;
 		if (email) user = await User.findOne({ email });
 		if (!user) {
+			// Generate a unique slug based on name or email
+			let baseSlug = (displayName || email?.split('@')[0] || 'user')
+				.toLowerCase()
+				.replace(/[^a-z0-9]/g, '')
+				.substring(0, 15);
+			
+			if (baseSlug.length < 3) baseSlug += Math.floor(Math.random() * 1000);
+
+			let finalSlug = baseSlug;
+			let isUnique = false;
+			let counter = 1;
+
+			while (!isUnique) {
+				const existing = await User.findOne({ anonSlug: finalSlug });
+				if (!existing) {
+					isUnique = true;
+				} else {
+					finalSlug = `${baseSlug}${counter}`;
+					counter++;
+				}
+			}
+
 			user = await User.create({
 				name: displayName,
 				email,
 				avatar: picture,
 				provider: 'google',
 				timezone: timezone || 'UTC',
+				anonSlug: finalSlug,
 			});
 		} else {
 			// Update timezone and avatar if provided
 			if (timezone) user.timezone = timezone;
 			if (picture) user.avatar = picture;
 			if (!user.name && displayName) user.name = displayName;
+			// Ensure existing users also get a slug if they don't have one
+			if (!user.anonSlug) {
+				let baseSlug = (user.name || email?.split('@')[0] || 'user')
+					.toLowerCase()
+					.replace(/[^a-z0-9]/g, '')
+					.substring(0, 15);
+				let finalSlug = baseSlug;
+				let counter = 1;
+				while (await User.findOne({ anonSlug: finalSlug })) {
+					finalSlug = `${baseSlug}${counter}`;
+					counter++;
+				}
+				user.anonSlug = finalSlug;
+			}
 			await user.save();
 		}
 
