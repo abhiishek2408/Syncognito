@@ -9,6 +9,8 @@ import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 import API_URL from '../utils/api';
 import { useToast } from '../context/ToastContext';
+import Clipboard from '@react-native-clipboard/clipboard';
+
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -101,6 +103,14 @@ export default function NglScreen({ navigation }: any) {
     }
   };
 
+  const copyNglLink = () => {
+    const slugOrId = anonSlug || auth.user?._id;
+    const shareUrl = `https://syncognito-nine.vercel.app/anon/${slugOrId}`;
+    Clipboard.setString(shareUrl);
+    triggerHaptic('medium');
+    showToast('Link copied to clipboard! 🤫', 'success');
+  };
+
   const shareNglLink = async () => {
     try {
       const slugOrId = anonSlug || auth.user?._id;
@@ -184,7 +194,7 @@ export default function NglScreen({ navigation }: any) {
           }
           ListHeaderComponent={
             <>
-              <View style={styles.linkBanner}>
+              <TouchableOpacity style={styles.linkBanner} activeOpacity={0.8} onPress={copyNglLink}>
                 <View style={styles.bannerLeft}>
                    {auth.user?.avatar ? (
                      <Image source={{ uri: auth.user.avatar }} style={styles.avatarPic} />
@@ -194,14 +204,14 @@ export default function NglScreen({ navigation }: any) {
                      </View>
                    )}
                    <View style={styles.linkInfo}>
-                     <Text style={styles.linkTitle}>Your Secret Link</Text>
+                     <Text style={styles.linkTitle}>Your Secret Link (Tap to Copy)</Text>
                      <Text style={styles.linkSub} numberOfLines={1}>syncognito-nine.vercel.app/anon/{anonSlug || (auth.user?._id ? auth.user._id.substring(0, 8) : '...')}</Text>
                    </View>
                 </View>
-                <TouchableOpacity style={styles.editLinkBtn} onPress={() => setShowSlugModal(true)}>
+                <TouchableOpacity style={styles.editLinkBtn} onPress={() => { triggerHaptic('light'); setShowSlugModal(true); }}>
                    <MaterialCommunityIcons name="pencil" size={14} color="#000" />
                 </TouchableOpacity>
-              </View>
+              </TouchableOpacity>
             </>
           }
           ListEmptyComponent={
@@ -211,13 +221,19 @@ export default function NglScreen({ navigation }: any) {
               </View>
               <Text style={styles.emptyTitle}>Your inbox is empty</Text>
               <Text style={styles.emptySub}>Share your link to get messages!</Text>
-              <TouchableOpacity style={styles.mainShareBtn} onPress={shareNglLink}>
-                <Text style={styles.mainShareBtnText}>SHARE LINK</Text>
-              </TouchableOpacity>
+              <View style={styles.emptyActionRow}>
+                <TouchableOpacity style={styles.mainCopyBtn} onPress={copyNglLink}>
+                  <Text style={styles.mainCopyBtnText}>COPY LINK</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.mainShareBtn} onPress={shareNglLink}>
+                  <Text style={styles.mainShareBtnText}>SHARE LINK</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           }
         />
       )}
+
 
       {/* Share/Reply Modal */}
       <Modal visible={!!sharingMsg} transparent animationType="slide" onRequestClose={() => setSharingMsg(null)}>
@@ -426,8 +442,11 @@ const styles = StyleSheet.create({
   emptyIconCircle: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#0A0A0A', justifyContent: 'center', alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(29,185,84,0.3)', shadowColor: '#1DB954', shadowOpacity: 0.2, shadowRadius: 20, elevation: 8 },
   emptyTitle: { color: '#FFF', fontSize: 16, fontWeight: '800', marginBottom: 8, letterSpacing: 0.5 },
   emptySub: { color: '#777', fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 24, fontWeight: '500' },
-  mainShareBtn: { backgroundColor: '#1DB954', paddingHorizontal: 36, paddingVertical: 14, borderRadius: 30, shadowColor: '#1DB954', shadowOpacity: 0.4, shadowRadius: 20, elevation: 10 },
+  mainShareBtn: { backgroundColor: '#1DB954', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, shadowColor: '#1DB954', shadowOpacity: 0.4, shadowRadius: 20, elevation: 10, flex: 1, alignItems: 'center' },
   mainShareBtnText: { color: '#000', fontWeight: '800', fontSize: 10, marginTop: 4, letterSpacing: 1.5 },
+  emptyActionRow: { flexDirection: 'row', gap: 12, width: '100%', marginTop: 10 },
+  mainCopyBtn: { backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', flex: 1, alignItems: 'center' },
+  mainCopyBtnText: { color: '#FFF', fontWeight: '800', fontSize: 10, marginTop: 4, letterSpacing: 1.5 },
 
   avatarPic: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, borderColor: '#1DB954' },
   avatarPlaceholder: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(29, 185, 84, 0.1)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#333' },

@@ -61,9 +61,9 @@ export default function AppNavigator() {
           backgroundColor: '#000',
           borderTopColor: '#1A1A1A',
           borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 6,
-          paddingTop: 4,
+          height: 85,
+          paddingBottom: 22,
+          paddingTop: 10,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         tabBarIcon: ({ color, size }) => {
