@@ -104,7 +104,7 @@ export default function NglScreen({ navigation }: any) {
   const shareNglLink = async () => {
     try {
       const slugOrId = anonSlug || auth.user?._id;
-      const shareUrl = `http://localhost:5173/anon/${slugOrId}`;
+      const shareUrl = `https://syncognito-nine.vercel.app/anon/${slugOrId}`;
       await Share.share({
         message: `Send me anonymous notes! 🤫\n${shareUrl}`,
       });
@@ -195,7 +195,7 @@ export default function NglScreen({ navigation }: any) {
                    )}
                    <View style={styles.linkInfo}>
                      <Text style={styles.linkTitle}>Your Secret Link</Text>
-                     <Text style={styles.linkSub} numberOfLines={1}>localhost:5173/anon/{anonSlug || (auth.user?._id ? auth.user._id.substring(0, 8) : '...')}</Text>
+                     <Text style={styles.linkSub} numberOfLines={1}>syncognito-nine.vercel.app/anon/{anonSlug || (auth.user?._id ? auth.user._id.substring(0, 8) : '...')}</Text>
                    </View>
                 </View>
                 <TouchableOpacity style={styles.editLinkBtn} onPress={() => setShowSlugModal(true)}>
@@ -302,7 +302,7 @@ export default function NglScreen({ navigation }: any) {
                    style={styles.shareConfirm} 
                    onPress={async () => {
                      await Share.share({
-                       message: `Anonymous Note: "${sharingMsg?.text}"\n\nMy Reply: "${replyText}"\n\nSend me ghost notes too: http://localhost:5173/anon/${anonSlug || auth.user?._id}`
+                       message: `Anonymous Note: "${sharingMsg?.text}"\n\nMy Reply: "${replyText}"\n\nSend me ghost notes too: https://syncognito-nine.vercel.app/anon/${anonSlug || auth.user?._id}`
                      });
                    }}
                 >
@@ -323,7 +323,7 @@ export default function NglScreen({ navigation }: any) {
             <Text style={styles.slugModalSub}>Choose a unique username for your secret inbox.</Text>
             
             <View style={styles.slugInputRow}>
-              <Text style={styles.slugPrefix}>localhost:5173/anon/</Text>
+              <Text style={styles.slugPrefix}>syncognito-nine.vercel.app/anon/</Text>
               <TextInput
                 style={styles.slugInput}
                 value={newSlug}

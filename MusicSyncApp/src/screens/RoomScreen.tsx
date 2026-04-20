@@ -216,7 +216,7 @@ export default function RoomScreen({ navigation, route }: Props) {
     }
   };
   const shareRoomLink = () => {
-    const link = `http://localhost:5173/join/${initialRoom.roomCode}`;
+    const link = `https://syncognito-nine.vercel.app/join/${initialRoom.roomCode}`;
     Clipboard.setString(link);
     Share.share({
       message: `Join my music room on Syncognito! 🎵\nRoom Code: #${initialRoom.roomCode}\n\nJoin here: ${link}`,

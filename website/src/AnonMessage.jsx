@@ -112,7 +112,7 @@ export default function AnonMessage() {
 
   const handleShare = (platform) => {
     playSound();
-    const text = `I just sent a secret message to ${recipient?.name} on Syncognito! 🤫\n\nGet your own anonymous link here: https://syncognito.app/anon/${recipient?.anonSlug || identifier}`;
+    const text = `I just sent a secret message to ${recipient?.name} on Syncognito! 🤫\n\nGet your own anonymous link here: https://syncognito-nine.vercel.app/anon/${recipient?.anonSlug || identifier}`;
     
     if (platform === 'twitter') {
       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
