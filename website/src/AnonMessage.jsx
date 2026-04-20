@@ -5,7 +5,7 @@ import './AnonMessage.css';
 import confetti from 'canvas-confetti';
 
 const API_URL = 'https://syncognito.onrender.com';
-const AI_SERVICE_URL = 'http://localhost:8001';
+const AI_SERVICE_URL = 'https://syncognito-ai-service.onrender.com';
 
 // Base64 sound assets for zero-dependency vibes
 const WHOOSH_SOUND = 'data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0Yf9vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vT19vTNPl9';
