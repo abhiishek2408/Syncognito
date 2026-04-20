@@ -175,7 +175,6 @@ export default function ProfileScreen({ navigation }: any) {
                 style={[styles.actionCard, styles.logoutCard]}
                 onPress={async () => {
                   await auth.signOut();
-                  navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
                 }}
               >
                 <MaterialCommunityIcons name="logout" size={22} color="#EF5350" />
@@ -190,7 +189,6 @@ export default function ProfileScreen({ navigation }: any) {
                 style={[styles.actionCard, styles.logoutCard, { width: '80%' }]}
                 onPress={async () => {
                   await auth.signOut();
-                  navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
                 }}
               >
                 <MaterialCommunityIcons name="login" size={22} color="#1DB954" />
