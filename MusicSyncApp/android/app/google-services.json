@@ -1,21 +1,40 @@
 {
   "project_info": {
-    "project_number": "52547985097",
-    "project_id": "musicsync-be470",
-    "storage_bucket": "musicsync-be470.firebasestorage.app"
+    "project_number": "862585517468",
+    "project_id": "real-time-music-sync-app",
+    "storage_bucket": "real-time-music-sync-app.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:52547985097:android:fce41be4a22d0acd433718",
+        "mobilesdk_app_id": "1:862585517468:android:982684f8bdfd6550368459",
         "android_client_info": {
-          "package_name": "com.musicsyncapp"
+          "package_name": "com.example.realtimemusicsync"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDRB6iNTkhEYqVnjvpXoV-92QhWj_48o3A"
+          "current_key": "AIzaSyBI1tRMPcjaYghX1LwQzFuDx-TurwkQb_Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:862585517468:android:b4bfb6999e961354368459",
+        "android_client_info": {
+          "package_name": "com.syncognito"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBI1tRMPcjaYghX1LwQzFuDx-TurwkQb_Y"
         }
       ],
       "services": {

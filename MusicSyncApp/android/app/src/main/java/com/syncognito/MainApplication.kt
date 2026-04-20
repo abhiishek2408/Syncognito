@@ -1,4 +1,4 @@
-package com.musicsyncapp
+package com.syncognito
 
 import android.app.Application
 import com.facebook.react.PackageList

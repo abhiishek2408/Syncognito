@@ -6,14 +6,25 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const serviceAccountPath = path.join(__dirname, '../../config/serviceAccountKey.json');
 
-if (fs.existsSync(serviceAccountPath)) {
-  const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+  } catch (err) {
+    console.error('[Push] Failed to parse FIREBASE_SERVICE_ACCOUNT environment variable');
+  }
+} else if (fs.existsSync(serviceAccountPath)) {
+  serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+}
+
+if (serviceAccount) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
-  console.log('[Push] Firebase Admin initialized');
+  console.log('[Push] Firebase Admin initialized successfully');
 } else {
-  console.warn('[Push] serviceAccountKey.json not found. Remote push notifications disabled.');
+  console.warn('[Push] Service Account not found (checking env FIREBASE_SERVICE_ACCOUNT and config file). Remote push notifications disabled.');
 }
 
 /**

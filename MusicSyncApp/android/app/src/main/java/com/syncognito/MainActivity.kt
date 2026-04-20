@@ -1,4 +1,4 @@
-package com.musicsyncapp
+package com.syncognito
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
