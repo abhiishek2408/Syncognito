@@ -4,7 +4,7 @@ import { Send, RefreshCw, Lock, AlertCircle, CheckCircle2, User, ChevronLeft, Sh
 import './AnonMessage.css';
 import confetti from 'canvas-confetti';
 
-const API_URL = 'http://localhost:5000';
+const API_URL = 'https://syncognito.onrender.com';
 const AI_SERVICE_URL = 'http://localhost:8001';
 
 // Base64 sound assets for zero-dependency vibes

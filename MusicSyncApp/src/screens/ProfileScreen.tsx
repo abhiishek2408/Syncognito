@@ -183,7 +183,26 @@ export default function ProfileScreen({ navigation }: any) {
               </TouchableOpacity>
             </View>
           </>
-        ) : null}
+
+        ) : (
+          <View style={[styles.cardSection, { alignItems: 'center', marginTop: 40 }]}>
+             <TouchableOpacity
+                style={[styles.actionCard, styles.logoutCard, { width: '80%' }]}
+                onPress={async () => {
+                  await auth.signOut();
+                  navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+                }}
+              >
+                <MaterialCommunityIcons name="login" size={22} color="#1DB954" />
+                <Text style={[styles.actionText, { color: '#1DB954' }]}>Go to Login</Text>
+              </TouchableOpacity>
+              <Text style={{ color: '#444', fontSize: 12, marginTop: 12, textAlign: 'center' }}>
+                You are currently in guest mode. Log in to sync with friends!
+              </Text>
+          </View>
+        )}
+
+
       </Animated.View>
     </ScrollView>
   );

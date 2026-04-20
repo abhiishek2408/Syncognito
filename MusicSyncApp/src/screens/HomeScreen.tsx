@@ -22,6 +22,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const [publicRooms, setPublicRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [globalStats, setGlobalStats] = useState({ listeners: 0, activeRooms: 0, friends: 0 });
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   const headers = React.useMemo(() => auth.token ? { Authorization: `Bearer ${auth.token}` } : {}, [auth.token]);
@@ -31,8 +32,18 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     else setRefreshing(true);
     
     try {
-      const resp = await axios.get(`${API_URL}/api/rooms/public`, { headers }).catch(() => ({ data: [] }));
-      setPublicRooms((resp.data || []).slice(0, 5));
+      const [roomsResp, statsResp, userStatsResp] = await Promise.all([
+        axios.get(`${API_URL}/api/rooms/public`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_URL}/api/rooms/stats/global`).catch(() => ({ data: { listeners: 0, activeRooms: 0 } })),
+        auth.token ? axios.get(`${API_URL}/api/users/me/stats`, { headers }).catch(() => ({ data: { friends: 0 } })) : Promise.resolve({ data: { friends: 0 } })
+      ]);
+      
+      setPublicRooms((roomsResp.data || []).slice(0, 5));
+      setGlobalStats({
+        listeners: statsResp.data.listeners || 0,
+        activeRooms: statsResp.data.activeRooms || 0,
+        friends: userStatsResp.data.friends || 0
+      });
       loadAlarms();
     } catch (err) {
       console.warn('Home load error:', err);
@@ -306,7 +317,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               <View style={[styles.trendingIcon, { backgroundColor: '#1DB95420' }]}>
                 <MaterialCommunityIcons name="headphones" size={24} color="#1DB954" />
               </View>
-              <Text style={styles.trendingVal}>2.4k+</Text>
+              <Text style={styles.trendingVal}>{globalStats.listeners > 1000 ? `${(globalStats.listeners / 1000).toFixed(1)}k` : globalStats.listeners}</Text>
               <Text style={styles.trendingLabel}>Listeners Live</Text>
             </View>
             
@@ -314,7 +325,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               <View style={[styles.trendingIcon, { backgroundColor: '#BB86FC20' }]}>
                 <MaterialCommunityIcons name="playlist-music" size={24} color="#BB86FC" />
               </View>
-              <Text style={styles.trendingVal}>142</Text>
+              <Text style={styles.trendingVal}>{globalStats.activeRooms}</Text>
               <Text style={styles.trendingLabel}>Active Rooms</Text>
             </View>
 
@@ -322,34 +333,36 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               <View style={[styles.trendingIcon, { backgroundColor: '#64B5F620' }]}>
                 <MaterialCommunityIcons name="account-group" size={24} color="#64B5F6" />
               </View>
-              <Text style={styles.trendingVal}>5.8k</Text>
-              <Text style={styles.trendingLabel}>New Friends</Text>
+              <Text style={styles.trendingVal}>{globalStats.friends}</Text>
+              <Text style={styles.trendingLabel}>{auth.token ? 'My Friends' : 'Community'}</Text>
             </View>
           </ScrollView>
         </View>
 
-        {/* Quick Connect Section */}
+
+        {/* App Feature Spotlight (Showpiece) */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}><MaterialCommunityIcons name="lightning-bolt" size={20} color="#FFB74D" /> Quick Connect</Text>
+            <Text style={styles.sectionTitle}><MaterialCommunityIcons name="star-face" size={20} color="#FFB74D" /> Featured In App</Text>
           </View>
           <View style={styles.pulseGrid}>
             {[
-              { name: 'Join Code', color: '#1DB954', icon: 'numeric-field' },
-              { name: 'Scan QR', color: '#64B5F6', icon: 'qrcode-scan' },
-              { name: 'History', color: '#BB86FC', icon: 'history' },
-              { name: 'Nearby', color: '#FF7043', icon: 'map-marker-radius' }
+              { name: 'Sync Rooms', color: '#1DB954', icon: 'broadcast' },
+              { name: 'AI Alarms', color: '#64B5F6', icon: 'alarm-panel' },
+              { name: 'Anon Vibes', color: '#BB86FC', icon: 'incognito' },
+              { name: 'Social Chat', color: '#FF7043', icon: 'chat-processing' }
             ].map((p, i) => (
-              <TouchableOpacity key={i} style={[styles.pulseCard, { borderColor: p.color + '30' }]} onPress={() => navigation.navigate('Rooms')}>
-                <View style={[styles.pulseIconWrap, { backgroundColor: p.color + '15' }]}>
+              <View key={i} style={[styles.pulseCard, { borderColor: p.color + '25' }]}>
+                <View style={[styles.pulseIconWrap, { backgroundColor: p.color + '10' }]}>
                   <MaterialCommunityIcons name={p.icon as any} size={20} color={p.color} />
                 </View>
                 <Text style={[styles.pulseName, { color: p.color }]}>{p.name}</Text>
                 <View style={[styles.pulseDot, { backgroundColor: p.color }]} />
-              </TouchableOpacity>
+              </View>
             ))}
           </View>
         </View>
+
 
 
       </Animated.View>

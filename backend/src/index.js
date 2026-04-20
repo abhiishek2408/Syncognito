@@ -50,7 +50,15 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 
 // MongoDB connection
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/music-sync');
+console.log('Connecting to MongoDB...');
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/music-sync')
+  .then(() => console.log('Successfully connected to MongoDB Cluster.'))
+  .catch((err) => {
+    console.error('CRITICAL: MongoDB connection failed!');
+    console.error('Error Details:', err.message);
+    process.exit(1); // Exit if DB connection fails to trigger a restart
+  });
+
 
 
 

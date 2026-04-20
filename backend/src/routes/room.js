@@ -65,6 +65,23 @@ router.get('/public', optionalAuth, async (req, res) => {
   }
 });
 
+// Get global stats (total listeners & active rooms)
+router.get('/stats/global', async (req, res) => {
+  try {
+    const rooms = await Room.find({ isPublic: true });
+    const totalPublicRooms = rooms.length;
+    const totalListeners = rooms.reduce((sum, r) => sum + (r.members?.length || 0), 0);
+    
+    res.json({
+      activeRooms: totalPublicRooms,
+      listeners: totalListeners,
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch global stats' });
+  }
+});
+
+
 // Get room by code
 router.get('/code/:code', optionalAuth, async (req, res) => {
   try {

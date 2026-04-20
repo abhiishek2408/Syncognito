@@ -1,7 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import { Platform } from 'react-native';
 
-const SERVER_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://localhost:5000';
+const SERVER_URL = 'https://syncognito.onrender.com';
 
 let socket: Socket | null = null;
 
