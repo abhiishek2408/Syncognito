@@ -475,17 +475,15 @@ async function handleLeaveRoom(socket) {
         room.hostSocketId = null;
       }
 
-      // If room is empty, stop playback
-      if (room.members.length === 0) {
-        room.currentTrack.isPlaying = false;
-      }
-      // Note: We're disabling immediate deletion to keep host-created rooms alive
-      // while they navigate between app screens.
-      /*
-      if (room.members.length === 0) {
+      // If the host leaves or room is empty, close/delete the room
+      const isHost = info.userId && room.host.toString() === info.userId;
+      
+      if (isHost || room.members.length === 0) {
         await Room.deleteOne({ _id: room._id });
+        io.to(`room:${info.roomCode}`).emit('room-closed', { 
+          message: isHost ? 'Host has left. Room closed.' : 'Room empty. Room closed.' 
+        });
       } else {
-      */
         await room.save();
         io.to(`room:${info.roomCode}`).emit('member-left', {
           socketId: socket.id,
@@ -494,7 +492,7 @@ async function handleLeaveRoom(socket) {
         });
         // Broadcast full updated member list to everyone left
         io.to(`room:${info.roomCode}`).emit('room-update', { members: room.members });
-      // }
+      }
     }
   } catch (err) {
     console.error('handleLeaveRoom error:', err);

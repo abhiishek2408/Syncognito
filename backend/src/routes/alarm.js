@@ -7,6 +7,16 @@ const router = express.Router();
 // Get all alarms for current user
 router.get('/', authenticateToken, async (req, res) => {
   try {
+    // Auto-delete cleanup: Remove triggered or significantly expired alarms (missed by > 30 mins)
+    const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000);
+    await Alarm.deleteMany({
+      userId: req.user.id,
+      $or: [
+        { isTriggered: true },
+        { triggerAt: { $lt: thirtyMinsAgo } }
+      ]
+    });
+
     const alarms = await Alarm.find({ userId: req.user.id }).sort({ triggerAt: 1 });
     res.json(alarms);
   } catch (err) {
@@ -36,13 +46,21 @@ router.post('/', authenticateToken, async (req, res) => {
 // Update an alarm
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
+    const { triggerAt, message, title, isTriggered } = req.body;
+    
+    // If marking as triggered, auto-delete it immediately
+    if (isTriggered === true) {
+      const result = await Alarm.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+      if (!result) return res.status(404).json({ message: 'Alarm not found' });
+      return res.json({ message: 'Alarm triggered and auto-deleted' });
+    }
+
     const alarm = await Alarm.findOne({ _id: req.params.id, userId: req.user.id });
     if (!alarm) return res.status(404).json({ message: 'Alarm not found' });
-    const { triggerAt, message, title, isTriggered } = req.body;
+    
     if (triggerAt) alarm.triggerAt = new Date(triggerAt);
     if (message !== undefined) alarm.message = message;
     if (title !== undefined) alarm.title = title;
-    if (isTriggered !== undefined) alarm.isTriggered = isTriggered;
     await alarm.save();
     res.json(alarm);
   } catch (err) {
