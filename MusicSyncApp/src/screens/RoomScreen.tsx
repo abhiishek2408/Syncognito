@@ -85,12 +85,19 @@ export default function RoomScreen({ navigation, route }: Props) {
       }
     });
 
+    socket.on('room-closed', (data: any) => {
+      showToast(data.message || 'Room has been closed by host', 'warning');
+      leaveRoom();
+      navigation.goBack();
+    });
+
     return () => {
       socket.off('room-message');
       socket.off('hand-raised');
       socket.off('permission-status');
       socket.off('error-msg');
       socket.off('room-update');
+      socket.off('room-closed');
     };
   }, [socket, isHost, showToast]);
 

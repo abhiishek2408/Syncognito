@@ -20,7 +20,8 @@ import { AlarmProvider } from './src/context/AlarmContext';
 import AuthContext from './src/context/AuthContext';
 import { notificationService } from './src/utils/notifications';
 
-import { ActivityIndicator, View, Image, Dimensions } from 'react-native';
+import { ActivityIndicator, View, Image, Dimensions, Text } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const { width } = Dimensions.get('window');
 
@@ -53,28 +54,13 @@ const NotificationHandler = () => {
 };
 
 const RootNavigator = () => {
-  const { initializing, token } = React.useContext(AuthContext);
+  const { initializing, token, user } = React.useContext(AuthContext);
 
-  if (initializing) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
-        <View style={{ width: width * 0.4, height: width * 0.4, backgroundColor: '#000000', borderRadius: width * 0.2, justifyContent: 'center', alignItems: 'center' }}>
-          <Image 
-            source={require('./src/assets/logo.png')} 
-            style={{ width: '60%', height: '60%' }} 
-            resizeMode="contain"
-          />
-        </View>
-        <View style={{ position: 'absolute', bottom: 100 }}>
-          <ActivityIndicator size="large" color="#1DB954" />
-        </View>
-      </View>
-    );
-  }
+  if (initializing) return null;
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
-      {token ? (
+      {token && user ? (
         <Stack.Screen name="UserDashboard" component={UserDashboard} />
       ) : (
         <Stack.Screen name="Login" component={LoginScreen} />

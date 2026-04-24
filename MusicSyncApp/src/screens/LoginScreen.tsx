@@ -17,6 +17,7 @@ import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 import API_URL from '../utils/api';
 import { useToast } from '../context/ToastContext';
+import { GOOGLE_WEB_CLIENT_ID } from '@env';
 
 type Props = {
   navigation: any;
@@ -29,15 +30,14 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const auth = React.useContext(AuthContext);
 
   React.useEffect(() => {
-    // Configure with your Web client ID in environment or replace string below
-    // Prefer environment override, otherwise default to the project's web client id for local testing.
-    const webClientId = process.env.GOOGLE_WEB_CLIENT_ID || '882072576871-8278gh96jeqq4ajivm6n2fpgse4bsqif.apps.googleusercontent.com';
-    if (!process.env.GOOGLE_WEB_CLIENT_ID) console.warn('Using default GOOGLE_WEB_CLIENT_ID; for production set GOOGLE_WEB_CLIENT_ID in your build environment');
+    // Configure with your Web client ID from @env
+    const webClientId = GOOGLE_WEB_CLIENT_ID || '882072576871-8278gh96jeqq4ajivm6n2fpgse4bsqif.apps.googleusercontent.com';
+
     // IMPORTANT: offlineAccess:true is required to reliably receive idToken on Android
-     GoogleSignin.configure({ webClientId, offlineAccess: true });
-    // If auth already has a token/user, navigate to Home
+    GoogleSignin.configure({ webClientId, offlineAccess: true });
     if (!auth.initializing && auth.token) {
-      navigation.replace('UserDashboard');
+      // The conditional stack in App.tsx should already have switched, 
+      // but if we are here, we don't need manual navigation
     }
   }, [auth.initializing, auth.token, navigation]);
 
@@ -62,7 +62,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       const res = await axios.post(`${API_URL}/api/auth/google`, { idToken, timezone });
       await auth.signIn(res.data.token);
-        navigation.replace('UserDashboard');
+      // navigation.replace('UserDashboard'); // Removed: Let AuthContext state change drive the switch
     } catch (error: any) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         // user cancelled
@@ -87,7 +87,11 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.content}>
         <View style={styles.logoContainer}>
           <View style={styles.iconCircle}>
-            <MaterialCommunityIcons name="pulse" size={60} color="#1DB954" />
+            <Image 
+              source={require('../assets/logo.png')} 
+              style={{ width: '90%', height: '90%' }} 
+              resizeMode="contain"
+            />
           </View>
           <Text style={styles.title}>Syncognito</Text>
           <Text style={styles.subtitle}>Listen together, anywhere.</Text>
@@ -120,7 +124,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F0F0F' },
+  container: {
+    flex: 1,
+    backgroundColor: '#000000',
+  },
   content: { flex: 1, paddingHorizontal: 30, justifyContent: 'center', paddingVertical: 50, zIndex: 2 },
   circle1: {
     position: 'absolute',
@@ -144,15 +151,15 @@ const styles = StyleSheet.create({
   },
   logoContainer: { alignItems: 'center', marginBottom: 40 },
   iconCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#1A1A1A',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#222222',
   },
   title: { fontSize: 36, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1 },
   subtitle: { fontSize: 16, color: '#AAAAAA', marginTop: 8 },
@@ -173,7 +180,7 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { backgroundColor: '#CCCCCC' },
   googleIcon: { marginRight: 12 },
-  gLogo: { width: 22, height: 22, marginRight: 12, resizeMode: 'contain' },
+  gLogo: { width: 40, height: 40, marginRight: 12, resizeMode: 'contain' },
   buttonText: { color: '#000', fontSize: 17, fontWeight: 'bold' },
   footerText: { color: '#555', fontSize: 12, marginTop: 20, textAlign: 'center' },
   chooseButton: {

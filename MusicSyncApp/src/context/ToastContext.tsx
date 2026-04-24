@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, Platform, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import LinearGradient from 'react-native-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 type ToastContextType = {
-  showToast: (message: string, type?: ToastType) => void;
+  showToast: (message: string, type?: ToastType, duration?: number) => void;
 };
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -23,7 +24,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const showToast = useCallback((msg: string, t: ToastType = 'info') => {
+  const showToast = useCallback((msg: string, t: ToastType = 'info', duration: number = 3500) => {
     if (timerRef.current) clearTimeout(timerRef.current);
     
     setMessage(msg);
@@ -34,12 +35,14 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     Animated.parallel([
       Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
       Animated.spring(slideAnim, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
-      Animated.timing(progressAnim, { toValue: 1, duration: 3500, useNativeDriver: false })
+      Animated.timing(progressAnim, { toValue: 1, duration: duration, useNativeDriver: false })
     ]).start();
 
-    timerRef.current = setTimeout(() => {
-      hideToast();
-    }, 3500);
+    if (duration > 0) {
+      timerRef.current = setTimeout(() => {
+        hideToast();
+      }, duration);
+    }
   }, []);
 
   const hideToast = () => {
@@ -63,10 +66,19 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const getColor = () => {
     switch (type) {
-      case 'success': return '#1DB954';
-      case 'error': return '#EF5350';
-      case 'warning': return '#FFB74D';
-      default: return '#64B5F6';
+      case 'success': return '#00FF94'; // Vibrant Neon Green
+      case 'error': return '#FF3B3B'; // Vibrant Red
+      case 'warning': return '#FFB800'; // Amber/Gold
+      default: return '#00E0FF'; // Electric Blue
+    }
+  };
+
+  const getLightColor = () => {
+    switch (type) {
+      case 'success': return '#00FF9420';
+      case 'error': return '#FF3B3B20';
+      case 'warning': return '#FFB80020';
+      default: return '#00E0FF20';
     }
   };
 
@@ -78,26 +90,35 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           styles.toastContainer,
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
         ]}>
-          <View style={styles.toastContent}>
-            <View style={[styles.iconContainer, { backgroundColor: `${getColor()}15` }]}>
-              <MaterialCommunityIcons name={getIcon()} size={20} color={getColor()} />
+          <View style={[styles.toastContent, { borderColor: getColor() }]}>
+            <View style={[styles.iconContainer, { backgroundColor: getLightColor() }]}>
+              <MaterialCommunityIcons name={getIcon()} size={22} color={getColor()} />
             </View>
             <View style={styles.textContainer}>
               <Text style={styles.toastText} numberOfLines={2}>{message}</Text>
             </View>
-            <View style={styles.progressContainer}>
+            <TouchableOpacity onPress={hideToast} style={styles.dismissButton}>
+              <MaterialCommunityIcons name="close" size={20} color="#666" />
+            </TouchableOpacity>
+            <View style={styles.progressWrapper}>
               <Animated.View 
                 style={[
-                  styles.progressBar, 
+                  styles.progressBarContainer, 
                   { 
-                    backgroundColor: getColor(),
                     width: progressAnim.interpolate({
                       inputRange: [0, 1],
                       outputRange: ['100%', '0%']
                     })
                   }
-                ]} 
-              />
+                ]}
+              >
+                <LinearGradient
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  colors={[`${getColor()}90`, getColor()]}
+                  style={styles.progressBarGradient}
+                />
+              </Animated.View>
             </View>
           </View>
         </Animated.View>
@@ -115,58 +136,66 @@ export const useToast = () => {
 const styles = StyleSheet.create({
   toastContainer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 60 : 40,
-    left: 20,
-    right: 20,
+    bottom: Platform.OS === 'ios' ? 80 : 60,
+    left: 24,
+    right: 24,
     zIndex: 9999,
     alignItems: 'center',
   },
   toastContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#0A0A0A', // Deep Obsidian
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 18,
     width: '100%',
-    maxWidth: 450,
+    maxWidth: 500,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.2,
-    shadowRadius: 30,
-    elevation: 20,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 24,
     borderWidth: 1.5,
-    borderColor: '#EEEEEE',
     overflow: 'hidden',
   },
   iconContainer: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 42,
+    height: 42,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
+    marginRight: 16,
   },
   textContainer: {
     flex: 1,
     justifyContent: 'center',
   },
   toastText: {
-    color: '#000000',
-    fontSize: 14,
-    fontWeight: '800',
-    letterSpacing: 0.2,
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.3,
   },
-  progressContainer: {
+  progressWrapper: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 3,
-    backgroundColor: '#F0F0F0',
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.03)',
   },
-  progressBar: {
+  progressBarContainer: {
     height: '100%',
-    borderRadius: 1,
+    overflow: 'hidden',
+  },
+  progressBarGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 2,
+  },
+  dismissButton: {
+    padding: 8,
+    marginLeft: 4,
   },
 });

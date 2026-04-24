@@ -117,7 +117,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const resp = await axios.get(`${host}/api/users/me`, { headers: { Authorization: `Bearer ${t}` } });
       setUser(resp.data);
     } catch (err: any) {
-      Alert.alert('Sign in', 'Failed to fetch profile');
+      console.error('[Auth] Sign-in profile fetch failed:', err);
+      await removeToken();
+      setToken(null);
+      setUser(null);
+      Alert.alert('Sign in', 'Failed to fetch profile. Please try again.');
     }
   };
 

@@ -11,8 +11,8 @@
 
         <!-- Use pitch black for the entire splash screen -->
         <item name="android:windowSplashScreenBackground">@color/splash_background</item>
-        <!-- And directly use the transparent foreground logo to remove the white circle -->
-        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
-        <item name="android:windowSplashScreenIconBackgroundColor">@color/ic_launcher_background</item>
+        <!-- Use the branded splash image as the central icon -->
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_branded</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_background</item>
     </style>
 </resources>

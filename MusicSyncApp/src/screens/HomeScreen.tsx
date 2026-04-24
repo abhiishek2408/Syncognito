@@ -63,13 +63,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
   const handleLogout = async () => {
     await auth.signOut();
-    // Navigate back to root stack's Login screen from nested navigator
-    const parent = navigation.getParent()?.getParent();
-    if (parent) {
-      parent.reset({ index: 0, routes: [{ name: 'Login' }] });
-    } else {
-      navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
-    }
+    // No manual navigation needed here - App.tsx handles the switch when token becomes null
   };
 
   const formatRelative = (dateStr: string) => {

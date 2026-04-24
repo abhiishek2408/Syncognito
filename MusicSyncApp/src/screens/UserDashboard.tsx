@@ -8,7 +8,21 @@ import AuthContext from '../context/AuthContext';
 type Props = { navigation: any };
 
 export default function UserDashboard({ navigation }: Props) {
-  const auth = React.useContext(AuthContext);
+  const { token, initializing } = React.useContext(AuthContext);
+
+  React.useEffect(() => {
+    // Safety Guard: If user is somehow on this screen without a token, force redirect
+    if (!initializing && !token) {
+      console.log('[Security] No token detected in UserDashboard, redirecting to Login');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    }
+  }, [token, initializing, navigation]);
+
+  if (initializing) return null;
+  if (!token) return null;
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>

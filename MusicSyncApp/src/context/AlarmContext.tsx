@@ -4,6 +4,7 @@ import axios from 'axios';
 import AuthContext from './AuthContext';
 import API_URL from '../utils/api';
 import Video from 'react-native-video';
+import { useToast } from './ToastContext';
 
 type Alarm = {
   _id: string;
@@ -28,6 +29,7 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [activeToneUrl, setActiveToneUrl] = useState<string | null>(null);
   const triggeredRef = useRef<Set<string>>(new Set());
+  const { showToast } = useToast();
 
   const headers = useMemo(() => auth.token ? { Authorization: `Bearer ${auth.token}` } : {}, [auth.token]);
 
@@ -63,15 +65,13 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             setActiveToneUrl(alarm.toneUrl);
           }
 
-          Alert.alert(
-            alarm.title,
-            alarm.message || 'Alarm triggered!',
-            [{ text: 'Dismiss', onPress: () => {
-              setActiveToneUrl(null);
-              markTriggered(alarm._id);
-              triggeredRef.current.delete(alarm._id);
-            }}]
-          );
+          showToast(`${alarm.title}: ${alarm.message || 'Alarm triggered!'}`, 'warning', 15000);
+          
+          // Still mark as triggered after showing toast
+          markTriggered(alarm._id);
+          triggeredRef.current.delete(alarm._id);
+          // Note: we might want to stop tone on toast dismiss, but for now we let it play
+          // or we can add a stop button in toast if we had custom actions.
         }
       });
     }, 1000);

@@ -34,6 +34,7 @@ export default function AlarmScreen() {
   const [tempTime, setTempTime] = useState({ hours: new Date().getHours(), minutes: new Date().getMinutes() });
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [tone, setTone] = useState<{ url: string, name: string } | null>(null);
   // activeToneUrl moved to global AlarmContext
 
@@ -96,7 +97,7 @@ export default function AlarmScreen() {
       resetForm();
       loadAlarms();
     } catch (err: any) {
-      Alert.alert('Error', 'Failed to save alarm');
+      showToast('Failed to save alarm', 'error');
     } finally {
       setCreating(false);
     }
@@ -127,21 +128,21 @@ export default function AlarmScreen() {
   };
 
   const deleteAlarm = async (id: string) => {
-    Alert.alert('Delete Alarm', 'Are you sure?', [
-      { text: 'Cancel' },
-      {
-        text: 'Delete', style: 'destructive',
-        onPress: async () => {
-          try {
-            await axios.delete(`${API_URL}/api/alarms/${id}`, { headers });
-            await notificationService.cancelAlarmNotification(id);
-            loadAlarms();
-          } catch (err) {
-            Alert.alert('Error', 'Failed to delete');
-          }
-        }
-      }
-    ]);
+    setDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await axios.delete(`${API_URL}/api/alarms/${deleteId}`, { headers });
+      await notificationService.cancelAlarmNotification(deleteId);
+      loadAlarms();
+      showToast('Alarm deleted', 'success');
+    } catch (err) {
+      showToast('Failed to delete alarm', 'error');
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   const resetForm = () => {
@@ -288,6 +289,30 @@ export default function AlarmScreen() {
           refreshing={loading}
         />
       )}
+
+      {/* Small Attractive Toastbar for Next Alarm */}
+      {(() => {
+        const nextAlarm = alarms
+          .filter(a => !a.isTriggered && new Date(a.triggerAt) > new Date())
+          .sort((a, b) => new Date(a.triggerAt).getTime() - new Date(b.triggerAt).getTime())[0];
+        
+        if (!nextAlarm) return null;
+
+        return (
+          <View style={styles.nextAlarmToast}>
+            <View style={styles.toastGlow} />
+            <MaterialCommunityIcons name="clock-fast" size={18} color="#1DB954" style={styles.toastIcon} />
+            <Text style={styles.toastTitle} numberOfLines={1}>{nextAlarm.title}</Text>
+            <View style={styles.toastDivider} />
+            <AlarmCountdown 
+              triggerAt={nextAlarm.triggerAt} 
+              isPast={false} 
+              color="#1DB954" 
+              style={styles.toastCountdown} 
+            />
+          </View>
+        );
+      })()}
 
       {/* Create Alarm Modal */}
       <Modal visible={showCreate} transparent animationType="slide">
@@ -478,6 +503,35 @@ export default function AlarmScreen() {
         </View>
       </Modal>
 
+      {/* Delete Confirmation Modal */}
+      <Modal visible={!!deleteId} transparent animationType="fade">
+        <View style={styles.confirmOverlay}>
+          <View style={styles.confirmContent}>
+            <View style={styles.confirmGlow} />
+            <View style={styles.dangerIconContainer}>
+              <MaterialCommunityIcons name="alert-circle-outline" size={32} color="#EF5350" />
+            </View>
+            <Text style={styles.confirmTitle}>Delete Alarm?</Text>
+            <Text style={styles.confirmSubTitle}>This action cannot be undone. Are you sure you want to remove this alarm?</Text>
+            
+            <View style={styles.confirmActions}>
+              <TouchableOpacity 
+                style={styles.cancelConfirmBtn} 
+                onPress={() => setDeleteId(null)}
+              >
+                <Text style={styles.cancelConfirmText}>Go Back</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.deleteConfirmBtn} 
+                onPress={confirmDelete}
+              >
+                <Text style={styles.deleteConfirmText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </View>
   );
 }
@@ -525,24 +579,32 @@ const styles = StyleSheet.create({
   statusBadge: { fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   cardActions: { position: 'absolute', right: 16, top: 16, gap: 12, alignItems: 'center' },
   deleteBubble: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#EF535015',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#333',
+    borderColor: '#EF535040',
+    shadowColor: '#EF5350',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
   },
   editBubble: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#222',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#333',
+    borderColor: '#1DB95440',
+    shadowColor: '#1DB954',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
   },
   alarmTime: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10, marginTop: 12 },
   alarmDateText: { color: '#AAA', fontSize: 13, fontWeight: '600' },
@@ -565,14 +627,33 @@ const styles = StyleSheet.create({
   emptyText: { color: '#555', fontSize: 16, marginTop: 12 },
   emptySubtext: { color: '#444', fontSize: 13, marginTop: 4 },
   // Modal
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
-  modalScroll: { maxHeight: '85%' },
-  modalContent: { backgroundColor: '#1A1A1A', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
-  modalTitle: { color: '#fff', fontSize: 22, fontWeight: '800', marginBottom: 4, textAlign: 'center' },
-  modalSubTitle: { color: '#666', fontSize: 13, textAlign: 'center', marginBottom: 20 },
-  fieldLabel: { color: '#AAA', fontSize: 13, fontWeight: '600', marginBottom: 8, marginTop: 4 },
-  modalInput: { backgroundColor: '#0F0F0F', color: '#fff', paddingHorizontal: 16, paddingVertical: 14, borderRadius: 12, fontSize: 15, borderWidth: 1.5, borderColor: '#333', marginBottom: 12 },
-  msgInput: { height: 80, textAlignVertical: 'top' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'flex-end' },
+  modalScroll: { maxHeight: '90%' },
+  modalContent: { 
+    backgroundColor: '#0A0A0A', 
+    borderTopLeftRadius: 32, 
+    borderTopRightRadius: 32, 
+    padding: 24, 
+    paddingBottom: 40,
+    borderWidth: 1.5,
+    borderColor: '#1DB95420'
+  },
+  modalTitle: { color: '#fff', fontSize: 24, fontWeight: '900', marginBottom: 6, textAlign: 'center', letterSpacing: -0.5 },
+  modalSubTitle: { color: '#555', fontSize: 13, textAlign: 'center', marginBottom: 25, fontWeight: '500' },
+  fieldLabel: { color: '#888', fontSize: 12, fontWeight: '800', marginBottom: 8, marginTop: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
+  modalInput: { 
+    backgroundColor: '#000', 
+    color: '#fff', 
+    paddingHorizontal: 16, 
+    paddingVertical: 14, 
+    borderRadius: 16, 
+    fontSize: 16, 
+    borderWidth: 1.5, 
+    borderColor: '#222', 
+    marginBottom: 12,
+    fontWeight: '600'
+  },
+  msgInput: { height: 100, textAlignVertical: 'top' },
   // Pickers
   pickerContainer: { flexDirection: 'row', gap: 12, marginBottom: 16 },
   pickerSection: { flex: 1 },
@@ -589,11 +670,30 @@ const styles = StyleSheet.create({
   },
   pickerBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
   // Actions
-  modalActions: { flexDirection: 'row', gap: 12, marginTop: 8 },
-  cancelBtn: { flex: 1, backgroundColor: '#333', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  cancelText: { color: '#fff', fontWeight: '600' },
-  confirmBtn: { flex: 1, backgroundColor: '#1DB954', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  confirmText: { color: '#000', fontWeight: '700', fontSize: 16 },
+  modalActions: { flexDirection: 'row', gap: 15, marginTop: 15 },
+  cancelBtn: { 
+    flex: 1, 
+    backgroundColor: '#111', 
+    paddingVertical: 16, 
+    borderRadius: 18, 
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#222'
+  },
+  cancelText: { color: '#777', fontWeight: '700', fontSize: 15 },
+  confirmBtn: { 
+    flex: 2, 
+    backgroundColor: '#1DB954', 
+    paddingVertical: 16, 
+    borderRadius: 18, 
+    alignItems: 'center',
+    shadowColor: '#1DB954',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8
+  },
+  confirmText: { color: '#000', fontWeight: '900', fontSize: 16, letterSpacing: -0.3 },
   toneBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -621,6 +721,144 @@ const styles = StyleSheet.create({
   pickerCancelText: { color: '#888', fontWeight: '600' },
   pickerConfirm: { flex: 2, backgroundColor: '#1DB954', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
   pickerConfirmText: { color: '#000', fontWeight: '700' },
+  // Next Alarm Toastbar
+  nextAlarmToast: {
+    position: 'absolute',
+    bottom: 30,
+    left: '10%',
+    right: '10%',
+    backgroundColor: '#121212',
+    height: 48,
+    borderRadius: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    borderWidth: 1.5,
+    borderColor: '#1DB95440',
+    shadowColor: '#1DB954',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
+    zIndex: 100,
+  },
+  toastGlow: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: '#1DB95405',
+    borderRadius: 24,
+  },
+  toastIcon: {
+    marginRight: 10,
+  },
+  toastTitle: {
+    color: '#EEE',
+    fontSize: 13,
+    fontWeight: '700',
+    flex: 1,
+    letterSpacing: -0.2,
+  },
+  toastDivider: {
+    width: 1,
+    height: 16,
+    backgroundColor: '#333',
+    marginHorizontal: 12,
+  },
+  toastCountdown: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#1DB954',
+  },
+  // Confirm Modal
+  confirmOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20
+  },
+  confirmContent: {
+    backgroundColor: '#0A0A0A',
+    borderRadius: 32,
+    padding: 30,
+    width: '100%',
+    maxWidth: 340,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#EF535030',
+    overflow: 'hidden'
+  },
+  confirmGlow: {
+    position: 'absolute',
+    top: -50,
+    width: 200,
+    height: 100,
+    backgroundColor: '#EF535010',
+    borderRadius: 100,
+    transform: [{ scaleX: 2 }],
+    opacity: 0.5
+  },
+  dangerIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#EF535010',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#EF535030'
+  },
+  confirmTitle: {
+    color: '#FFF',
+    fontSize: 22,
+    fontWeight: '900',
+    marginBottom: 12,
+    letterSpacing: -0.5
+  },
+  confirmSubTitle: {
+    color: '#888',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 30,
+    paddingHorizontal: 10
+  },
+  confirmActions: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%'
+  },
+  cancelConfirmBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: 'center',
+    backgroundColor: '#1A1A1A',
+    borderWidth: 1,
+    borderColor: '#333'
+  },
+  cancelConfirmText: {
+    color: '#AAA',
+    fontWeight: '700',
+    fontSize: 14
+  },
+  deleteConfirmBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: 'center',
+    backgroundColor: '#EF5350',
+    shadowColor: '#EF5350',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5
+  },
+  deleteConfirmText: {
+    color: '#FFF',
+    fontWeight: '800',
+    fontSize: 14
+  },
 });
 
 // Helper Types outside to prevent unnecessary re-creations

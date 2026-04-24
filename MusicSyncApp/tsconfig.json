@@ -1,10 +1,13 @@
 {
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
-    "types": ["jest", "node"],
-    "skipLibCheck": true,
-    "baseUrl": "."
+    "moduleResolution": "bundler",
+    "types": ["react-native", "jest", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@env": ["./env.d.ts"]
+    }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  "include": ["src/**/*", "App.tsx", "index.js", "env.d.ts"],
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js", "jest.config.js"]
 }
