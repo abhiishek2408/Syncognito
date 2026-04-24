@@ -13,6 +13,7 @@ import Security from './Security';
 import Cookies from './Cookies';
 import HelpCenter from './HelpCenter';
 import AnonMessage from './AnonMessage';
+import DataDeletion from './DataDeletion';
 
 export default function App() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/cookies" element={<Cookies />} />
         <Route path="/help" element={<HelpCenter />} />
+        <Route path="/data-deletion" element={<DataDeletion />} />
         <Route path="/anon/:identifier" element={<AnonMessage />} />
       </Routes>
 
@@ -93,6 +95,7 @@ export default function App() {
               <Link to="/privacy">Privacy Policy</Link>
               <Link to="/terms">Terms of Service</Link>
               <Link to="/cookies">Cookies Policy</Link>
+              <Link to="/data-deletion">Data Deletion</Link>
               <Link to="/help">Help Center</Link>
             </div>
           </div>

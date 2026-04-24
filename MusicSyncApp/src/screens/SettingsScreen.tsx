@@ -101,13 +101,22 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
               </View>
               <MaterialCommunityIcons name="chevron-right" size={20} color="#444" />
             </TouchableOpacity>
-            <View style={styles.separator} />
             <TouchableOpacity style={styles.row} onPress={() => openUrl('https://syncognito-nine.vercel.app/terms')}>
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: '#FF704315' }]}>
                   <MaterialCommunityIcons name="file-document-outline" size={20} color="#FF7043" />
                 </View>
                 <Text style={styles.rowLabel}>Terms of Service</Text>
+              </View>
+              <MaterialCommunityIcons name="chevron-right" size={20} color="#444" />
+            </TouchableOpacity>
+            <View style={styles.separator} />
+            <TouchableOpacity style={styles.row} onPress={() => openUrl('https://syncognito-nine.vercel.app/data-deletion')}>
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconBox, { backgroundColor: '#BB86FC15' }]}>
+                  <MaterialCommunityIcons name="database-remove-outline" size={20} color="#BB86FC" />
+                </View>
+                <Text style={styles.rowLabel}>Data Deletion Policy</Text>
               </View>
               <MaterialCommunityIcons name="chevron-right" size={20} color="#444" />
             </TouchableOpacity>
