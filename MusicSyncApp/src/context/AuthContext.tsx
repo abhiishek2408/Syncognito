@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Global Frontend Security & Performance Setup
-    axios.defaults.timeout = 15000; // Global timeout to prevent hanging requests
+    axios.defaults.timeout = 30000; // Increased timeout for cold starts (Render free tier)
 
     const interceptor = axios.interceptors.response.use(
       (response) => response,
@@ -71,7 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           try {
             const resp = await axios.get(`${host}/api/users/me`, { 
               headers: { Authorization: `Bearer ${t}` },
-              timeout: 10000 
+              timeout: 20000 
             });
             console.log('[Auth] Profile fetched successfully');
             if (mounted) {
@@ -98,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               console.log('[Auth] Network/Server error, keeping token:', err.message || 'Unknown error');
             }
           }
+
         } else {
           console.log('[Auth] No token found in storage');
         }

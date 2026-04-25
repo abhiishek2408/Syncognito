@@ -31,7 +31,7 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
   React.useEffect(() => {
     // Configure with your Web client ID from @env
-    const webClientId = GOOGLE_WEB_CLIENT_ID || '882072576871-8278gh96jeqq4ajivm6n2fpgse4bsqif.apps.googleusercontent.com';
+    const webClientId = GOOGLE_WEB_CLIENT_ID || '862585517468-548jpcugceh7f3keq4eccki9plr516n5.apps.googleusercontent.com';
 
     // IMPORTANT: offlineAccess:true is required to reliably receive idToken on Android
     GoogleSignin.configure({ webClientId, offlineAccess: true });

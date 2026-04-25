@@ -7,31 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:862585517468:android:982684f8bdfd6550368459",
-        "android_client_info": {
-          "package_name": "com.example.realtimemusicsync"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBI1tRMPcjaYghX1LwQzFuDx-TurwkQb_Y"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:862585517468:android:b4bfb6999e961354368459",
         "android_client_info": {
           "package_name": "com.syncognito"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "862585517468-8a95o0ojrnre3j667a2m6tljckmlfr37.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.syncognito",
+            "certificate_hash": "b8c4c6be4c0bd658bf8c08581f0725f0f771c193"
+          }
+        },
+        {
+          "client_id": "862585517468-548jpcugceh7f3keq4eccki9plr516n5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBI1tRMPcjaYghX1LwQzFuDx-TurwkQb_Y"
@@ -39,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "862585517468-548jpcugceh7f3keq4eccki9plr516n5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

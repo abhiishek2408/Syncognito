@@ -404,8 +404,8 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     width: (SCREEN_WIDTH - 56) / 3, // Perfect for 3 items
-    height: 135,
-    borderRadius: 24,
+    height: 110,
+    borderRadius: 20,
     padding: 12,
     overflow: 'hidden',
     justifyContent: 'space-between',
@@ -418,9 +418,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -15,
     right: -15,
-    width: 75,
-    height: 75,
-    borderRadius: 37.5,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
   },
   gridIconBubble: {
     width: 40,
@@ -446,8 +446,8 @@ const styles = StyleSheet.create({
   },
   gridDot: {
     position: 'absolute',
-    bottom: 15,
-    right: 15,
+    bottom: 12,
+    right: 12,
     width: 8,
     height: 8,
     borderRadius: 4,

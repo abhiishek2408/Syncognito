@@ -1,7 +1,9 @@
 import { io, Socket } from 'socket.io-client';
 import { Platform } from 'react-native';
+import API_URL from './api';
 
-const SERVER_URL = 'https://syncognito.onrender.com';
+const SERVER_URL = API_URL;
+
 
 let socket: Socket | null = null;
 
