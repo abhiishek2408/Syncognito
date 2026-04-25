@@ -45,7 +45,8 @@ export default function RoomScreen({ navigation, route }: Props) {
   const [showExitModal, setShowExitModal] = useState(false);
   const [showNglModal, setShowNglModal] = useState(false);
   const [nglText, setNglText] = useState('');
-  const [sendingNgl, setSendingNgl] = useState(false);
+  const [isWaitingApproval, setIsWaitingApproval] = useState(false);
+  const [joinRequests, setJoinRequests] = useState<any[]>([]);
   const loadingProgress = useRef(new Animated.Value(0)).current;
 
   const isHost = (auth.user && initialRoom?.host?._id === auth.user?._id) || initialIsHost;
@@ -91,6 +92,41 @@ export default function RoomScreen({ navigation, route }: Props) {
       navigation.goBack();
     });
 
+    socket.on('waiting-for-approval', (data: any) => {
+      setIsWaitingApproval(true);
+      showToast(data.message, 'info');
+    });
+
+    socket.on('join-approved', (data: any) => {
+      setIsWaitingApproval(false);
+      showToast('Joined successfully!', 'success');
+      if (data.roomState) {
+        setMembers(data.roomState.members || []);
+        setMessages(data.roomState.messages || []);
+        // Update player context via joinRoom
+        joinRoom(data.roomState, isAnonymous);
+      }
+    });
+
+    socket.on('join-rejected', (data: any) => {
+      setIsWaitingApproval(false);
+      showToast(data.message, 'error');
+      navigation.goBack();
+    });
+
+    socket.on('new-join-request', (data: any) => {
+      if (isHost) {
+        setJoinRequests(prev => [...prev, data]);
+        showToast(`New join request from ${data.displayName}`, 'info');
+      }
+    });
+
+    socket.on('pending-update', (data: any) => {
+      if (isHost && data.pendingMembers) {
+        setJoinRequests(data.pendingMembers);
+      }
+    });
+
     return () => {
       socket.off('room-message');
       socket.off('hand-raised');
@@ -98,6 +134,11 @@ export default function RoomScreen({ navigation, route }: Props) {
       socket.off('error-msg');
       socket.off('room-update');
       socket.off('room-closed');
+      socket.off('waiting-for-approval');
+      socket.off('join-approved');
+      socket.off('join-rejected');
+      socket.off('new-join-request');
+      socket.off('pending-update');
     };
   }, [socket, isHost, showToast]);
 
@@ -195,6 +236,14 @@ export default function RoomScreen({ navigation, route }: Props) {
     setPendingRequests(prev => prev.filter(r => r.socketId !== targetSocketId));
   };
 
+  const approveJoin = (targetSocketId: string) => {
+    socket.emit('approve-join', { targetSocketId, roomCode: initialRoom.roomCode });
+  };
+
+  const rejectJoin = (targetSocketId: string) => {
+    socket.emit('reject-join', { targetSocketId, roomCode: initialRoom.roomCode });
+  };
+
   const sendChat = () => {
     if (!chatText.trim()) return;
     try {
@@ -235,6 +284,23 @@ export default function RoomScreen({ navigation, route }: Props) {
 
   return (
     <View style={styles.container}>
+      {isWaitingApproval && (
+        <View style={styles.waitingOverlay}>
+          <MaterialCommunityIcons name="clock-outline" size={80} color="#1DB954" />
+          <Text style={styles.waitingTitle}>Waiting for Approval</Text>
+          <Text style={styles.waitingSub}>The host will let you in shortly...</Text>
+          <ActivityIndicator size="large" color="#1DB954" style={{ marginTop: 30 }} />
+          <TouchableOpacity 
+            style={styles.cancelWaitBtn} 
+            onPress={() => {
+              setIsWaitingApproval(false);
+              navigation.goBack();
+            }}
+          >
+            <Text style={styles.cancelWaitText}>CANCEL REQUEST</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       {/* Premium Exit Modal */}
       <Modal
         visible={showExitModal}
@@ -345,7 +411,7 @@ export default function RoomScreen({ navigation, route }: Props) {
           <TouchableOpacity onPress={() => setActiveTab('requests')} style={[styles.tab, activeTab === 'requests' && styles.activeTab]}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={[styles.tabText, activeTab === 'requests' && styles.activeTabText]}>REQUESTS</Text>
-              {pendingRequests.length > 0 && <View style={styles.notifBadge} />}
+              {(pendingRequests.length > 0 || joinRequests.length > 0) && <View style={styles.notifBadge} />}
             </View>
           </TouchableOpacity>
         )}
@@ -426,7 +492,7 @@ export default function RoomScreen({ navigation, route }: Props) {
              </TouchableOpacity>
           )}
 
-          {(isHost || hasPermission) && (
+          {isHost && (
             <TouchableOpacity onPress={togglePlayback} style={styles.playBtn}>
               <MaterialCommunityIcons name={isPlaying ? 'pause' : 'play'} size={40} color="#000" />
             </TouchableOpacity>
@@ -487,36 +553,54 @@ export default function RoomScreen({ navigation, route }: Props) {
           </View>
         </View>
       ) : activeTab === 'requests' ? (
-        <View style={{ flex: 1, padding: 20 }}>
-          <Text style={styles.requestTitle}>Pending Control Requests</Text>
+        <ScrollView style={{ flex: 1, padding: 20 }}>
+          {joinRequests.length > 0 && (
+            <View style={{ marginBottom: 30 }}>
+              <Text style={styles.requestTitle}>Join Room Requests</Text>
+              {joinRequests.map((item) => (
+                <View key={item.socketId} style={styles.requestRow}>
+                  <View>
+                    <Text style={styles.requestName}>{item.displayName}</Text>
+                    <Text style={styles.requestSub}>Wants to join the room</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 12 }}>
+                    <TouchableOpacity onPress={() => rejectJoin(item.socketId)} style={styles.rejectBtn}>
+                      <MaterialCommunityIcons name="close" size={22} color="#FF5252" />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => approveJoin(item.socketId)} style={styles.approveBtn}>
+                      <MaterialCommunityIcons name="check-bold" size={22} color="#1DB954" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+
+          <Text style={styles.requestTitle}>Music Control Requests</Text>
           {pendingRequests.length === 0 ? (
             <View style={styles.emptyRequests}>
               <MaterialCommunityIcons name="hand-back-right-off" size={48} color="#222" />
               <Text style={styles.emptyRequestsText}>No pending requests</Text>
             </View>
           ) : (
-            <FlatList
-              data={pendingRequests}
-              keyExtractor={item => item.socketId}
-              renderItem={({ item }) => (
-                <View style={styles.requestRow}>
-                  <View>
-                    <Text style={styles.requestName}>{item.displayName}</Text>
-                    <Text style={styles.requestSub}>Wants to select music</Text>
-                  </View>
-                  <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <TouchableOpacity onPress={() => rejectRequest(item.socketId)} style={styles.rejectBtn}>
-                      <MaterialCommunityIcons name="close" size={22} color="#FF5252" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => approveRequest(item.socketId)} style={styles.approveBtn}>
-                      <MaterialCommunityIcons name="check-bold" size={22} color="#1DB954" />
-                    </TouchableOpacity>
-                  </View>
+            pendingRequests.map((item) => (
+              <View key={item.socketId} style={styles.requestRow}>
+                <View>
+                  <Text style={styles.requestName}>{item.displayName}</Text>
+                  <Text style={styles.requestSub}>Wants to select music</Text>
                 </View>
-              )}
-            />
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <TouchableOpacity onPress={() => rejectRequest(item.socketId)} style={styles.rejectBtn}>
+                    <MaterialCommunityIcons name="close" size={22} color="#FF5252" />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => approveRequest(item.socketId)} style={styles.approveBtn}>
+                    <MaterialCommunityIcons name="check-bold" size={22} color="#1DB954" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
           )}
-        </View>
+        </ScrollView>
       ) : (
         <View style={{ flex: 1, padding: 20 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -687,4 +771,17 @@ const styles = StyleSheet.create({
   nglCancelText: { color: '#666', fontWeight: '800', fontSize: 12 },
   nglSend: { flex: 2, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: '#BB86FC' },
   nglSendText: { color: '#000', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
+  
+  waitingOverlay: { 
+    ...StyleSheet.absoluteFillObject, 
+    backgroundColor: '#000', 
+    zIndex: 9999, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    padding: 40 
+  },
+  waitingTitle: { color: '#FFF', fontSize: 24, fontWeight: '800', marginTop: 20 },
+  waitingSub: { color: '#666', fontSize: 14, textAlign: 'center', marginTop: 10 },
+  cancelWaitBtn: { marginTop: 60, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 30, borderWidth: 1, borderColor: '#333' },
+  cancelWaitText: { color: '#666', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
 });

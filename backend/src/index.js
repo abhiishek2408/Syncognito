@@ -121,59 +121,125 @@ io.on('connection', (socket) => {
     // Update room in DB
     try {
       const room = await Room.findOne({ roomCode }).populate('host', 'name avatar');
-      if (room) {
-        // If room was empty, reset to paused state for a fresh start
-        if (room.members.length === 0) {
-          room.currentTrack.isPlaying = false;
-        }
+      if (!room) return;
 
-        // Remove any existing entries for this user ID (to prevent duplicates) or this socket
-        if (userId) {
-          room.members = room.members.filter(m => m.userId?.toString() !== userId.toString());
-        }
-        room.members = room.members.filter(m => m.socketId !== socket.id);
+      const isRoomHost = userId && room.host._id.toString() === userId.toString();
 
-        // Add member to room
+      // 1. If room is OFFLINE and joining person is NOT the host, reject.
+      if (room.status === 'offline' && !isRoomHost) {
+        socket.emit('error-msg', { message: 'Room has not been started by the host yet.' });
+        return;
+      }
+
+      // 2. If it's the Host joining
+      if (isRoomHost) {
+        room.status = 'online';
+        room.hostSocketId = socket.id;
+        // Host is always an active member
+        room.members = room.members.filter(m => m.userId?.toString() !== userId.toString());
         room.members.push({
+          userId: userId,
+          displayName: displayName || 'Host',
+          socketId: socket.id,
+        });
+        await room.save();
+
+        socket.emit('room-state', {
+          roomCode: room.roomCode,
+          name: room.name,
+          members: room.members,
+          pendingMembers: room.pendingMembers,
+          currentTrack: room.currentTrack,
+          messages: room.messages.slice(-50),
+          isHost: true
+        });
+        io.to(socketKey).emit('room-update', { members: room.members });
+      } 
+      // 3. If it's a regular member joining
+      else {
+        // Add to pending members
+        room.pendingMembers = room.pendingMembers.filter(m => m.socketId !== socket.id);
+        room.pendingMembers.push({
           userId: userId || null,
           displayName: name,
           isAnonymous: !!isAnonymous,
           socketId: socket.id,
         });
-        // If this is the host, update hostSocketId
-        if (userId && room.host._id.toString() === userId) {
-          room.hostSocketId = socket.id;
-        }
         await room.save();
 
-        // Send current room state to the joining user
-        socket.emit('room-state', {
-          roomCode: room.roomCode,
-          name: room.name,
-          mood: room.mood,
-          members: room.members,
-          currentTrack: room.currentTrack,
-          messages: room.messages.slice(-50),
-          songQueue: room.songQueue,
-          gameMode: room.gameMode,
-          hostId: room.host._id.toString(),
-          hostName: room.host.name,
-          hostAvatar: room.host.avatar,
-        });
-
-        // Notify others
-        socket.to(socketKey).emit('member-joined', {
-          socketId: socket.id,
-          displayName: name,
-          isAnonymous: !!isAnonymous,
-          memberCount: room.members.length,
-        });
-
-        // Broadcast full updated member list to everyone in the room
-        io.to(socketKey).emit('room-update', { members: room.members });
+        socket.emit('waiting-for-approval', { message: 'Request sent to host. Waiting for approval...' });
+        
+        // Notify the host
+        if (room.hostSocketId) {
+          io.to(room.hostSocketId).emit('new-join-request', {
+            socketId: socket.id,
+            displayName: name,
+            userId: userId || null
+          });
+        }
       }
     } catch (err) {
       console.error('join-room DB error:', err);
+    }
+  });
+
+  // ---- Approve Join Request ----
+  socket.on('approve-join', async (data) => {
+    // data: { targetSocketId, roomCode }
+    const info = socketRooms.get(socket.id);
+    if (!info?.roomCode) return;
+
+    try {
+      const room = await Room.findOne({ roomCode: info.roomCode });
+      if (!room) return;
+      if (room.hostSocketId !== socket.id) return; // Only host can approve
+
+      const pendingUser = room.pendingMembers.find(m => m.socketId === data.targetSocketId);
+      if (pendingUser) {
+        // Move from pending to active members
+        room.pendingMembers = room.pendingMembers.filter(m => m.socketId !== data.targetSocketId);
+        room.members.push(pendingUser);
+        await room.save();
+
+        // Notify the user they are in!
+        io.to(data.targetSocketId).emit('join-approved', {
+          roomState: {
+            roomCode: room.roomCode,
+            name: room.name,
+            members: room.members,
+            currentTrack: room.currentTrack,
+            messages: room.messages.slice(-50),
+            songQueue: room.songQueue,
+          }
+        });
+
+        // Broadcast updated member list
+        io.to(`room:${info.roomCode}`).emit('room-update', { members: room.members });
+        // Notify host about updated pending list
+        socket.emit('pending-update', { pendingMembers: room.pendingMembers });
+      }
+    } catch (err) {
+      console.error('approve-join error:', err);
+    }
+  });
+
+  // ---- Reject Join Request ----
+  socket.on('reject-join', async (data) => {
+    const info = socketRooms.get(socket.id);
+    if (!info?.roomCode) return;
+
+    try {
+      const room = await Room.findOne({ roomCode: info.roomCode });
+      if (!room) return;
+      if (room.hostSocketId !== socket.id) return;
+
+      room.pendingMembers = room.pendingMembers.filter(m => m.socketId !== data.targetSocketId);
+      await room.save();
+
+      io.to(data.targetSocketId).emit('join-rejected', { message: 'Your request to join was rejected by the host.' });
+      socket.emit('pending-update', { pendingMembers: room.pendingMembers });
+    } catch (err) {
+      console.error('reject-join error:', err);
     }
   });
 
@@ -475,14 +541,12 @@ async function handleLeaveRoom(socket) {
         room.hostSocketId = null;
       }
 
-      // If the host leaves or room is empty, close/delete the room
-      const isHost = info.userId && room.host.toString() === info.userId;
-      
-      if (isHost || room.members.length === 0) {
-        await Room.deleteOne({ _id: room._id });
-        io.to(`room:${info.roomCode}`).emit('room-closed', { 
-          message: isHost ? 'Host has left. Room closed.' : 'Room empty. Room closed.' 
-        });
+      // Never delete the room, just set it to offline if empty
+      if (room.members.length === 0) {
+        room.status = 'offline';
+        room.currentTrack.isPlaying = false;
+        room.hostSocketId = null;
+        await room.save();
       } else {
         await room.save();
         io.to(`room:${info.roomCode}`).emit('member-left', {
@@ -490,6 +554,7 @@ async function handleLeaveRoom(socket) {
           displayName: info.displayName,
           memberCount: room.members.length,
         });
+        
         // Broadcast full updated member list to everyone left
         io.to(`room:${info.roomCode}`).emit('room-update', { members: room.members });
       }

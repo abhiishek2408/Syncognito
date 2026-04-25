@@ -18,7 +18,15 @@
           "client_type": 1,
           "android_info": {
             "package_name": "com.syncognito",
-            "certificate_hash": "b8c4c6be4c0bd658bf8c08581f0725f0f771c193"
+            "certificate_hash": "047c9ea67d3957716f3bacdfaee62e00d46d68d8"
+          }
+        },
+        {
+          "client_id": "862585517468-2bsi54ge68r0d7h9om2celmo0q4q0du3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.syncognito",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
           }
         },
         {

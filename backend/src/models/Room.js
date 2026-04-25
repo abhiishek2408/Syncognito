@@ -26,6 +26,7 @@ const roomSchema = new mongoose.Schema({
   host: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   hostSocketId: { type: String },
   members: [memberSchema],
+  pendingMembers: [memberSchema],
   isPublic: { type: Boolean, default: true },
   mood: { type: String, enum: ['chill', 'sad', 'party', 'focus', 'romantic', 'any'], default: 'any' },
   messages: [messageSchema],
@@ -46,6 +47,7 @@ const roomSchema = new mongoose.Schema({
   },
   gameMode: { type: String, enum: ['none', 'guess-who-added'], default: 'none' },
   maxMembers: { type: Number, default: 50 },
+  status: { type: String, enum: ['online', 'offline'], default: 'offline' },
   createdAt: { type: Date, default: Date.now },
 });
 
