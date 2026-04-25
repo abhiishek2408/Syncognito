@@ -151,6 +151,7 @@ io.on('connection', (socket) => {
           pendingMembers: room.pendingMembers,
           currentTrack: room.currentTrack,
           messages: room.messages.slice(-50),
+          theme: room.theme || 'default',
           isHost: true
         });
         io.to(socketKey).emit('room-update', { members: room.members });
@@ -346,6 +347,7 @@ io.on('connection', (socket) => {
           title: data.suggestedSong,
           artist: '',
           suggestedBy: info.isAnonymous ? 'Anonymous' : info.displayName,
+          suggestedById: info.userId || null,
           isAnonymous: !!info.isAnonymous,
         });
       }
@@ -373,6 +375,7 @@ io.on('connection', (socket) => {
         title: data.title,
         artist: data.artist || '',
         suggestedBy: info.isAnonymous ? 'Anonymous' : info.displayName,
+        suggestedById: info.userId || null,
         isAnonymous: !!info.isAnonymous,
       };
 
@@ -385,6 +388,66 @@ io.on('connection', (socket) => {
       });
     } catch (err) {
       console.error('suggest-song error:', err);
+    }
+  });
+
+  // ---- Queue Voting ----
+  socket.on('vote-song', async (data) => {
+    // data: { songId, vote: 1 | -1 }
+    const info = socketRooms.get(socket.id);
+    if (!info?.roomCode || !info.userId) return;
+
+    try {
+      const room = await Room.findOne({ roomCode: info.roomCode });
+      if (!room) return;
+
+      const song = room.songQueue.id(data.songId);
+      if (song) {
+        // Simple voting logic: allow multiple votes for now or toggle? Let's do cumulative.
+        song.votes = (song.votes || 0) + (data.vote || 0);
+        
+        // Sort queue by votes (descending)
+        room.songQueue.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+        
+        await room.save();
+        io.to(`room:${info.roomCode}`).emit('song-queue-update', { queue: room.songQueue });
+      }
+    } catch (err) {
+      console.error('vote-song error:', err);
+    }
+  });
+
+  // ---- Game: Submit Guess ----
+  socket.on('submit-guess', async (data) => {
+    // data: { songId, guessedHostId }
+    const info = socketRooms.get(socket.id);
+    if (!info?.roomCode || !info.userId) return;
+
+    try {
+      const room = await Room.findOne({ roomCode: info.roomCode });
+      if (!room || room.gameMode !== 'guess-who-added') return;
+
+      const song = room.songQueue.id(data.songId);
+      if (song) {
+        const isCorrect = song.suggestedById?.toString() === data.guessedHostId;
+        song.guesses.push({
+          userId: info.userId,
+          guessedHostId: data.guessedHostId,
+          correct: isCorrect
+        });
+        await room.save();
+        
+        socket.emit('guess-result', { correct: isCorrect, songId: data.songId });
+        if (isCorrect) {
+          io.to(`room:${info.roomCode}`).emit('room-chat', {
+            sender: 'SYSTEM',
+            text: `${info.displayName} correctly guessed who added "${song.title}"! 🎉`,
+            createdAt: new Date()
+          });
+        }
+      }
+    } catch (err) {
+      console.error('submit-guess error:', err);
     }
   });
 
@@ -438,6 +501,37 @@ io.on('connection', (socket) => {
       userId: info.userId,
       displayName: info.displayName
     });
+  });
+
+  // ---- Emoji Reaction ----
+  socket.on('send-reaction', (data) => {
+    // data: { emoji }
+    const info = socketRooms.get(socket.id);
+    if (!info?.roomCode) return;
+    io.to(`room:${info.roomCode}`).emit('new-reaction', {
+      emoji: data.emoji,
+      userId: info.userId,
+      socketId: socket.id
+    });
+  });
+
+  // ---- Change Theme (Host Only) ----
+  socket.on('change-theme', async (data) => {
+    // data: { theme }
+    const info = socketRooms.get(socket.id);
+    if (!info?.roomCode) return;
+
+    try {
+      const room = await Room.findOne({ roomCode: info.roomCode });
+      if (!room) return;
+      if (info.userId && room.host.toString() !== info.userId) return;
+
+      room.theme = data.theme || 'default';
+      await room.save();
+      io.to(`room:${info.roomCode}`).emit('theme-changed', { theme: room.theme });
+    } catch (err) {
+      console.error('change-theme error:', err);
+    }
   });
 
   socket.on('approve-hand', async (data) => {

@@ -16,9 +16,47 @@ import { usePlayer } from '../context/PlayerContext';
 import axios from 'axios';
 import API_URL from '../utils/api';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 type Props = { navigation: any; route: any };
+
+const FloatingEmoji = ({ emoji, x }: { emoji: string, x: number }) => {
+  const anim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: 1,
+      duration: 3000,
+      useNativeDriver: true,
+    }).start();
+  }, [anim]);
+
+  const translateY = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [SCREEN_HEIGHT * 0.7, 0],
+  });
+
+  const opacity = anim.interpolate({
+    inputRange: [0, 0.2, 0.8, 1],
+    outputRange: [0, 1, 1, 0],
+  });
+
+  const scale = anim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0.5, 1.5, 1],
+  });
+
+  return (
+    <Animated.View style={{
+      position: 'absolute',
+      left: `${x}%`,
+      transform: [{ translateY }, { scale }],
+      opacity,
+    }}>
+      <Text style={{ fontSize: 32 }}>{emoji}</Text>
+    </Animated.View>
+  );
+};
 
 export default function RoomScreen({ navigation, route }: Props) {
   const params = route?.params || {};
@@ -36,7 +74,7 @@ export default function RoomScreen({ navigation, route }: Props) {
   const [isPicking, setIsPicking] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [chatText, setChatText] = useState('');
-  const [activeTab, setActiveTab] = useState<'player' | 'chat' | 'requests' | 'members'>('player');
+  const [activeTab, setActiveTab] = useState<'player' | 'chat' | 'requests' | 'members' | 'queue'>('player');
   const [members, setMembers] = useState<any[]>(initialRoom.members || []);
   const [hostInfo, setHostInfo] = useState({ name: initialRoom.host?.name || '', avatar: initialRoom.host?.avatar || '' });
   const [hasPermission, setHasPermission] = useState(false);
@@ -47,7 +85,25 @@ export default function RoomScreen({ navigation, route }: Props) {
   const [nglText, setNglText] = useState('');
   const [isWaitingApproval, setIsWaitingApproval] = useState(false);
   const [joinRequests, setJoinRequests] = useState<any[]>([]);
+  const [sendingNgl, setSendingNgl] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState(initialRoom.theme || 'default');
+  const [reactions, setReactions] = useState<any[]>([]);
+  const [songQueue, setSongQueue] = useState<any[]>(initialRoom.songQueue || []);
+  const [showGuessModal, setShowGuessModal] = useState(false);
+  const [selectedSongForGuess, setSelectedSongForGuess] = useState<any>(null);
+  const [gameMode, setGameMode] = useState(initialRoom.gameMode || 'none');
   const loadingProgress = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const bgAnim = useRef(new Animated.Value(0)).current;
+
+  const THEMES: any = {
+    default: { primary: '#1DB954', accent: '#1DB95420', bg: '#000', text: '#FFF' },
+    neon: { primary: '#FF00FF', accent: '#FF00FF20', bg: '#080008', text: '#FFF' },
+    ocean: { primary: '#00BFFF', accent: '#00BFFF20', bg: '#00080F', text: '#FFF' },
+    sunset: { primary: '#FF4500', accent: '#FF450020', bg: '#0F0500', text: '#FFF' },
+    emerald: { primary: '#50C878', accent: '#50C87820', bg: '#000A05', text: '#FFF' },
+  };
+  const theme = THEMES[currentTheme] || THEMES.default;
 
   const isHost = (auth.user && initialRoom?.host?._id === auth.user?._id) || initialIsHost;
 
@@ -103,7 +159,6 @@ export default function RoomScreen({ navigation, route }: Props) {
       if (data.roomState) {
         setMembers(data.roomState.members || []);
         setMessages(data.roomState.messages || []);
-        // Update player context via joinRoom
         joinRoom(data.roomState, isAnonymous);
       }
     });
@@ -127,6 +182,32 @@ export default function RoomScreen({ navigation, route }: Props) {
       }
     });
 
+    socket.on('theme-changed', (data: any) => {
+      setCurrentTheme(data.theme);
+      showToast(`Room theme changed to ${data.theme}`, 'info');
+    });
+
+    socket.on('new-reaction', (data: any) => {
+      const id = Math.random().toString(36).substr(2, 9);
+      setReactions(prev => [...prev, { id, emoji: data.emoji, x: Math.random() * 80 + 10 }]);
+      setTimeout(() => {
+        setReactions(prev => prev.filter(r => r.id !== id));
+      }, 3000);
+    });
+
+    socket.on('song-queue-update', (data: any) => {
+      setSongQueue(data.queue);
+    });
+
+    socket.on('guess-result', (data: any) => {
+      showToast(data.correct ? 'Correct! +10 Points' : 'Wrong guess!', data.correct ? 'success' : 'error');
+    });
+
+    socket.on('game-mode-changed', (data: any) => {
+      setGameMode(data.gameMode);
+      showToast(`Game Mode: ${data.gameMode}`, 'info');
+    });
+
     return () => {
       socket.off('room-message');
       socket.off('hand-raised');
@@ -139,10 +220,27 @@ export default function RoomScreen({ navigation, route }: Props) {
       socket.off('join-rejected');
       socket.off('new-join-request');
       socket.off('pending-update');
+      socket.off('theme-changed');
+      socket.off('new-reaction');
+      socket.off('song-queue-update');
+      socket.off('guess-result');
+      socket.off('game-mode-changed');
     };
   }, [socket, isHost, showToast]);
 
-  // Join room and sync timer
+  useEffect(() => {
+    if (isPlaying) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 1.2, duration: 500, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+        ])
+      ).start();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isPlaying, pulseAnim]);
+
   useEffect(() => {
     if (initialRoom.roomCode !== activeRoomCode) {
        joinRoom(initialRoom, isAnonymous);
@@ -164,6 +262,20 @@ export default function RoomScreen({ navigation, route }: Props) {
     };
   }, [joinRoom, socket, initialRoom, isAnonymous, activeRoomCode, isHost, isPlaying, position]);
 
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(bgAnim, { toValue: 1, duration: 8000, useNativeDriver: false }),
+        Animated.timing(bgAnim, { toValue: 0, duration: 8000, useNativeDriver: false })
+      ])
+    ).start();
+  }, [bgAnim]);
+
+  const bgColor = bgAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [theme.bg, theme.accent],
+  });
+
   const formatTime = (seconds: number) => {
     if (!seconds || isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
@@ -182,7 +294,6 @@ export default function RoomScreen({ navigation, route }: Props) {
   };
 
   const pickSong = async () => {
-    // Stop current playback while picking
     if (isPlaying) {
       togglePlayback();
     }
@@ -195,7 +306,6 @@ export default function RoomScreen({ navigation, route }: Props) {
       useNativeDriver: false,
     }).start();
     
-    // Using direct .catch to suppress the internal library error logging
     const res = await DocumentPicker.pick({ 
       type: ['audio/*'] 
     }).catch(() => null);
@@ -206,7 +316,6 @@ export default function RoomScreen({ navigation, route }: Props) {
       return;
     }
 
-    // Hold the bar at 100% for a brief moment
     loadingProgress.setValue(1);
     setTimeout(() => {
       setIsPicking(false);
@@ -244,6 +353,22 @@ export default function RoomScreen({ navigation, route }: Props) {
     socket.emit('reject-join', { targetSocketId, roomCode: initialRoom.roomCode });
   };
 
+  const sendReaction = (emoji: string) => {
+    socket.emit('send-reaction', { emoji });
+  };
+
+  const changeTheme = (themeName: string) => {
+    socket.emit('change-theme', { theme: themeName });
+  };
+
+  const voteSong = (songId: string, vote: number) => {
+    socket.emit('vote-song', { songId, vote });
+  };
+
+  const submitGuess = (songId: string, guessedHostId: string) => {
+    socket.emit('submit-guess', { songId, guessedHostId });
+  };
+
   const sendChat = () => {
     if (!chatText.trim()) return;
     try {
@@ -255,11 +380,12 @@ export default function RoomScreen({ navigation, route }: Props) {
   };
 
   const submitNgl = async () => {
-    if (!nglText.trim() || !initialRoom.host?._id) return;
+    const hostId = initialRoom.host?._id || initialRoom.host;
+    if (!nglText.trim() || !hostId) return;
     setSendingNgl(true);
     try {
       await axios.post(`${API_URL}/api/ngl/send`, { 
-        recipientId: initialRoom.host._id, 
+        recipientId: hostId, 
         text: nglText.trim() 
       });
       showToast('Anonymous note sent to Host! 🤫', 'success');
@@ -283,13 +409,46 @@ export default function RoomScreen({ navigation, route }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, { backgroundColor: bgColor }]}>
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        {reactions.map(r => (
+          <FloatingEmoji key={r.id} emoji={r.emoji} x={r.x} />
+        ))}
+      </View>
+
+      {/* Guessing Modal */}
+      <Modal visible={showGuessModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.nglModal, { paddingBottom: 20 }]}>
+            <Text style={styles.modalTitle}>Who added this?</Text>
+            <Text style={styles.modalSub}>{selectedSongForGuess?.title}</Text>
+            <ScrollView style={{ maxHeight: 300, width: '100%' }}>
+              {members.map(m => (
+                <TouchableOpacity 
+                  key={m.userId} 
+                  style={{ paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#222', flexDirection: 'row', justifyContent: 'space-between' }}
+                  onPress={() => {
+                    submitGuess(selectedSongForGuess?._id, m.userId);
+                    setShowGuessModal(false);
+                  }}
+                >
+                   <Text style={{ color: '#FFF', fontSize: 16 }}>{m.displayName}</Text>
+                   <MaterialCommunityIcons name="chevron-right" size={20} color={theme.primary} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity style={[styles.cancelBtn, { marginTop: 20, width: '100%' }]} onPress={() => setShowGuessModal(false)}>
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       {isWaitingApproval && (
         <View style={styles.waitingOverlay}>
-          <MaterialCommunityIcons name="clock-outline" size={80} color="#1DB954" />
+          <MaterialCommunityIcons name="clock-outline" size={80} color={theme.primary} />
           <Text style={styles.waitingTitle}>Waiting for Approval</Text>
           <Text style={styles.waitingSub}>The host will let you in shortly...</Text>
-          <ActivityIndicator size="large" color="#1DB954" style={{ marginTop: 30 }} />
+          <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 30 }} />
           <TouchableOpacity 
             style={styles.cancelWaitBtn} 
             onPress={() => {
@@ -301,7 +460,6 @@ export default function RoomScreen({ navigation, route }: Props) {
           </TouchableOpacity>
         </View>
       )}
-      {/* Premium Exit Modal */}
       <Modal
         visible={showExitModal}
         transparent={true}
@@ -329,7 +487,7 @@ export default function RoomScreen({ navigation, route }: Props) {
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={[styles.exitConfirmBtn, { backgroundColor: isHost ? '#FF5252' : '#1DB954' }]} 
+                style={[styles.exitConfirmBtn, { backgroundColor: isHost ? '#FF5252' : theme.primary }]} 
                 onPress={() => {
                   setShowExitModal(false);
                   leaveRoom();
@@ -343,7 +501,6 @@ export default function RoomScreen({ navigation, route }: Props) {
         </View>
       </Modal>
 
-      {/* NGL Send Modal (Anonymous Note to Host) */}
       <Modal visible={showNglModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.nglModal}>
@@ -390,25 +547,42 @@ export default function RoomScreen({ navigation, route }: Props) {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={styles.headerSubtitle}>#{initialRoom.roomCode}</Text>
             <TouchableOpacity onPress={shareRoomLink} style={styles.shareBadge}>
-              <MaterialCommunityIcons name="content-copy" size={12} color="#1DB954" />
+              <MaterialCommunityIcons name="content-copy" size={12} color={theme.primary} />
               <Text style={styles.shareBadgeText}>INVITE</Text>
             </TouchableOpacity>
           </View>
         </View>
         <TouchableOpacity 
           onPress={() => setShowExitModal(true)} 
-          style={styles.leaveCircle}
+          style={[styles.leaveCircle, { borderColor: theme.primary + '40' }]}
         >
           <MaterialCommunityIcons name={isHost ? "power" : "logout"} size={20} color="#FF5252" />
         </TouchableOpacity>
       </View>
 
+      {isHost && activeTab === 'player' && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.themeBar} contentContainerStyle={{ gap: 10 }}>
+          {Object.keys(THEMES).map(t => (
+            <TouchableOpacity 
+              key={t} 
+              onPress={() => changeTheme(t)}
+              style={[
+                styles.themeDot, 
+                { backgroundColor: THEMES[t].primary },
+                currentTheme === t && { borderWidth: 2, borderColor: '#FFF' }
+              ]} 
+            />
+          ))}
+        </ScrollView>
+      )}
+
       <View style={styles.tabContainer}>
-        <TouchableOpacity onPress={() => setActiveTab('player')} style={[styles.tab, activeTab === 'player' && styles.activeTab]}><Text style={[styles.tabText, activeTab === 'player' && styles.activeTabText]}>PLAYER</Text></TouchableOpacity>
-        <TouchableOpacity onPress={() => setActiveTab('chat')} style={[styles.tab, activeTab === 'chat' && styles.activeTab]}><Text style={[styles.tabText, activeTab === 'chat' && styles.activeTabText]}>CHAT</Text></TouchableOpacity>
-        <TouchableOpacity onPress={() => setActiveTab('members')} style={[styles.tab, activeTab === 'members' && styles.activeTab]}><Text style={[styles.tabText, activeTab === 'members' && styles.activeTabText]}>MEMBERS</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => setActiveTab('player')} style={[styles.tab, activeTab === 'player' && { borderBottomWidth: 3, borderBottomColor: theme.primary }]}><Text style={[styles.tabText, activeTab === 'player' && styles.activeTabText]}>PLAYER</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => setActiveTab('queue')} style={[styles.tab, activeTab === 'queue' && { borderBottomWidth: 3, borderBottomColor: theme.primary }]}><Text style={[styles.tabText, activeTab === 'queue' && styles.activeTabText]}>QUEUE</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => setActiveTab('chat')} style={[styles.tab, activeTab === 'chat' && { borderBottomWidth: 3, borderBottomColor: theme.primary }]}><Text style={[styles.tabText, activeTab === 'chat' && styles.activeTabText]}>CHAT</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => setActiveTab('members')} style={[styles.tab, activeTab === 'members' && { borderBottomWidth: 3, borderBottomColor: theme.primary }]}><Text style={[styles.tabText, activeTab === 'members' && styles.activeTabText]}>MEMBERS</Text></TouchableOpacity>
         {isHost && (
-          <TouchableOpacity onPress={() => setActiveTab('requests')} style={[styles.tab, activeTab === 'requests' && styles.activeTab]}>
+          <TouchableOpacity onPress={() => setActiveTab('requests')} style={[styles.tab, activeTab === 'requests' && { borderBottomWidth: 3, borderBottomColor: theme.primary }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={[styles.tabText, activeTab === 'requests' && styles.activeTabText]}>REQUESTS</Text>
               {(pendingRequests.length > 0 || joinRequests.length > 0) && <View style={styles.notifBadge} />}
@@ -419,9 +593,9 @@ export default function RoomScreen({ navigation, route }: Props) {
 
       {activeTab === 'player' ? (
         <ScrollView contentContainerStyle={{ alignItems: 'center', paddingTop: 40 }}>
-          <View style={styles.disc}>
-            <MaterialCommunityIcons name="music-circle" size={100} color="#1DB954" />
-          </View>
+          <Animated.View style={[styles.disc, { transform: [{ scale: pulseAnim }] }]}>
+            <MaterialCommunityIcons name="music-circle" size={100} color={theme.primary} />
+          </Animated.View>
 
           {isPicking && (
             <View style={styles.loaderContainer}>
@@ -429,6 +603,7 @@ export default function RoomScreen({ navigation, route }: Props) {
                 style={[
                   styles.loaderBar, 
                   { 
+                    backgroundColor: theme.primary,
                     width: loadingProgress.interpolate({
                       inputRange: [0, 1],
                       outputRange: ['0%', '100%']
@@ -439,9 +614,9 @@ export default function RoomScreen({ navigation, route }: Props) {
             </View>
           )}
 
-          <View style={styles.hostBadge}>
-            <View style={styles.hostDot} />
-            <Text style={styles.hostNameText}>HOSTED BY {hostInfo.name.toUpperCase()}</Text>
+          <View style={[styles.hostBadge, { backgroundColor: theme.accent }]}>
+            <View style={[styles.hostDot, { backgroundColor: theme.primary }]} />
+            <Text style={[styles.hostNameText, { color: theme.primary }]}>HOSTED BY {hostInfo.name.toUpperCase()}</Text>
             {!isHost && (
               <TouchableOpacity onPress={() => setShowNglModal(true)} style={{ marginLeft: 10 }}>
                 <MaterialCommunityIcons name="incognito" size={16} color="#BB86FC" />
@@ -465,7 +640,7 @@ export default function RoomScreen({ navigation, route }: Props) {
             <View style={styles.timerContainer}>
               <View style={styles.progressWrapper}>
                 <View style={styles.progressBg}>
-                  <View style={[styles.progressFill, { width: `${(position / (duration || 1)) * 100}%` }]} />
+                  <View style={[styles.progressFill, { width: `${(position / (duration || 1)) * 100}%`, backgroundColor: theme.primary }]} />
                 </View>
                 <TouchableOpacity 
                    style={StyleSheet.absoluteFill} 
@@ -486,38 +661,83 @@ export default function RoomScreen({ navigation, route }: Props) {
           ) : null}
           
           {isHost && pendingRequests.length > 0 && (
-             <TouchableOpacity onPress={() => setActiveTab('requests')} style={styles.requestBanner}>
-                <Text style={styles.requestBannerText}>{pendingRequests.length} pending control requests</Text>
-                <MaterialCommunityIcons name="chevron-right" size={16} color="#1DB954" />
+             <TouchableOpacity onPress={() => setActiveTab('requests')} style={[styles.requestBanner, { backgroundColor: theme.accent }]}>
+                <Text style={[styles.requestBannerText, { color: theme.primary }]}>{pendingRequests.length} pending control requests</Text>
+                <MaterialCommunityIcons name="chevron-right" size={16} color={theme.primary} />
              </TouchableOpacity>
           )}
 
           {isHost && (
-            <TouchableOpacity onPress={togglePlayback} style={styles.playBtn}>
+            <TouchableOpacity onPress={togglePlayback} style={[styles.playBtn, { backgroundColor: theme.primary, shadowColor: theme.primary }]}>
               <MaterialCommunityIcons name={isPlaying ? 'pause' : 'play'} size={40} color="#000" />
             </TouchableOpacity>
           )}
 
           {(isHost || hasPermission) && (
-            <TouchableOpacity onPress={pickSong} style={styles.pickBtn} disabled={isPicking}>
-              <MaterialCommunityIcons name="folder-music-outline" size={20} color="#1DB954" />
-              <Text style={styles.pickBtnText}>{isPicking ? 'PICKING...' : 'SELECT FROM DEVICE'}</Text>
+            <TouchableOpacity onPress={pickSong} style={[styles.pickBtn, { borderColor: theme.primary + '40' }]} disabled={isPicking}>
+              <MaterialCommunityIcons name="folder-music-outline" size={20} color={theme.primary} />
+              <Text style={[styles.pickBtnText, { color: theme.primary }]}>{isPicking ? 'PICKING...' : 'SELECT FROM DEVICE'}</Text>
             </TouchableOpacity>
           )}
 
           {!isHost && !hasPermission && (
             <TouchableOpacity 
               onPress={raiseHand} 
-              style={[styles.raiseHandBtn, requestStatus === 'pending' && { opacity: 0.5 }]}
+              style={[styles.raiseHandBtn, requestStatus === 'pending' && { opacity: 0.5 }, { borderColor: theme.primary + '40' }]}
               disabled={requestStatus === 'pending'}
             >
-              <MaterialCommunityIcons name="hand-back-right" size={24} color={requestStatus === 'rejected' ? '#FF5252' : '#1DB954'} />
-              <Text style={[styles.raiseHandText, requestStatus === 'rejected' && { color: '#FF5252' }]}>
-                {requestStatus === 'pending' ? 'REQUESTED...' : requestStatus === 'rejected' ? 'REQUEST REJECTED' : 'REQUEST TO PLAY MUSIC'}
+              <MaterialCommunityIcons name="hand-back-right" size={20} color={theme.primary} />
+              <Text style={[styles.raiseHandText, { color: theme.primary }]}>
+                {requestStatus === 'pending' ? 'REQUEST SENT' : 'REQUEST TO PLAY MUSIC'}
               </Text>
             </TouchableOpacity>
           )}
+
+          <View style={styles.reactionContainer}>
+            {['🔥', '❤️', '🙌', '💯', '✨', '⚡'].map(emoji => (
+              <TouchableOpacity key={emoji} onPress={() => sendReaction(emoji)} style={styles.emojiBtn}>
+                <Text style={{ fontSize: 24 }}>{emoji}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </ScrollView>
+      ) : activeTab === 'queue' ? (
+        <View style={{ flex: 1, padding: 20 }}>
+          <View style={styles.queueHeader}>
+             <Text style={styles.queueTitle}>Up Next</Text>
+             <Text style={styles.queueCount}>{songQueue.length} songs</Text>
+          </View>
+          <FlatList
+            data={songQueue}
+            keyExtractor={item => item._id}
+            renderItem={({ item }) => (
+              <View style={styles.queueCard}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.queueName}>{item.title}</Text>
+                  <Text style={styles.queueSub}>Added by {item.suggestedBy}</Text>
+                  
+                  {gameMode === 'guess-who-added' && (
+                    <TouchableOpacity onPress={() => {
+                      setSelectedSongForGuess(item);
+                      setShowGuessModal(true);
+                    }} style={styles.guessBtnSmall}>
+                      <Text style={styles.guessBtnText}>GUESS USER</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                <View style={styles.voteControls}>
+                  <TouchableOpacity onPress={() => voteSong(item._id, 1)} style={styles.voteBtn}>
+                    <MaterialCommunityIcons name="chevron-up" size={24} color={theme.primary} />
+                  </TouchableOpacity>
+                  <Text style={styles.voteCount}>{item.votes || 0}</Text>
+                  <TouchableOpacity onPress={() => voteSong(item._id, -1)} style={styles.voteBtn}>
+                    <MaterialCommunityIcons name="chevron-down" size={24} color="#FF5252" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          />
+        </View>
       ) : activeTab === 'chat' ? (
         <View style={{ flex: 1 }}>
           <FlatList 
@@ -624,8 +844,15 @@ export default function RoomScreen({ navigation, route }: Props) {
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                       <Text style={styles.memberName}>{item.displayName || 'Unknown User'}</Text>
                       {item.userId === initialRoom.host?._id && (
-                        <View style={styles.hostBadgeSmall}>
-                          <Text style={styles.hostBadgeTextSmall}>HOST</Text>
+                        <View style={[styles.roleBadge, { backgroundColor: '#FFD70020' }]}>
+                          <MaterialCommunityIcons name="crown" size={12} color="#FFD700" />
+                          <Text style={[styles.roleBadgeText, { color: '#FFD700' }]}>HOST</Text>
+                        </View>
+                      )}
+                      {item.hasPermission && (
+                        <View style={[styles.roleBadge, { backgroundColor: theme.primary + '20' }]}>
+                          <MaterialCommunityIcons name="music" size={12} color={theme.primary} />
+                          <Text style={[styles.roleBadgeText, { color: theme.primary }]}>DJ</Text>
                         </View>
                       )}
                       {item.userId === auth.user?._id && (
@@ -643,7 +870,7 @@ export default function RoomScreen({ navigation, route }: Props) {
       )}
 
       {/* Video is now global and managed in PlayerContext */}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -687,8 +914,8 @@ const styles = StyleSheet.create({
   requestTitle: { color: '#888', fontSize: 12, fontWeight: '700', marginBottom: 8, textTransform: 'uppercase' },
   requestRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1A1A1A', padding: 10, borderRadius: 12, marginBottom: 6 },
   requestName: { color: '#fff', fontWeight: '600' },
-  approveBtn: { backgroundColor: '#1DB95420', padding: 6, borderRadius: 10 },
-  rejectBtn: { backgroundColor: '#FF525220', padding: 6, borderRadius: 10 },
+  approveBtn: { backgroundColor: '#1DB95420', padding: 4, borderRadius: 10 },
+  rejectBtn: { backgroundColor: '#FF525220', padding: 4, borderRadius: 10 },
   raiseHandBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#1A1A1A', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 30, borderWidth: 1, borderColor: '#333', marginTop: 15 },
   raiseHandText: { color: '#1DB954', fontWeight: '800', fontSize: 13 },
   playBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#1DB954', justifyContent: 'center', alignItems: 'center', marginBottom: 12, shadowColor: '#1DB954', shadowOpacity: 0.4, shadowRadius: 15, elevation: 10 },
@@ -763,12 +990,15 @@ const styles = StyleSheet.create({
 
   nglModal: { width: '85%', backgroundColor: '#0A0A0A', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: '#1A1A1A' },
   nglHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
+  modalTitle: { color: '#FFF', fontSize: 20, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
   nglTitle: { color: '#FFF', fontSize: 18, fontWeight: '800' },
   nglSub: { color: '#666', fontSize: 12, marginBottom: 16 },
   nglInput: { backgroundColor: '#111', borderRadius: 16, padding: 16, color: '#FFF', fontSize: 15, textAlignVertical: 'top', height: 120, borderWidth: 1, borderColor: '#222', marginBottom: 20 },
   nglActions: { flexDirection: 'row', gap: 10 },
   nglCancel: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: '#1A1A1A' },
   nglCancelText: { color: '#666', fontWeight: '800', fontSize: 12 },
+  cancelBtn: { backgroundColor: '#333', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  cancelText: { color: '#fff', fontWeight: '600' },
   nglSend: { flex: 2, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: '#BB86FC' },
   nglSendText: { color: '#000', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
   
@@ -784,4 +1014,22 @@ const styles = StyleSheet.create({
   waitingSub: { color: '#666', fontSize: 14, textAlign: 'center', marginTop: 10 },
   cancelWaitBtn: { marginTop: 60, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 30, borderWidth: 1, borderColor: '#333' },
   cancelWaitText: { color: '#666', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
+  themeBar: { maxHeight: 40, marginTop: 10, paddingHorizontal: 20 },
+  themeDot: { width: 30, height: 30, borderRadius: 15, marginRight: 10 },
+  reactionContainer: { flexDirection: 'row', justifyContent: 'center', gap: 15, marginTop: 30, paddingVertical: 10 },
+  emojiBtn: { backgroundColor: 'rgba(255,255,255,0.05)', padding: 10, borderRadius: 20 },
+  roleBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  roleBadgeText: { fontSize: 9, fontWeight: '900' },
+  queueHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  queueTitle: { color: '#FFF', fontSize: 18, fontWeight: '800' },
+  queueCount: { color: '#666', fontSize: 12 },
+  queueCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', padding: 16, borderRadius: 20, marginBottom: 12 },
+  queueName: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+  queueSub: { color: '#888', fontSize: 11, marginTop: 4 },
+  voteControls: { alignItems: 'center', gap: 4, marginLeft: 10 },
+  voteBtn: { padding: 4 },
+  voteCount: { color: '#FFF', fontSize: 14, fontWeight: '800' },
+  guessBtnSmall: { backgroundColor: '#BB86FC20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginTop: 8, alignSelf: 'flex-start' },
+  guessBtnText: { color: '#BB86FC', fontSize: 9, fontWeight: '900' },
+  modalSub: { color: '#888', fontSize: 12, textAlign: 'center', marginBottom: 20 },
 });

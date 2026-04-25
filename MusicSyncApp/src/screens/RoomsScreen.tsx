@@ -53,6 +53,10 @@ export default function RoomsScreen({ navigation }: Props) {
     try {
       const resp = await axios.get(`${API_URL}/api/rooms/code/${joinCode.trim().toUpperCase()}`, { headers });
       if (resp.data) {
+        if (resp.data.status === 'offline') {
+          showToast('Room has not been started by the host yet.', 'warning');
+          return;
+        }
         navigation.navigate('Room', { room: resp.data, isAnonymous: false });
       }
     } catch (err: any) {
@@ -116,7 +120,13 @@ export default function RoomsScreen({ navigation }: Props) {
     return (
       <TouchableOpacity
         style={styles.roomCard}
-        onPress={() => navigation.navigate('Room', { room: item, isAnonymous: false })}
+        onPress={() => {
+          if (item.status === 'offline') {
+            showToast('Room has not been started by the host yet.', 'warning');
+            return;
+          }
+          navigation.navigate('Room', { room: item, isAnonymous: false });
+        }}
         activeOpacity={0.7}
       >
         <View style={styles.roomHeader}>
@@ -232,7 +242,13 @@ export default function RoomsScreen({ navigation }: Props) {
             if (!joinCode.trim()) return showToast('Enter a room code first', 'warning');
             axios.get(`${API_URL}/api/rooms/code/${joinCode.trim().toUpperCase()}`, { headers })
               .then(resp => {
-                if (resp.data) navigation.navigate('Room', { room: resp.data, isAnonymous: true });
+                if (resp.data) {
+                  if (resp.data.status === 'offline') {
+                    showToast('Room has not been started by the host yet.', 'warning');
+                    return;
+                  }
+                  navigation.navigate('Room', { room: resp.data, isAnonymous: true });
+                }
               })
               .catch(() => showToast('No room with that code', 'error'));
           }}

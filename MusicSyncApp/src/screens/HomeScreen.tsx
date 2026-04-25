@@ -10,6 +10,7 @@ import API_URL from '../utils/api';
 import { usePlayer } from '../context/PlayerContext';
 import { AlarmCountdown } from '../components/AlarmCountdown';
 import { useAlarms } from '../context/AlarmContext';
+import { useToast } from '../context/ToastContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -19,6 +20,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const auth = useContext(AuthContext);
   const { currentTrack, isPlaying, togglePlayback, activeRoomCode, leaveRoom } = usePlayer();
   const { alarms, loadAlarms } = useAlarms();
+  const { showToast } = useToast();
   const [publicRooms, setPublicRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -214,7 +216,13 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               <TouchableOpacity
                 key={room._id || i}
                 style={styles.roomPreview}
-                onPress={() => navigation.navigate('Room', { room, isAnonymous: false })}
+                onPress={() => {
+                  if (room.status === 'offline') {
+                    showToast('Room has not been started by the host yet.', 'warning');
+                    return;
+                  }
+                  navigation.navigate('Room', { room, isAnonymous: false });
+                }}
                 activeOpacity={0.7}
               >
                 <View style={styles.roomPreviewHeader}>

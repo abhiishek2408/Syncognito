@@ -34,7 +34,16 @@ const roomSchema = new mongoose.Schema({
     title: String,
     artist: String,
     suggestedBy: String,
+    suggestedById: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     isAnonymous: { type: Boolean, default: true },
+    votes: { type: Number, default: 0 },
+    votedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    guesses: [{
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      guessedHostId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      correct: Boolean,
+    }],
+    createdAt: { type: Date, default: Date.now },
   }],
   currentTrack: {
     title: { type: String, default: '' },
@@ -48,6 +57,7 @@ const roomSchema = new mongoose.Schema({
   gameMode: { type: String, enum: ['none', 'guess-who-added'], default: 'none' },
   maxMembers: { type: Number, default: 50 },
   status: { type: String, enum: ['online', 'offline'], default: 'offline' },
+  theme: { type: String, default: 'default' },
   createdAt: { type: Date, default: Date.now },
 });
 
