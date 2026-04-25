@@ -7,6 +7,9 @@ const alarmSchema = new mongoose.Schema({
   title: { type: String, default: 'Alarm' },
   isTriggered: { type: Boolean, default: false },
   toneUrl: { type: String, default: null },
+  duration: { type: Number, default: 30 }, // in seconds
+  repetitionOn: { type: Boolean, default: false },
+  repeatCount: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 });
 

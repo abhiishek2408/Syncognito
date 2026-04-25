@@ -36,6 +36,9 @@ export default function AlarmScreen() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [tone, setTone] = useState<{ url: string, name: string } | null>(null);
+  const [duration, setDuration] = useState(30);
+  const [repetitionOn, setRepetitionOn] = useState(false);
+  const [repeatCount, setRepeatCount] = useState(0);
   // activeToneUrl moved to global AlarmContext
 
   const headers = auth.token ? { Authorization: `Bearer ${auth.token}` } : {};
@@ -66,7 +69,10 @@ export default function AlarmScreen() {
         triggerAt: triggerDate.toISOString(),
         message: message.trim(),
         title: title.trim() || 'Alarm',
-        toneUrl: tone?.url || null
+        toneUrl: tone?.url || null,
+        duration,
+        repetitionOn,
+        repeatCount: repetitionOn ? repeatCount : 0
       };
 
       if (editingId) {
@@ -124,6 +130,9 @@ export default function AlarmScreen() {
     setMessage(alarm.message);
     setTriggerDate(new Date(alarm.triggerAt));
     setTone(alarm.toneUrl ? { url: alarm.toneUrl, name: 'Saved Tone' } : null);
+    setDuration(alarm.duration || 30);
+    setRepetitionOn(alarm.repetitionOn || false);
+    setRepeatCount(alarm.repeatCount || 0);
     setShowCreate(true);
   };
 
@@ -151,6 +160,9 @@ export default function AlarmScreen() {
     setTriggerDate(new Date());
     setTone(null);
     setEditingId(null);
+    setDuration(30);
+    setRepetitionOn(false);
+    setRepeatCount(0);
   };
 
   const formatDate = (dateStr: string) => {
@@ -489,6 +501,53 @@ export default function AlarmScreen() {
                  </TouchableOpacity>
                )}
             </TouchableOpacity>
+
+            {/* Duration and Repetition */}
+            <View style={styles.optionsRow}>
+              <View style={styles.optionItem}>
+                <Text style={styles.fieldLabel}>Duration</Text>
+                <View style={styles.durationButtons}>
+                  {[15, 30, 60, 300].map(val => (
+                    <TouchableOpacity 
+                      key={val} 
+                      style={[styles.smallBtn, duration === val && styles.activeSmallBtn]}
+                      onPress={() => setDuration(val)}
+                    >
+                      <Text style={[styles.smallBtnText, duration === val && styles.activeSmallBtnText]}>
+                        {val < 60 ? `${val}s` : `${val/60}m`}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.repetitionContainer}>
+              <View style={styles.repetitionHeader}>
+                <Text style={styles.fieldLabel}>Repeat Alarm</Text>
+                <TouchableOpacity 
+                  onPress={() => setRepetitionOn(!repetitionOn)}
+                  style={[styles.toggleBtn, repetitionOn && styles.toggleOn]}
+                >
+                  <View style={[styles.toggleCircle, repetitionOn && styles.toggleCircleOn]} />
+                </TouchableOpacity>
+              </View>
+              
+              {repetitionOn && (
+                <View style={styles.repeatCountRow}>
+                  <Text style={styles.repeatLabel}>Repeat Count:</Text>
+                  <View style={styles.countActions}>
+                    <TouchableOpacity onPress={() => setRepeatCount(Math.max(0, repeatCount - 1))} style={styles.countBtn}>
+                      <MaterialCommunityIcons name="minus" size={20} color="#fff" />
+                    </TouchableOpacity>
+                    <Text style={styles.countValue}>{repeatCount}</Text>
+                    <TouchableOpacity onPress={() => setRepeatCount(Math.min(10, repeatCount + 1))} style={styles.countBtn}>
+                      <MaterialCommunityIcons name="plus" size={20} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+            </View>
 
             {/* Actions */}
             <View style={styles.modalActions}>
@@ -859,6 +918,38 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     fontSize: 14
   },
+  optionsRow: { marginTop: 20 },
+  optionItem: { marginBottom: 15 },
+  durationButtons: { flexDirection: 'row', gap: 10, marginTop: 5 },
+  smallBtn: { 
+    paddingHorizontal: 12, 
+    paddingVertical: 8, 
+    borderRadius: 10, 
+    borderWidth: 1, 
+    borderColor: '#333',
+    backgroundColor: '#000'
+  },
+  activeSmallBtn: { backgroundColor: '#1DB954', borderColor: '#1DB954' },
+  smallBtnText: { color: '#888', fontSize: 12, fontWeight: '700' },
+  activeSmallBtnText: { color: '#000' },
+  repetitionContainer: { 
+    marginTop: 10, 
+    backgroundColor: '#0F0F0F', 
+    padding: 15, 
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#222'
+  },
+  repetitionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  toggleBtn: { width: 44, height: 24, borderRadius: 12, backgroundColor: '#333', padding: 2 },
+  toggleOn: { backgroundColor: '#1DB954' },
+  toggleCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff' },
+  toggleCircleOn: { alignSelf: 'flex-end' },
+  repeatCountRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: '#222' },
+  repeatLabel: { color: '#AAA', fontSize: 13, fontWeight: '600' },
+  countActions: { flexDirection: 'row', alignItems: 'center', gap: 15 },
+  countBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#222', justifyContent: 'center', alignItems: 'center' },
+  countValue: { color: '#fff', fontSize: 18, fontWeight: '800' },
 });
 
 // Helper Types outside to prevent unnecessary re-creations

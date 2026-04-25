@@ -13,6 +13,9 @@ type Alarm = {
   title: string;
   isTriggered: boolean;
   toneUrl?: string | null;
+  duration?: number;
+  repetitionOn?: boolean;
+  repeatCount?: number;
 };
 
 type AlarmContextType = {
@@ -28,7 +31,9 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const auth = useContext(AuthContext);
   const [alarms, setAlarms] = useState<Alarm[]>([]);
   const [activeToneUrl, setActiveToneUrl] = useState<string | null>(null);
+  const [activeAlarmId, setActiveAlarmId] = useState<string | null>(null);
   const triggeredRef = useRef<Set<string>>(new Set());
+  const toneTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { showToast } = useToast();
 
   const headers = useMemo(() => auth.token ? { Authorization: `Bearer ${auth.token}` } : {}, [auth.token]);
@@ -46,12 +51,22 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     loadAlarms();
   }, [loadAlarms]);
+
   const markTriggered = useCallback(async (id: string) => {
     try {
       await axios.put(`${API_URL}/api/alarms/${id}`, { isTriggered: true }, { headers } as any);
       loadAlarms();
     } catch (err) {}
   }, [headers, loadAlarms]);
+
+  const stopAlarmSound = useCallback(() => {
+    setActiveToneUrl(null);
+    setActiveAlarmId(null);
+    if (toneTimerRef.current) {
+      clearTimeout(toneTimerRef.current);
+      toneTimerRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -61,24 +76,32 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (!alarm.isTriggered && !triggeredRef.current.has(alarm._id) && new Date(alarm.triggerAt) <= now) {
           triggeredRef.current.add(alarm._id);
           
-          if (alarm.toneUrl) {
-            setActiveToneUrl(alarm.toneUrl);
-          }
+          // Play sound: use toneUrl or fallback to local 'alarm_tone'
+          const tone = alarm.toneUrl || 'alarm_tone';
+          setActiveToneUrl(tone);
+          setActiveAlarmId(alarm._id);
 
           showToast(`${alarm.title}: ${alarm.message || 'Alarm triggered!'}`, 'warning', 15000);
           
-          // Still mark as triggered after showing toast
+          // Auto-stop logic based on duration (default 30s)
+          const duration = (alarm.duration || 30) * 1000;
+          if (toneTimerRef.current) clearTimeout(toneTimerRef.current);
+          toneTimerRef.current = setTimeout(() => {
+            stopAlarmSound();
+          }, duration);
+
           markTriggered(alarm._id);
           triggeredRef.current.delete(alarm._id);
-          // Note: we might want to stop tone on toast dismiss, but for now we let it play
-          // or we can add a stop button in toast if we had custom actions.
         }
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [alarms, auth.token]);
+  }, [alarms, auth.token, markTriggered, showToast, stopAlarmSound]);
 
   const dismissAlarm = async (id: string) => {
+    if (activeAlarmId === id) {
+      stopAlarmSound();
+    }
     await markTriggered(id);
   };
 
@@ -87,11 +110,12 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {children}
       {activeToneUrl && (
         <Video 
-          source={{ uri: activeToneUrl }}
+          source={activeToneUrl.startsWith('http') ? { uri: activeToneUrl } : { uri: activeToneUrl }}
           repeat={true}
           style={{ width: 0, height: 0 }}
           ignoreSilentSwitch="ignore"
           playInBackground={true}
+          audioOnly={true}
         />
       )}
     </AlarmContext.Provider>
