@@ -217,11 +217,12 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                 key={room._id || i}
                 style={styles.roomPreview}
                 onPress={() => {
-                  if (room.status === 'offline') {
+                  const isHost = (room.host?._id === auth.user?._id || room.host === auth.user?._id);
+                  if (room.status === 'offline' && !isHost) {
                     showToast('Room has not been started by the host yet.', 'warning');
                     return;
                   }
-                  navigation.navigate('Room', { room, isAnonymous: false });
+                  navigation.navigate('Room', { room, isAnonymous: false, isHost });
                 }}
                 activeOpacity={0.7}
               >

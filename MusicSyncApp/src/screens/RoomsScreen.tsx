@@ -53,11 +53,12 @@ export default function RoomsScreen({ navigation }: Props) {
     try {
       const resp = await axios.get(`${API_URL}/api/rooms/code/${joinCode.trim().toUpperCase()}`, { headers });
       if (resp.data) {
-        if (resp.data.status === 'offline') {
+        const isHost = (resp.data.host?._id === auth.user?._id || resp.data.host === auth.user?._id);
+        if (resp.data.status === 'offline' && !isHost) {
           showToast('Room has not been started by the host yet.', 'warning');
           return;
         }
-        navigation.navigate('Room', { room: resp.data, isAnonymous: false });
+        navigation.navigate('Room', { room: resp.data, isAnonymous: false, isHost });
       }
     } catch (err: any) {
       showToast('No room found with that code', 'error');
@@ -121,11 +122,12 @@ export default function RoomsScreen({ navigation }: Props) {
       <TouchableOpacity
         style={styles.roomCard}
         onPress={() => {
-          if (item.status === 'offline') {
+          const isHost = (item.host?._id === auth.user?._id || item.host === auth.user?._id);
+          if (item.status === 'offline' && !isHost) {
             showToast('Room has not been started by the host yet.', 'warning');
             return;
           }
-          navigation.navigate('Room', { room: item, isAnonymous: false });
+          navigation.navigate('Room', { room: item, isAnonymous: false, isHost });
         }}
         activeOpacity={0.7}
       >
@@ -243,11 +245,12 @@ export default function RoomsScreen({ navigation }: Props) {
             axios.get(`${API_URL}/api/rooms/code/${joinCode.trim().toUpperCase()}`, { headers })
               .then(resp => {
                 if (resp.data) {
-                  if (resp.data.status === 'offline') {
+                  const isHost = (resp.data.host?._id === auth.user?._id || resp.data.host === auth.user?._id);
+                  if (resp.data.status === 'offline' && !isHost) {
                     showToast('Room has not been started by the host yet.', 'warning');
                     return;
                   }
-                  navigation.navigate('Room', { room: resp.data, isAnonymous: true });
+                  navigation.navigate('Room', { room: resp.data, isAnonymous: true, isHost });
                 }
               })
               .catch(() => showToast('No room with that code', 'error'));

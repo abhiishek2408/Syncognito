@@ -158,7 +158,10 @@ io.on('connection', (socket) => {
       } 
       // 3. If it's a regular member joining
       else {
-        // Add to pending members
+        // Add to pending members (filter existing pending first)
+        room.pendingMembers = room.pendingMembers.filter(m => 
+          (userId && m.userId?.toString() === userId.toString()) || (m.socketId === socket.id)
+        );
         room.pendingMembers = room.pendingMembers.filter(m => m.socketId !== socket.id);
         room.pendingMembers.push({
           userId: userId || null,
@@ -199,6 +202,14 @@ io.on('connection', (socket) => {
       if (pendingUser) {
         // Move from pending to active members
         room.pendingMembers = room.pendingMembers.filter(m => m.socketId !== data.targetSocketId);
+        
+        // REMOVE DUPLICATE from active members before adding (if they were already there)
+        if (pendingUser.userId) {
+          room.members = room.members.filter(m => m.userId?.toString() !== pendingUser.userId.toString());
+        } else {
+          room.members = room.members.filter(m => m.socketId !== pendingUser.socketId);
+        }
+        
         room.members.push(pendingUser);
         await room.save();
 
@@ -629,6 +640,7 @@ async function handleLeaveRoom(socket) {
     const room = await Room.findOne({ roomCode: info.roomCode });
     if (room) {
       room.members = room.members.filter(m => m.socketId !== socket.id);
+      room.pendingMembers = room.pendingMembers.filter(m => m.socketId !== socket.id);
       
       // Clear host socket if host leaves
       if (room.hostSocketId === socket.id) {

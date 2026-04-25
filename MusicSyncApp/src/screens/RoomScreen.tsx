@@ -97,11 +97,11 @@ export default function RoomScreen({ navigation, route }: Props) {
   const bgAnim = useRef(new Animated.Value(0)).current;
 
   const THEMES: any = {
-    default: { primary: '#1DB954', accent: '#1DB95420', bg: '#000', text: '#FFF' },
-    neon: { primary: '#FF00FF', accent: '#FF00FF20', bg: '#080008', text: '#FFF' },
-    ocean: { primary: '#00BFFF', accent: '#00BFFF20', bg: '#00080F', text: '#FFF' },
-    sunset: { primary: '#FF4500', accent: '#FF450020', bg: '#0F0500', text: '#FFF' },
-    emerald: { primary: '#50C878', accent: '#50C87820', bg: '#000A05', text: '#FFF' },
+    default: { primary: '#1DB954', accent: '#1DB95408', bg: '#000', text: '#FFF' },
+    neon: { primary: '#FF00FF', accent: '#FF00FF08', bg: '#000', text: '#FFF' },
+    ocean: { primary: '#00BFFF', accent: '#00BFFF08', bg: '#000', text: '#FFF' },
+    sunset: { primary: '#FF4500', accent: '#FF450008', bg: '#000', text: '#FFF' },
+    emerald: { primary: '#50C878', accent: '#50C87808', bg: '#000', text: '#FFF' },
   };
   const theme = THEMES[currentTheme] || THEMES.default;
 
@@ -139,6 +139,9 @@ export default function RoomScreen({ navigation, route }: Props) {
     socket.on('room-update', (data: any) => {
       if (data.members) {
         setMembers(data.members);
+        // Safety: If I am in the members list, I am definitely not waiting anymore
+        const me = data.members.find((m: any) => m.socketId === socket.id);
+        if (me) setIsWaitingApproval(false);
       }
     });
 
@@ -293,6 +296,8 @@ export default function RoomScreen({ navigation, route }: Props) {
     }
   };
 
+
+
   const pickSong = async () => {
     if (isPlaying) {
       togglePlayback();
@@ -347,10 +352,12 @@ export default function RoomScreen({ navigation, route }: Props) {
 
   const approveJoin = (targetSocketId: string) => {
     socket.emit('approve-join', { targetSocketId, roomCode: initialRoom.roomCode });
+    setJoinRequests(prev => prev.filter(r => r.socketId !== targetSocketId));
   };
 
   const rejectJoin = (targetSocketId: string) => {
     socket.emit('reject-join', { targetSocketId, roomCode: initialRoom.roomCode });
+    setJoinRequests(prev => prev.filter(r => r.socketId !== targetSocketId));
   };
 
   const sendReaction = (emoji: string) => {
@@ -409,7 +416,7 @@ export default function RoomScreen({ navigation, route }: Props) {
   };
 
   return (
-    <Animated.View style={[styles.container, { backgroundColor: bgColor }]}>
+    <View style={styles.container}>
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         {reactions.map(r => (
           <FloatingEmoji key={r.id} emoji={r.emoji} x={r.x} />
@@ -591,7 +598,8 @@ export default function RoomScreen({ navigation, route }: Props) {
         )}
       </View>
 
-      {activeTab === 'player' ? (
+      <Animated.View style={{ flex: 1, backgroundColor: bgColor }}>
+        {activeTab === 'player' ? (
         <ScrollView contentContainerStyle={{ alignItems: 'center', paddingTop: 40 }}>
           <Animated.View style={[styles.disc, { transform: [{ scale: pulseAnim }] }]}>
             <MaterialCommunityIcons name="music-circle" size={100} color={theme.primary} />
@@ -870,7 +878,8 @@ export default function RoomScreen({ navigation, route }: Props) {
       )}
 
       {/* Video is now global and managed in PlayerContext */}
-    </Animated.View>
+      </Animated.View>
+    </View>
   );
 }
 
@@ -891,10 +900,10 @@ const styles = StyleSheet.create({
   },
   hostDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#1DB954', marginRight: 8 },
   hostNameText: { color: '#1DB954', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
-  tabContainer: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#1A1A1A' },
-  tab: { flex: 1, padding: 15, alignItems: 'center' },
+  tabContainer: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#1A1A1A', justifyContent: 'center', gap: 5 },
+  tab: { paddingVertical: 12, paddingHorizontal: 12, alignItems: 'center' },
   activeTab: { borderBottomWidth: 3, borderBottomColor: '#1DB954' },
-  tabText: { color: '#666', fontWeight: '700', fontSize: 12, letterSpacing: 0.5 },
+  tabText: { color: '#666', fontWeight: '700', fontSize: 11, letterSpacing: 0.5 },
   activeTabText: { color: '#FFF' },
   headerIcon: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111', borderRadius: 20 },
   headerSubtitle: { color: '#666', fontSize: 12, fontWeight: '600' },
