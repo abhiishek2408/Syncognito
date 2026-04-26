@@ -271,6 +271,10 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                     <TouchableOpacity 
                       style={styles.startRoomCardBtn}
                       onPress={() => {
+                        if (activeRoomCode && activeRoomCode !== room.roomCode) {
+                          showToast('Please leave your current room first', 'warning');
+                          return;
+                        }
                         setStartingRoomId(room._id);
                         setTimeout(() => {
                           setStartingRoomId(null);
@@ -329,7 +333,13 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                       ) : (
                         <TouchableOpacity 
                           style={[styles.joinRoomCardBtn, { flex: 1 }]}
-                          onPress={() => navigation.navigate('Room', { room, isAnonymous: false, isHost })}
+                          onPress={() => {
+                            if (activeRoomCode && activeRoomCode !== room.roomCode) {
+                              showToast('Please leave your current room first', 'warning');
+                              return;
+                            }
+                            navigation.navigate('Room', { room, isAnonymous: false, isHost });
+                          }}
                         >
                           <MaterialCommunityIcons name="login-variant" size={16} color="#FFF" />
                           <Text style={styles.joinRoomCardText}>JOIN SYNC</Text>

@@ -112,6 +112,27 @@ io.on('connection', (socket) => {
     const { roomCode, userId, displayName, isAnonymous } = data;
     if (!roomCode) return;
 
+    // Auto-leave any previous room associated with this socket
+    await handleLeaveRoom(socket);
+
+    // CRITICAL: Force-close any OTHER online rooms hosted by this user
+    if (userId) {
+      const otherRooms = await Room.find({ 
+        host: userId, 
+        roomCode: { $ne: roomCode },
+        status: 'online' 
+      });
+      for (const otherRoom of otherRooms) {
+        otherRoom.status = 'offline';
+        otherRoom.members = [];
+        otherRoom.hostSocketId = null;
+        await otherRoom.save();
+        io.to(`room:${otherRoom.roomCode}`).emit('room-closed', { 
+          message: 'Host has started another room. This session ended.' 
+        });
+      }
+    }
+
     const socketKey = `room:${roomCode}`;
     socket.join(socketKey);
 

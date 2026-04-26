@@ -114,10 +114,19 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const togglePlayback = () => {
-    console.log('Toggling Playback. Current:', isPlaying, 'Room:', activeRoomCode);
+    let currentPos = positionRef.current;
+    
+    // If we are at the end and starting play, reset to 0
+    if (!isPlaying && duration > 0 && currentPos >= duration - 1) {
+      currentPos = 0;
+      setPosition(0);
+      positionRef.current = 0;
+      if (videoRef.current) videoRef.current.seek(0);
+    }
+
     const nextPlaying = !isPlaying;
     const action = nextPlaying ? 'play' : 'pause';
-    socket.emit('room-playback', { roomCode: activeRoomCode, action, position: positionRef.current });
+    socket.emit('room-playback', { roomCode: activeRoomCode, action, position: currentPos });
     setIsPlaying(nextPlaying);
   };
 
@@ -183,6 +192,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           playInBackground={true}
           ignoreSilentSwitch="ignore"
           playWhenInactive={true}
+          audioOnly={true}
+          volume={1.0}
+          muted={false}
+          reportBandwidth={false}
+          disableFocus={false}
         />
       ) : null}
     </PlayerContext.Provider>
