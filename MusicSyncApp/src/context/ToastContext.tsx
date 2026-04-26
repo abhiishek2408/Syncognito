@@ -90,7 +90,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           styles.toastContainer,
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
         ]}>
-          <View style={[styles.toastContent, { borderColor: getColor() }]}>
+          <View style={styles.toastContent}>
             <View style={[styles.iconContainer, { backgroundColor: getLightColor() }]}>
               <MaterialCommunityIcons name={getIcon()} size={22} color={getColor()} />
             </View>
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toastContent: {
-    backgroundColor: '#0A0A0A', // Deep Obsidian
+    backgroundColor: '#FFFFFF', // Clean White
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
@@ -153,10 +153,10 @@ const styles = StyleSheet.create({
     maxWidth: 500,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.1,
     shadowRadius: 16,
-    elevation: 24,
-    borderWidth: 1.5,
+    elevation: 10,
+    borderWidth: 0,
     overflow: 'hidden',
   },
   iconContainer: {
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   toastText: {
-    color: '#FFFFFF',
+    color: '#000000',
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: -0.3,
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 4,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: 'rgba(0,0,0,0.05)',
   },
   progressBarContainer: {
     height: '100%',

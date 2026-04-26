@@ -483,7 +483,7 @@ export default function RoomScreen({ navigation, route }: Props) {
         <View style={styles.modalOverlay}>
           <View style={styles.exitModalRoot}>
             <View style={styles.exitIconCircle}>
-              <MaterialCommunityIcons name={isHost ? "power" : "logout"} size={32} color={isHost ? "#FF5252" : "#FFF"} />
+              <MaterialCommunityIcons name={isHost ? "power" : "logout"} size={24} color={isHost ? theme.primary : "#FFF"} />
             </View>
             <Text style={styles.exitTitle}>{isHost ? "Close Room?" : "Leave Room?"}</Text>
             <Text style={styles.exitSubtitle}>
@@ -501,7 +501,7 @@ export default function RoomScreen({ navigation, route }: Props) {
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={[styles.exitConfirmBtn, { backgroundColor: isHost ? '#FF5252' : theme.primary }]} 
+                style={[styles.exitConfirmBtn, { backgroundColor: theme.primary }]} 
                 onPress={() => {
                   setShowExitModal(false);
                   leaveRoom();
@@ -1020,15 +1020,15 @@ const styles = StyleSheet.create({
   hostBadgeSmall: { backgroundColor: '#1DB95420', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginLeft: 6 },
   hostBadgeTextSmall: { color: '#1DB954', fontSize: 8, fontWeight: '900' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center' },
-  exitModalRoot: { width: '85%', backgroundColor: '#111', borderRadius: 24, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: '#222' },
-  exitIconCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#1A1A1A', justifyContent: 'center', alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: '#333' },
-  exitTitle: { color: '#FFF', fontSize: 20, fontWeight: '800', marginBottom: 10 },
-  exitSubtitle: { color: '#888', fontSize: 13, textAlign: 'center', lineHeight: 20, marginBottom: 30, paddingHorizontal: 10 },
-  exitActionRow: { flexDirection: 'row', gap: 12, width: '100%' },
-  exitCancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 16, alignItems: 'center', backgroundColor: '#222' },
-  exitCancelText: { color: '#888', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
-  exitConfirmBtn: { flex: 1, paddingVertical: 14, borderRadius: 16, alignItems: 'center' },
-  exitConfirmText: { color: '#FFF', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
+  exitModalRoot: { width: '75%', backgroundColor: '#000000', borderRadius: 20, padding: 18, alignItems: 'center', borderWidth: 1, borderColor: '#222' },
+  exitIconCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#1A1A1A', justifyContent: 'center', alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#333' },
+  exitTitle: { color: '#FFF', fontSize: 17, fontWeight: '800', marginBottom: 6 },
+  exitSubtitle: { color: '#888', fontSize: 11, textAlign: 'center', lineHeight: 16, marginBottom: 20, paddingHorizontal: 5 },
+  exitActionRow: { flexDirection: 'row', gap: 10, width: '100%' },
+  exitCancelBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center', backgroundColor: '#222' },
+  exitCancelText: { color: '#888', fontWeight: '800', fontSize: 11, letterSpacing: 1 },
+  exitConfirmBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center' },
+  exitConfirmText: { color: '#000', fontWeight: '800', fontSize: 11, letterSpacing: 1 },
 
   nglModal: { width: '85%', backgroundColor: '#0A0A0A', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: '#1A1A1A' },
   nglHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
