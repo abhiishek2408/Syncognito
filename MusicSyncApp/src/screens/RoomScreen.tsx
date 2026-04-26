@@ -13,8 +13,8 @@ import AuthContext from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { getSocket } from '../utils/socket';
 import { usePlayer } from '../context/PlayerContext';
-import axios from 'axios';
 import API_URL from '../utils/api';
+import axios from 'axios';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -372,34 +372,70 @@ export default function RoomScreen({ navigation, route }: Props) {
       togglePlayback();
     }
 
-    setIsPicking(true);
-    loadingProgress.setValue(0);
-    Animated.timing(loadingProgress, {
-      toValue: 1,
-      duration: 1500,
-      useNativeDriver: false,
-    }).start();
-    
     const res = await DocumentPicker.pick({ 
       type: ['audio/*'] 
     }).catch(() => null);
 
     if (!res || res.length === 0) {
-      setIsPicking(false);
-      loadingProgress.setValue(0);
       return;
     }
 
-    loadingProgress.setValue(1);
-    setTimeout(() => {
+    const file = res[0];
+    showToast(`Uploading: ${file.name}...`, 'info', 10000);
+    
+    setIsPicking(true);
+    loadingProgress.setValue(0);
+    Animated.timing(loadingProgress, {
+      toValue: 0.7,
+      duration: 3000,
+      useNativeDriver: false,
+    }).start();
+
+    try {
+      // Upload audio file to server so all members can access it
+      const formData = new FormData();
+      formData.append('audio', {
+        uri: file.uri,
+        type: file.type || 'audio/mpeg',
+        name: file.name || 'audio.mp3',
+      } as any);
+
+      const uploadRes = await fetch(`${API_URL}/api/rooms/upload-audio`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const uploadData = await uploadRes.json();
+      
+      // Complete the progress animation
+      Animated.timing(loadingProgress, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: false,
+      }).start();
+
+      setTimeout(() => {
+        setIsPicking(false);
+        loadingProgress.setValue(0);
+      }, 600);
+
+      showToast(`Now Playing: ${file.name}`, 'success');
+      
+      // Use the SERVER URL so all members can access the audio
+      pickTrack({ title: file.name, artist: 'Room Audio', duration: 180, url: uploadData.url, position: 0 });
+    } catch (err) {
+      console.error('Audio upload error:', err);
       setIsPicking(false);
       loadingProgress.setValue(0);
-    }, 600);
-
-    const file = res[0];
-    showToast(`Selected: ${file.name}`, 'success');
-    
-    pickTrack({ title: file.name, artist: 'My Device', duration: 180, url: file.uri, position: 0 });
+      showToast('Failed to upload audio. Try again.', 'error');
+    }
   };
 
   const raiseHand = () => {

@@ -10,6 +10,10 @@ import helmet from 'helmet';
 import mongoSanitize from 'express-mongo-sanitize';
 import hpp from 'hpp';
 import rateLimit from 'express-rate-limit';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 import authRoutes from './routes/auth.js';
 import playlistRoutes from './routes/playlist.js';
@@ -73,6 +77,70 @@ app.use('/api/ngl', nglRoutes);
 
 app.get('/', (req, res) => {
   res.send('Syncognito Backend Running');
+});
+
+// ===========================
+// Audio Upload for Room Sync
+// ===========================
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsDir = path.join(__dirname, '..', 'uploads', 'audio');
+
+// Ensure uploads directory exists
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+// Multer config for audio uploads (max 30MB)
+const audioStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${path.extname(file.originalname)}`;
+    cb(null, uniqueName);
+  }
+});
+const audioUpload = multer({
+  storage: audioStorage,
+  limits: { fileSize: 30 * 1024 * 1024 }, // 30MB
+  fileFilter: (req, file, cb) => {
+    const allowed = /audio\//;
+    if (allowed.test(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only audio files are allowed'));
+    }
+  }
+});
+
+// Upload audio endpoint
+app.post('/api/rooms/upload-audio', audioUpload.single('audio'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No audio file provided' });
+  }
+  
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+  const host = req.get('host');
+  const fileUrl = `${protocol}://${host}/uploads/audio/${req.file.filename}`;
+  
+  console.log(`Audio uploaded: ${req.file.originalname} → ${fileUrl}`);
+  
+  // Auto-delete uploaded file after 2 hours
+  setTimeout(() => {
+    const filePath = path.join(uploadsDir, req.file.filename);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log(`Auto-deleted: ${req.file.filename}`);
+    }
+  }, 2 * 60 * 60 * 1000);
+
+  res.json({
+    url: fileUrl,
+    filename: req.file.originalname,
+    size: req.file.size
+  });
 });
 
 // ===========================
@@ -819,7 +887,15 @@ async function handleLeaveRoom(socket, isDisconnect = false) {
                 // Host did NOT reconnect in time → close the room
                 console.log(`Grace period expired for room ${info.roomCode}. Closing room.`);
                 roomCheck.status = 'offline';
-                roomCheck.currentTrack.isPlaying = false;
+                roomCheck.currentTrack = {
+                  title: '',
+                  artist: '',
+                  url: '',
+                  duration: 0,
+                  position: 0,
+                  isPlaying: false,
+                  lastSyncTimestamp: 0
+                };
                 roomCheck.members = [];
                 await roomCheck.save();
 
@@ -838,7 +914,15 @@ async function handleLeaveRoom(socket, isDisconnect = false) {
         } else {
           // Intentional leave (host pressed Close Room) → close immediately
           room.status = 'offline';
-          room.currentTrack.isPlaying = false;
+          room.currentTrack = {
+            title: '',
+            artist: '',
+            url: '',
+            duration: 0,
+            position: 0,
+            isPlaying: false,
+            lastSyncTimestamp: 0
+          };
           room.hostSocketId = null;
           room.members = [];
           await room.save();
@@ -856,7 +940,15 @@ async function handleLeaveRoom(socket, isDisconnect = false) {
         }
       } else if (room.members.length === 0 && !room.hostSocketId) {
         room.status = 'offline';
-        room.currentTrack.isPlaying = false;
+        room.currentTrack = {
+          title: '',
+          artist: '',
+          url: '',
+          duration: 0,
+          position: 0,
+          isPlaying: false,
+          lastSyncTimestamp: 0
+        };
         await room.save();
       } else {
         await room.save();
