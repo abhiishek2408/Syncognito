@@ -117,7 +117,19 @@ router.get('/:id', optionalAuth, async (req, res) => {
   }
 });
 
-// Rooms are now permanent and cannot be deleted via API.
+// Delete room (host only)
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.id);
+    if (!room) return res.status(404).json({ message: 'Room not found' });
+    if (room.host.toString() !== req.user.id) return res.status(403).json({ message: 'Only host can delete room' });
+    
+    await Room.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Room deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to delete room' });
+  }
+});
 
 // Update room mood (host only)
 router.put('/:id/mood', authenticateToken, async (req, res) => {
