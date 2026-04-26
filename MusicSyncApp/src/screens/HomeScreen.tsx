@@ -291,13 +291,25 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                   ) : room.status === 'online' ? (
                     <View style={{ flexDirection: 'row', gap: 10 }}>
                       {isHost ? (
-                        <TouchableOpacity 
-                          style={[styles.joinRoomCardBtn, { flex: 1, backgroundColor: '#FF525215', borderColor: '#FF525240' }]}
-                          onPress={() => navigation.navigate('Room', { room, isAnonymous: false, isHost: true })}
-                        >
-                          <MaterialCommunityIcons name="power" size={16} color="#FF5252" />
-                          <Text style={[styles.joinRoomCardText, { color: '#FF5252' }]}>END SESSION</Text>
-                        </TouchableOpacity>
+                        <>
+                          <TouchableOpacity 
+                            style={[styles.joinRoomCardBtn, { flex: 3 }]}
+                            onPress={() => navigation.navigate('Room', { room, isAnonymous: false, isHost: true })}
+                          >
+                            <MaterialCommunityIcons name="arrow-right-box" size={16} color="#FFF" />
+                            <Text style={styles.joinRoomCardText}>ENTER ROOM</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity 
+                            style={[styles.joinRoomCardBtn, { flex: 1, backgroundColor: '#FF525215', borderColor: '#FF525240' }]}
+                            onPress={() => {
+                              // Trigger leave logic which closes the room for host
+                              leaveRoom(); 
+                              showToast('Closing session...', 'info');
+                            }}
+                          >
+                            <MaterialCommunityIcons name="power" size={16} color="#FF5252" />
+                          </TouchableOpacity>
+                        </>
                       ) : activeRoomCode === room.roomCode ? (
                         <TouchableOpacity 
                           style={[styles.joinRoomCardBtn, { flex: 1, backgroundColor: '#FF525215', borderColor: '#FF525240' }]}

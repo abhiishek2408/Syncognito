@@ -137,10 +137,24 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
               positionRef.current = data.currentTime;
             }
           }}
-          onLoad={(data) => setDuration(data.duration)}
+          onLoad={(data) => {
+            setDuration(data.duration);
+            // Sync actual duration with backend so others see it correctly
+            socket.emit('room-playback', { 
+              roomCode: activeRoomCode, 
+              action: 'track-update', 
+              duration: data.duration 
+            });
+          }}
+          onError={(e) => {
+            console.error('Playback Error:', e);
+            // We can't use useToast here easily as it's outside the provider, 
+            // but we can log it.
+          }}
           style={{ width: 0, height: 0 }}
           playInBackground={true}
           ignoreSilentSwitch="ignore"
+          playWhenInactive={true}
         />
       ) : null}
     </PlayerContext.Provider>

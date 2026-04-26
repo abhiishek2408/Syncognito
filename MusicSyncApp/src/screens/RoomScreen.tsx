@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput,
-  Alert, ScrollView, Animated, Dimensions, LogBox, Modal, ActivityIndicator, Share
+  Alert, ScrollView, Animated, Dimensions, LogBox, Modal, ActivityIndicator, Share, Platform, PermissionsAndroid
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 
@@ -306,6 +306,22 @@ export default function RoomScreen({ navigation, route }: Props) {
 
 
   const pickSong = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          Platform.Version >= 33 
+            ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_AUDIO 
+            : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          showToast('Storage permission denied', 'error');
+          return;
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+
     if (isPlaying) {
       togglePlayback();
     }
@@ -969,8 +985,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, 
     paddingVertical: 8, 
     borderRadius: 30,
-    borderWidth: 1,
-    borderColor: '#1DB95460',
+    borderWidth: 1.5,
+    borderColor: '#1DB95490',
+    borderStyle: 'dashed',
     shadowColor: '#1DB954',
     shadowOpacity: 0.1,
     shadowRadius: 10,

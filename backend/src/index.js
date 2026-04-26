@@ -298,7 +298,7 @@ io.on('connection', (socket) => {
         room.currentTrack.url = data.track?.url || '';
         room.currentTrack.duration = data.track?.duration || 0;
         room.currentTrack.position = 0;
-        room.currentTrack.isPlaying = false;
+        room.currentTrack.isPlaying = true;
         room.currentTrack.lastSyncTimestamp = now;
       } else if (data.action === 'track-update') {
         if (data.duration) room.currentTrack.duration = data.duration;
