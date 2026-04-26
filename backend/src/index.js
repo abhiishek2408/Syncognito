@@ -198,11 +198,10 @@ io.on('connection', (socket) => {
           return;
         }
 
-        // Add to pending members
+        // Add to pending members (filter out existing entries for this user/socket first)
         room.pendingMembers = room.pendingMembers.filter(m => 
-          (userId && m.userId?.toString() === userId.toString()) || (m.socketId === socket.id)
+          !( (userId && m.userId?.toString() === userId.toString()) || (m.socketId === socket.id) )
         );
-        room.pendingMembers = room.pendingMembers.filter(m => m.socketId !== socket.id);
         room.pendingMembers.push({
           userId: userId || null,
           displayName: name,

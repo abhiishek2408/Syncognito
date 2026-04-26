@@ -258,10 +258,10 @@ export default function RoomScreen({ navigation, route }: Props) {
   }, [isPlaying, pulseAnim]);
 
   useEffect(() => {
-    if (initialRoom.roomCode && initialRoom.roomCode !== activeRoomCode) {
+    if (initialRoom.roomCode && initialRoom.roomCode !== activeRoomCode && !isWaitingApproval) {
        joinRoom(initialRoom, isAnonymous);
     }
-  }, [joinRoom, initialRoom.roomCode, isAnonymous, activeRoomCode]);
+  }, [joinRoom, initialRoom.roomCode, isAnonymous, activeRoomCode, isWaitingApproval]);
 
   useEffect(() => {
     let syncTimer: any;
@@ -751,15 +751,20 @@ export default function RoomScreen({ navigation, route }: Props) {
               </Text>
             </TouchableOpacity>
           )}
-
-          <View style={styles.reactionContainer}>
-            {['🔥', '❤️', '🙌', '💯', '✨', '⚡'].map(emoji => (
-              <TouchableOpacity key={emoji} onPress={() => sendReaction(emoji)} style={styles.emojiBtn}>
-                <Text style={{ fontSize: 24 }}>{emoji}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
         </ScrollView>
+
+        <View style={styles.reactionContainer}>
+          {['🔥', '❤️', '🙌', '💯', '✨', '⚡'].map((emoji) => (
+            <TouchableOpacity 
+              key={emoji} 
+              onPress={() => sendReaction(emoji)} 
+              style={styles.emojiBtn}
+            >
+              <Text style={{ fontSize: 18 }}>{emoji}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         </Animated.View>
       ) : activeTab === 'queue' ? (
         <View style={{ flex: 1, padding: 20 }}>
@@ -1090,8 +1095,16 @@ const styles = StyleSheet.create({
   cancelWaitText: { color: '#666', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
   themeBar: { maxHeight: 30, marginTop: 0, marginBottom: 5, paddingHorizontal: 20 },
   themeDot: { width: 20, height: 20, borderRadius: 10, marginRight: 10 },
-  reactionContainer: { flexDirection: 'row', justifyContent: 'center', gap: 15, marginTop: 30, paddingVertical: 10 },
-  emojiBtn: { backgroundColor: 'rgba(255,255,255,0.05)', padding: 10, borderRadius: 20 },
+  reactionContainer: { 
+    position: 'absolute',
+    bottom: 20,
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    gap: 12, 
+    width: '100%',
+    paddingVertical: 10 
+  },
+  emojiBtn: { backgroundColor: 'rgba(255,255,255,0.08)', padding: 8, borderRadius: 16 },
   roleBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
   roleBadgeText: { fontSize: 9, fontWeight: '900' },
   queueHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
