@@ -63,7 +63,7 @@ export default function RoomScreen({ navigation, route }: Props) {
   const { room: initialRoom = {}, isAnonymous = false, isHost: initialIsHost = false } = params;
   
   const auth = useContext(AuthContext);
-  const { showToast } = useToast();
+  const { showToast: _showToast } = useToast();
   const socket = getSocket();
 
   const { 
@@ -95,6 +95,7 @@ export default function RoomScreen({ navigation, route }: Props) {
   const [selectedSongForGuess, setSelectedSongForGuess] = useState<any>(null);
   const [gameMode, setGameMode] = useState(initialRoom.gameMode || 'none');
   const [showThemeSelector, setShowThemeSelector] = useState(false);
+  const [allowDJAccess, setAllowDJAccess] = useState(initialRoom.allowDJAccess || false);
   const loadingProgress = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const bgAnim = useRef(new Animated.Value(0)).current;
@@ -111,6 +112,11 @@ export default function RoomScreen({ navigation, route }: Props) {
     bubblegum: { primary: '#FF69B4', accent: '#FF69B408', bg: '#000', text: '#FFF' },
   };
   const theme = THEMES[currentTheme] || THEMES.default;
+
+  // Wrapper: auto-inject room theme color into all toasts
+  const showToast = (msg: string, type?: any, duration?: number, action?: any) => {
+    _showToast(msg, type, duration, action, theme.primary);
+  };
 
   const isHost = (auth.user && initialRoom?.host?._id === auth.user?._id) || initialIsHost;
 
@@ -135,6 +141,10 @@ export default function RoomScreen({ navigation, route }: Props) {
         setHasPermission(true);
         setRequestStatus('none');
         showToast('Host granted you permission to pick songs!', 'success');
+      } else if (data.status === 'revoked') {
+        setHasPermission(false);
+        setRequestStatus('none');
+        showToast('Host revoked your music control access', 'warning');
       } else {
         setHasPermission(false);
         setRequestStatus('rejected');
@@ -147,6 +157,7 @@ export default function RoomScreen({ navigation, route }: Props) {
       if (data.members) setMembers(data.members);
       if (data.messages) setMessages(data.messages);
       if (data.songQueue) setSongQueue(data.songQueue);
+      if (data.allowDJAccess !== undefined) setAllowDJAccess(data.allowDJAccess);
     });
 
     socket.on('error-msg', (data: any) => {
@@ -168,6 +179,10 @@ export default function RoomScreen({ navigation, route }: Props) {
       navigation.goBack();
     });
 
+    socket.on('host-disconnected', (data: any) => {
+      showToast('Host briefly disconnected. Waiting for reconnection...', 'warning', 8000);
+    });
+
     socket.on('waiting-for-approval', (data: any) => {
       setIsWaitingApproval(true);
       showToast(data.message, 'info');
@@ -180,6 +195,7 @@ export default function RoomScreen({ navigation, route }: Props) {
       if (data.roomState) {
         setMembers(data.roomState.members || []);
         setMessages(data.roomState.messages || []);
+        if (data.roomState.allowDJAccess !== undefined) setAllowDJAccess(data.roomState.allowDJAccess);
         // Use setRoomState instead of joinRoom to avoid re-emitting 'join-room'
         setRoomState(data.roomState);
       }
@@ -233,6 +249,14 @@ export default function RoomScreen({ navigation, route }: Props) {
       showToast(`Game Mode: ${data.gameMode}`, 'info');
     });
 
+    socket.on('dj-access-changed', (data: any) => {
+      setAllowDJAccess(data.allowDJAccess);
+      if (!data.allowDJAccess) {
+        setHasPermission(false);
+        setRequestStatus('none');
+      }
+    });
+
     return () => {
       socket.off('room-message');
       socket.off('hand-raised');
@@ -241,6 +265,7 @@ export default function RoomScreen({ navigation, route }: Props) {
       socket.off('room-update');
       socket.off('room-state');
       socket.off('room-closed');
+      socket.off('host-disconnected');
       socket.off('waiting-for-approval');
       socket.off('join-approved');
       socket.off('join-rejected');
@@ -251,6 +276,7 @@ export default function RoomScreen({ navigation, route }: Props) {
       socket.off('song-queue-update');
       socket.off('guess-result');
       socket.off('game-mode-changed');
+      socket.off('dj-access-changed');
     };
   }, [socket, isHost, showToast]);
 
@@ -401,6 +427,10 @@ export default function RoomScreen({ navigation, route }: Props) {
   const rejectJoin = (targetSocketId: string) => {
     socket.emit('reject-join', { targetSocketId, roomCode: initialRoom.roomCode });
     setJoinRequests(prev => prev.filter(r => r.socketId !== targetSocketId));
+  };
+
+  const togglePermission = (targetSocketId: string, currentlyGranted: boolean) => {
+    socket.emit('toggle-permission', { targetSocketId, grant: !currentlyGranted });
   };
 
   const sendReaction = (emoji: string) => {
@@ -751,7 +781,7 @@ export default function RoomScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           )}
 
-          {!isHost && !hasPermission && (
+          {!isHost && !hasPermission && allowDJAccess && (
             <TouchableOpacity 
               onPress={raiseHand} 
               style={[styles.raiseHandBtn, requestStatus === 'pending' && { opacity: 0.5 }, { borderColor: theme.primary + '40' }]}
@@ -902,6 +932,22 @@ export default function RoomScreen({ navigation, route }: Props) {
         <View style={{ flex: 1, padding: 20 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <Text style={styles.requestTitle}>Active Listeners ({members.length})</Text>
+            {isHost && (
+              <TouchableOpacity
+                onPress={() => {
+                  const next = !allowDJAccess;
+                  setAllowDJAccess(next);
+                  socket.emit('toggle-dj-access', { allow: next });
+                }}
+                style={[styles.djAccessToggle, allowDJAccess && { backgroundColor: theme.primary + '20', borderColor: theme.primary + '40' }]}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons name="music-note" size={14} color={allowDJAccess ? theme.primary : '#666'} />
+                <Text style={[styles.djAccessText, allowDJAccess && { color: theme.primary }]}>
+                  {allowDJAccess ? 'DJ ON' : 'DJ OFF'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
           {members.length === 0 ? (
             <View style={styles.emptyRequests}>
@@ -910,11 +956,17 @@ export default function RoomScreen({ navigation, route }: Props) {
             </View>
           ) : (
             <FlatList
-              data={members}
+              data={[...members].sort((a, b) => {
+                const aIsHost = a.userId === initialRoom.host?._id ? -2 : 0;
+                const bIsHost = b.userId === initialRoom.host?._id ? -2 : 0;
+                const aIsDJ = a.hasPermission ? -1 : 0;
+                const bIsDJ = b.hasPermission ? -1 : 0;
+                return (aIsHost + aIsDJ) - (bIsHost + bIsDJ);
+              })}
               keyExtractor={(item, index) => item.socketId || index.toString()}
               renderItem={({ item }) => (
                 <View style={styles.memberRow}>
-                  <View style={styles.memberAvatar}>
+                  <View style={[styles.memberAvatar, item.hasPermission && { backgroundColor: theme.primary }]}>
                     <Text style={styles.memberInitial}>{(item.displayName || 'U').charAt(0).toUpperCase()}</Text>
                   </View>
                   <View style={{ flex: 1 }}>
@@ -938,7 +990,18 @@ export default function RoomScreen({ navigation, route }: Props) {
                     </View>
                     <Text style={styles.memberSub}>{item.isAnonymous ? 'Listening Anonymously' : 'Active Listener'}</Text>
                   </View>
-                  <View style={styles.onlineDot} />
+                  {/* Permission toggle — host only, not on host's own card, only when DJ access enabled */}
+                  {isHost && item.userId !== initialRoom.host?._id && allowDJAccess ? (
+                    <TouchableOpacity
+                      onPress={() => togglePermission(item.socketId, !!item.hasPermission)}
+                      style={[styles.permToggle, item.hasPermission && { backgroundColor: theme.primary }]}
+                      activeOpacity={0.7}
+                    >
+                      <View style={[styles.permToggleKnob, item.hasPermission && styles.permToggleKnobOn]} />
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={styles.onlineDot} />
+                  )}
                 </View>
               )}
             />
@@ -1038,12 +1101,12 @@ const styles = StyleSheet.create({
   sendMsgBtn: { marginLeft: 10, width: 44, height: 44, borderRadius: 22, backgroundColor: '#1DB954', justifyContent: 'center', alignItems: 'center', shadowColor: '#1DB954', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
   loaderContainer: { width: '80%', height: 4, backgroundColor: '#111', borderRadius: 2, marginBottom: 20, overflow: 'hidden' },
   loaderBar: { height: '100%', backgroundColor: '#1DB954', shadowColor: '#1DB954', shadowOpacity: 0.8, shadowRadius: 10 },
-  timerContainer: { width: '85%', marginVertical: 20 },
-  progressWrapper: { height: 30, justifyContent: 'center' },
-  progressBg: { height: 6, backgroundColor: '#1A1A1A', borderRadius: 3, width: '100%', overflow: 'visible' },
-  progressFill: { height: '100%', backgroundColor: '#1DB954', borderRadius: 3, shadowOpacity: 0.6, shadowRadius: 8, elevation: 5 },
-  progressKnob: { position: 'absolute', width: 14, height: 14, borderRadius: 7, top: -4, marginLeft: -7, shadowOpacity: 0.8, shadowRadius: 10, elevation: 8 },
-  timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
+  timerContainer: { width: '85%', marginTop: 0, marginBottom: 12 },
+  progressWrapper: { height: 24, justifyContent: 'center' },
+  progressBg: { height: 3, backgroundColor: '#1A1A1A', borderRadius: 2, width: '100%', overflow: 'visible' },
+  progressFill: { height: '100%', backgroundColor: '#1DB954', borderRadius: 2, shadowOpacity: 0.6, shadowRadius: 8, elevation: 5 },
+  progressKnob: { position: 'absolute', width: 10, height: 10, borderRadius: 5, top: -3.5, marginLeft: -5, shadowOpacity: 0.8, shadowRadius: 10, elevation: 8 },
+  timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
   timeLabel: { color: '#FFF', fontSize: 13, fontWeight: '800', fontVariant: ['tabular-nums'], opacity: 0.9, letterSpacing: 0.5 },
   unloadAction: {
     flexDirection: 'row',
@@ -1055,7 +1118,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: '#FF525225',
-    marginBottom: 20,
+    marginBottom: 6,
     marginTop: 5
   },
   unloadActionText: { color: '#FF5252', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
@@ -1066,6 +1129,11 @@ const styles = StyleSheet.create({
   memberName: { color: '#FFF', fontWeight: '700', fontSize: 14 },
   memberSub: { color: '#666', fontSize: 11, marginTop: 2 },
   onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#1DB954', shadowColor: '#1DB954', shadowOpacity: 0.5, shadowRadius: 5 },
+  permToggle: { width: 40, height: 22, borderRadius: 11, backgroundColor: '#333', justifyContent: 'center', paddingHorizontal: 2 },
+  permToggleKnob: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#FFF', shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 3, elevation: 3 },
+  permToggleKnobOn: { alignSelf: 'flex-end' },
+  djAccessToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333' },
+  djAccessText: { color: '#666', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
   hostBadgeSmall: { backgroundColor: '#1DB95420', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginLeft: 6 },
   hostBadgeTextSmall: { color: '#1DB954', fontSize: 8, fontWeight: '900' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center' },

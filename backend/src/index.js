@@ -82,6 +82,7 @@ app.get('/', (req, res) => {
 // Track connected sockets and their rooms
 const socketRooms = new Map(); // socketId -> { roomCode, userId, displayName, isAnonymous }
 const latencyMap = new Map();  // socketId -> latency in ms
+const hostDisconnectTimers = new Map(); // roomCode -> { timer, socketId }
 
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -154,6 +155,14 @@ io.on('connection', (socket) => {
 
       // 2. If it's the Host joining
       if (isRoomHost) {
+        // Cancel any pending host disconnect grace timer
+        const pendingTimer = hostDisconnectTimers.get(roomCode);
+        if (pendingTimer) {
+          clearTimeout(pendingTimer.timer);
+          hostDisconnectTimers.delete(roomCode);
+          console.log(`Host reconnected to room ${roomCode} — grace timer cancelled.`);
+        }
+
         room.status = 'online';
         room.hostSocketId = socket.id;
         // Host is always an active member
@@ -173,6 +182,7 @@ io.on('connection', (socket) => {
           currentTrack: room.currentTrack,
           messages: room.messages.slice(-50),
           theme: room.theme || 'default',
+          allowDJAccess: !!room.allowDJAccess,
           isHost: true
         });
         io.to(socketKey).emit('room-update', { members: room.members });
@@ -198,6 +208,7 @@ io.on('connection', (socket) => {
             currentTrack: room.currentTrack,
             messages: room.messages.slice(-50),
             songQueue: room.songQueue,
+            allowDJAccess: !!room.allowDJAccess,
             isHost: false
           });
           // Broadcast updated member list so everyone sees the reconnection
@@ -268,6 +279,7 @@ io.on('connection', (socket) => {
             currentTrack: room.currentTrack,
             messages: room.messages.slice(-50),
             songQueue: room.songQueue,
+            allowDJAccess: !!room.allowDJAccess,
           }
         });
 
@@ -600,6 +612,14 @@ io.on('connection', (socket) => {
     try {
       const room = await Room.findOne({ roomCode: info.roomCode });
       if (room) {
+        // EXCLUSIVE: Revoke permission from ALL other members first
+        for (const m of room.members) {
+          if (m.socketId !== data.targetSocketId && m.hasPermission) {
+            m.hasPermission = false;
+            io.to(m.socketId).emit('permission-status', { status: 'revoked' });
+          }
+        }
+
         const member = room.members.find(m => m.socketId === data.targetSocketId);
         if (member) {
           member.hasPermission = true;
@@ -628,9 +648,83 @@ io.on('connection', (socket) => {
           await room.save();
         }
         io.to(data.targetSocketId).emit('permission-status', { status: 'rejected' });
+        io.to(`room:${info.roomCode}`).emit('room-update', { members: room.members });
       }
     } catch (err) {
       console.error('reject-hand error:', err);
+    }
+  });
+
+  // ---- Toggle Permission (Host can grant/revoke from Members tab) ----
+  socket.on('toggle-permission', async (data) => {
+    // data: { targetSocketId, grant: boolean }
+    const info = socketRooms.get(socket.id);
+    if (!info?.roomCode) return;
+
+    try {
+      const room = await Room.findOne({ roomCode: info.roomCode });
+      if (!room) return;
+      // Only host can toggle
+      if (room.hostSocketId !== socket.id) return;
+
+      if (data.grant) {
+        // EXCLUSIVE: Revoke from everyone else first
+        for (const m of room.members) {
+          if (m.socketId !== data.targetSocketId && m.hasPermission) {
+            m.hasPermission = false;
+            io.to(m.socketId).emit('permission-status', { status: 'revoked' });
+          }
+        }
+        // Grant to target
+        const target = room.members.find(m => m.socketId === data.targetSocketId);
+        if (target) {
+          target.hasPermission = true;
+          io.to(data.targetSocketId).emit('permission-status', { status: 'approved' });
+        }
+      } else {
+        // Revoke from target
+        const target = room.members.find(m => m.socketId === data.targetSocketId);
+        if (target) {
+          target.hasPermission = false;
+          io.to(data.targetSocketId).emit('permission-status', { status: 'revoked' });
+        }
+      }
+
+      await room.save();
+      io.to(`room:${info.roomCode}`).emit('room-update', { members: room.members });
+    } catch (err) {
+      console.error('toggle-permission error:', err);
+    }
+  });
+
+  // ---- Toggle DJ Access Feature (Host enables/disables the whole feature) ----
+  socket.on('toggle-dj-access', async (data) => {
+    // data: { allow: boolean }
+    const info = socketRooms.get(socket.id);
+    if (!info?.roomCode) return;
+
+    try {
+      const room = await Room.findOne({ roomCode: info.roomCode });
+      if (!room) return;
+      if (room.hostSocketId !== socket.id) return;
+
+      room.allowDJAccess = !!data.allow;
+
+      // If disabling, revoke all existing permissions
+      if (!data.allow) {
+        for (const m of room.members) {
+          if (m.hasPermission) {
+            m.hasPermission = false;
+            io.to(m.socketId).emit('permission-status', { status: 'revoked' });
+          }
+        }
+      }
+
+      await room.save();
+      io.to(`room:${info.roomCode}`).emit('dj-access-changed', { allowDJAccess: room.allowDJAccess });
+      io.to(`room:${info.roomCode}`).emit('room-update', { members: room.members });
+    } catch (err) {
+      console.error('toggle-dj-access error:', err);
     }
   });
 
@@ -674,21 +768,26 @@ io.on('connection', (socket) => {
     console.log('User disconnected:', socket.id);
     clearInterval(pingInterval);
     latencyMap.delete(socket.id);
-    await handleLeaveRoom(socket);
+    await handleLeaveRoom(socket, true); // true = isDisconnect (use grace period for host)
   });
 });
 
 // Helper: remove socket from room
-async function handleLeaveRoom(socket) {
+// isDisconnect = true means socket dropped (use grace period for host)
+// isDisconnect = false means intentional leave (close immediately)
+async function handleLeaveRoom(socket, isDisconnect = false) {
   const info = socketRooms.get(socket.id);
   if (!info?.roomCode) return;
+
+  const GRACE_PERIOD_MS = 15000; // 15 seconds grace for host reconnection
 
   try {
     const room = await Room.findOne({ roomCode: info.roomCode });
     if (room) {
       const isHostLeaving = room.hostSocketId === socket.id;
-      
       const userId = info.userId;
+
+      // Remove this socket from members & pending
       room.members = room.members.filter(m => 
         m.socketId !== socket.id && (!userId || m.userId?.toString() !== userId.toString())
       );
@@ -697,20 +796,67 @@ async function handleLeaveRoom(socket) {
       );
       
       if (isHostLeaving) {
+        // If this is a network disconnect, give host a grace period to reconnect
+        if (isDisconnect) {
+          console.log(`Host disconnected from room ${info.roomCode}. Starting ${GRACE_PERIOD_MS/1000}s grace period...`);
+          
+          // Pause playback while host is away
+          room.currentTrack.isPlaying = false;
+          room.hostSocketId = null;
+          await room.save();
+
+          // Notify members that host briefly disconnected (NOT room-closed)
+          io.to(`room:${info.roomCode}`).emit('host-disconnected', { 
+            message: 'Host temporarily disconnected. Waiting for reconnection...',
+            gracePeriodMs: GRACE_PERIOD_MS 
+          });
+
+          // Set a timer — if host doesn't reconnect, THEN close the room
+          const timer = setTimeout(async () => {
+            try {
+              const roomCheck = await Room.findOne({ roomCode: info.roomCode });
+              if (roomCheck && roomCheck.status === 'online' && !roomCheck.hostSocketId) {
+                // Host did NOT reconnect in time → close the room
+                console.log(`Grace period expired for room ${info.roomCode}. Closing room.`);
+                roomCheck.status = 'offline';
+                roomCheck.currentTrack.isPlaying = false;
+                roomCheck.members = [];
+                await roomCheck.save();
+
+                io.to(`room:${info.roomCode}`).emit('room-closed', { 
+                  message: 'Host disconnected. Room session ended.' 
+                });
+              }
+            } catch (err) {
+              console.error('Grace period timer error:', err);
+            }
+            hostDisconnectTimers.delete(info.roomCode);
+          }, GRACE_PERIOD_MS);
+
+          hostDisconnectTimers.set(info.roomCode, { timer, socketId: socket.id });
+
+        } else {
+          // Intentional leave (host pressed Close Room) → close immediately
+          room.status = 'offline';
+          room.currentTrack.isPlaying = false;
+          room.hostSocketId = null;
+          room.members = [];
+          await room.save();
+          
+          // Cancel any lingering grace timer
+          const pendingTimer = hostDisconnectTimers.get(info.roomCode);
+          if (pendingTimer) {
+            clearTimeout(pendingTimer.timer);
+            hostDisconnectTimers.delete(info.roomCode);
+          }
+
+          io.to(`room:${info.roomCode}`).emit('room-closed', { 
+            message: 'Host has closed the room. Session ended.' 
+          });
+        }
+      } else if (room.members.length === 0 && !room.hostSocketId) {
         room.status = 'offline';
         room.currentTrack.isPlaying = false;
-        room.hostSocketId = null;
-        room.members = []; // Clear all members when host closes the room
-        await room.save();
-        
-        // Notify everyone that the room is closed
-        io.to(`room:${info.roomCode}`).emit('room-closed', { 
-          message: 'Host has closed the room. Session ended.' 
-        });
-      } else if (room.members.length === 0) {
-        room.status = 'offline';
-        room.currentTrack.isPlaying = false;
-        room.hostSocketId = null;
         await room.save();
       } else {
         await room.save();
@@ -720,7 +866,6 @@ async function handleLeaveRoom(socket) {
           memberCount: room.members.length,
         });
         
-        // Broadcast full updated member list to everyone left
         io.to(`room:${info.roomCode}`).emit('room-update', { members: room.members });
       }
     }

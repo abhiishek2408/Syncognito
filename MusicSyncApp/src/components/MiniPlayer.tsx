@@ -20,8 +20,8 @@ export default function MiniPlayer() {
 
   const isRoomScreen = checkIfRoomActive(state);
 
-  // Don't show if no track or if we are already in the Room screen (since it has a full player)
-  if (!currentTrack.url || isRoomScreen) {
+  // Don't show if no track, no active room, or if we are already in the Room screen (since it has a full player)
+  if (!currentTrack.url || !activeRoomCode || isRoomScreen) {
     return null;
   }
 

@@ -8,29 +8,68 @@ const { width } = Dimensions.get('window');
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 type ToastContextType = {
-  showToast: (message: string, type?: ToastType, duration?: number, action?: { label: string, onPress: () => void }) => void;
+  showToast: (message: string, type?: ToastType, duration?: number, action?: { label: string, onPress: () => void }, themeColor?: string) => void;
 };
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
+
+// Zig-zag edge component using pure RN Views
+const ZigZagEdge = ({ color, height }: { color: string; height: number }) => {
+  const zigSize = 6;
+  const count = Math.ceil(height / zigSize);
+  return (
+    <View style={{ position: 'absolute', right: -zigSize, top: 0, bottom: 0, width: zigSize, overflow: 'hidden' }}>
+      {Array.from({ length: count }).map((_, i) => (
+        <View
+          key={i}
+          style={{
+            width: 0,
+            height: 0,
+            borderTopWidth: zigSize / 2,
+            borderBottomWidth: zigSize / 2,
+            borderLeftWidth: zigSize,
+            borderTopColor: 'transparent',
+            borderBottomColor: 'transparent',
+            borderLeftColor: i % 2 === 0 ? '#FFFFFF' : 'transparent',
+          }}
+        />
+      ))}
+    </View>
+  );
+};
+
+// Left accent zig-zag strip
+const ZigZagLeft = ({ color, height }: { color: string; height: number }) => {
+  const zigSize = 6;
+  const count = Math.ceil(height / zigSize);
+  return (
+    <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: zigSize + 4, overflow: 'hidden', zIndex: 1 }}>
+      <View style={{ backgroundColor: color, width: 4, position: 'absolute', left: 0, top: 0, bottom: 0 }} />
+    </View>
+  );
+};
 
 export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [message, setMessage] = useState('');
   const [type, setType] = useState<ToastType>('info');
   const [visible, setVisible] = useState(false);
   const [action, setAction] = useState<{ label: string, onPress: () => void } | null>(null);
+  const [customColor, setCustomColor] = useState<string | null>(null);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(100)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
+  const toastHeightRef = useRef(70);
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const showToast = useCallback((msg: string, t: ToastType = 'info', duration: number = 3500, act?: { label: string, onPress: () => void }) => {
+  const showToast = useCallback((msg: string, t: ToastType = 'info', duration: number = 3500, act?: { label: string, onPress: () => void }, themeColor?: string) => {
     if (timerRef.current) clearTimeout(timerRef.current);
     
     setMessage(msg);
     setType(t);
     setAction(act || null);
+    setCustomColor(themeColor || null);
     setVisible(true);
     
     progressAnim.setValue(0);
@@ -55,6 +94,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setVisible(false);
       setMessage('');
       setAction(null);
+      setCustomColor(null);
     });
   };
 
@@ -67,23 +107,18 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const getColor = () => {
+  const getDefaultColor = () => {
     switch (type) {
-      case 'success': return '#00FF94'; // Vibrant Neon Green
-      case 'error': return '#FF3B3B'; // Vibrant Red
-      case 'warning': return '#FFB800'; // Amber/Gold
-      default: return '#00E0FF'; // Electric Blue
+      case 'success': return '#00FF94';
+      case 'error': return '#FF3B3B';
+      case 'warning': return '#FFB800';
+      default: return '#00E0FF';
     }
   };
 
-  const getLightColor = () => {
-    switch (type) {
-      case 'success': return '#00FF9420';
-      case 'error': return '#FF3B3B20';
-      case 'warning': return '#FFB80020';
-      default: return '#00E0FF20';
-    }
-  };
+  // Use custom theme color if provided, otherwise fall back to type-based color
+  const accentColor = customColor || getDefaultColor();
+  const lightAccent = accentColor + '20';
 
   return (
     <ToastContext.Provider value={{ showToast }}>
@@ -93,9 +128,15 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           styles.toastContainer,
           { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }
         ]}>
-          <View style={styles.toastContent}>
-            <View style={[styles.iconContainer, { backgroundColor: getLightColor() }]}>
-              <MaterialCommunityIcons name={getIcon()} size={22} color={getColor()} />
+          <View 
+            style={styles.toastContent}
+            onLayout={(e) => { toastHeightRef.current = e.nativeEvent.layout.height; }}
+          >
+            {/* Left accent bar */}
+            <View style={[styles.leftAccent, { backgroundColor: accentColor }]} />
+
+            <View style={[styles.iconContainer, { backgroundColor: lightAccent }]}>
+              <MaterialCommunityIcons name={getIcon()} size={22} color={accentColor} />
             </View>
             <View style={styles.textContainer}>
               <Text style={styles.toastText} numberOfLines={2}>{message}</Text>
@@ -103,7 +144,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             
             {action && (
               <TouchableOpacity 
-                style={[styles.actionButton, { backgroundColor: getColor() }]} 
+                style={[styles.actionButton, { backgroundColor: accentColor }]} 
                 onPress={() => {
                   action.onPress();
                   hideToast();
@@ -114,8 +155,10 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             )}
 
             <TouchableOpacity onPress={hideToast} style={styles.dismissButton}>
-              <MaterialCommunityIcons name="close" size={20} color="#666" />
+              <MaterialCommunityIcons name="close" size={20} color="#999" />
             </TouchableOpacity>
+
+            {/* Progress bar */}
             <View style={styles.progressWrapper}>
               <Animated.View 
                 style={[
@@ -131,15 +174,45 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 <LinearGradient
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  colors={[`${getColor()}90`, getColor()]}
+                  colors={[`${accentColor}60`, accentColor]}
                   style={styles.progressBarGradient}
                 />
               </Animated.View>
+            </View>
+
+            {/* Zig-zag right edge */}
+            <View style={styles.zigzagContainer}>
+              <ZigZagRight color={accentColor} />
             </View>
           </View>
         </Animated.View>
       )}
     </ToastContext.Provider>
+  );
+};
+
+// Zig-zag right edge that creates a torn/ticket effect
+const ZigZagRight = ({ color }: { color: string }) => {
+  const zigSize = 8;
+  const count = 12; // enough triangles to cover toast height
+  return (
+    <>
+      {Array.from({ length: count }).map((_, i) => (
+        <View
+          key={i}
+          style={{
+            width: 0,
+            height: 0,
+            borderTopWidth: zigSize / 2,
+            borderBottomWidth: zigSize / 2,
+            borderLeftWidth: zigSize / 2,
+            borderTopColor: 'transparent',
+            borderBottomColor: 'transparent',
+            borderLeftColor: color,
+          }}
+        />
+      ))}
+    </>
   );
 };
 
@@ -159,21 +232,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toastContent: {
-    backgroundColor: '#FFFFFF', // Clean White
+    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingLeft: 24,
+    paddingRight: 16,
     paddingVertical: 16,
-    borderRadius: 18,
+    borderRadius: 16,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
     width: '100%',
     maxWidth: 500,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 10,
-    borderWidth: 0,
-    overflow: 'hidden',
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 12,
+    overflow: 'visible',
+  },
+  leftAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    borderTopLeftRadius: 16,
+    borderBottomLeftRadius: 16,
+  },
+  zigzagContainer: {
+    position: 'absolute',
+    right: -4,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    overflow: 'visible',
   },
   iconContainer: {
     width: 42,
@@ -181,34 +275,36 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 14,
   },
   textContainer: {
     flex: 1,
     justifyContent: 'center',
   },
   toastText: {
-    color: '#000000',
-    fontSize: 16,
+    color: '#1A1A1A',
+    fontSize: 14,
     fontWeight: '700',
-    letterSpacing: -0.3,
+    letterSpacing: -0.2,
+    lineHeight: 20,
   },
   progressWrapper: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 4,
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    height: 3,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    borderBottomLeftRadius: 16,
   },
   progressBarContainer: {
     height: '100%',
     overflow: 'hidden',
+    borderBottomLeftRadius: 16,
   },
   progressBarGradient: {
     width: '100%',
     height: '100%',
-    borderRadius: 2,
   },
   dismissButton: {
     padding: 8,

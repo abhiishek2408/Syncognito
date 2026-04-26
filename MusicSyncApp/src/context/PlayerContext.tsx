@@ -146,7 +146,6 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const seek = (pos: number) => {
-    console.log('Seeking to:', pos, 'Room:', activeRoomCode);
     socket.emit('room-playback', { roomCode: activeRoomCode, action: 'seek', position: pos });
     // Update locally for immediate feedback
     setPosition(pos);

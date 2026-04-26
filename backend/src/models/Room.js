@@ -58,6 +58,7 @@ const roomSchema = new mongoose.Schema({
   maxMembers: { type: Number, default: 50 },
   status: { type: String, enum: ['online', 'offline'], default: 'offline' },
   theme: { type: String, default: 'default' },
+  allowDJAccess: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });
 
