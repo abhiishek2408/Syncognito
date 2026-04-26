@@ -490,6 +490,7 @@ export default function RoomScreen({ navigation, route }: Props) {
           <TouchableOpacity 
             style={styles.cancelWaitBtn} 
             onPress={() => {
+              socket.emit('leave-room');
               setIsWaitingApproval(false);
               navigation.goBack();
             }}

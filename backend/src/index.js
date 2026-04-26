@@ -661,8 +661,13 @@ async function handleLeaveRoom(socket) {
     if (room) {
       const isHostLeaving = room.hostSocketId === socket.id;
       
-      room.members = room.members.filter(m => m.socketId !== socket.id);
-      room.pendingMembers = room.pendingMembers.filter(m => m.socketId !== socket.id);
+      const userId = info.userId;
+      room.members = room.members.filter(m => 
+        m.socketId !== socket.id && (!userId || m.userId?.toString() !== userId.toString())
+      );
+      room.pendingMembers = room.pendingMembers.filter(m => 
+        m.socketId !== socket.id && (!userId || m.userId?.toString() !== userId.toString())
+      );
       
       if (isHostLeaving) {
         room.status = 'offline';
