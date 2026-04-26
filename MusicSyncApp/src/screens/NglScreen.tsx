@@ -23,6 +23,10 @@ const SHARE_THEMES = [
   '#00BFFF', // Deep Sky Blue
   '#FF1493', // Deep Pink
   '#FFB74D', // Soft Orange
+  '#00CED1', // Dark Turquoise
+  '#FFD700', // Gold
+  '#4B0082', // Indigo
+  '#FF69B4', // Hot Pink
   '#1E1E1E', // Dark
 ];
 
@@ -304,7 +308,7 @@ export default function NglScreen({ navigation }: any) {
                      onPress={() => setShowGradientModal(true)}
                      style={[styles.themeColorCircle, { backgroundColor: '#222', justifyContent: 'center', alignItems: 'center' }]}
                   >
-                     <MaterialCommunityIcons name="plus" size={18} color="#FFF" />
+                     <MaterialCommunityIcons name="plus" size={12} color="#FFF" />
                   </TouchableOpacity>
                 </ScrollView>
               </View>
@@ -517,8 +521,8 @@ const styles = StyleSheet.create({
   
   themeRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, marginBottom: 14, gap: 12 },
   themeLabel: { color: '#888', fontSize: 12, fontWeight: '800', letterSpacing: 0.5 },
-  themeScrollRow: { gap: 12, paddingRight: 20 },
-  themeColorCircle: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: '#333' },
+  themeScrollRow: { gap: 8, paddingRight: 20 },
+  themeColorCircle: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#333' },
   themeColorCircleActive: { borderColor: '#FFF', transform: [{ scale: 1.1 }] },
 
   gradientModalRoot: { backgroundColor: '#0A0A0A', borderTopLeftRadius: 36, borderTopRightRadius: 36, padding: 24, paddingBottom: 40, borderWidth: 1, borderColor: '#1F1F1F' },

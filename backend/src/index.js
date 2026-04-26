@@ -639,16 +639,22 @@ async function handleLeaveRoom(socket) {
   try {
     const room = await Room.findOne({ roomCode: info.roomCode });
     if (room) {
+      const isHostLeaving = room.hostSocketId === socket.id;
+      
       room.members = room.members.filter(m => m.socketId !== socket.id);
       room.pendingMembers = room.pendingMembers.filter(m => m.socketId !== socket.id);
       
-      // Clear host socket if host leaves
-      if (room.hostSocketId === socket.id) {
+      if (isHostLeaving) {
+        room.status = 'offline';
+        room.currentTrack.isPlaying = false;
         room.hostSocketId = null;
-      }
-
-      // Never delete the room, just set it to offline if empty
-      if (room.members.length === 0) {
+        await room.save();
+        
+        // Notify everyone that the room is closed
+        io.to(`room:${info.roomCode}`).emit('room-closed', { 
+          message: 'Host has closed the room. Session ended.' 
+        });
+      } else if (room.members.length === 0) {
         room.status = 'offline';
         room.currentTrack.isPlaying = false;
         room.hostSocketId = null;

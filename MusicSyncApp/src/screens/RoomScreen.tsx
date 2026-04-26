@@ -92,6 +92,7 @@ export default function RoomScreen({ navigation, route }: Props) {
   const [showGuessModal, setShowGuessModal] = useState(false);
   const [selectedSongForGuess, setSelectedSongForGuess] = useState<any>(null);
   const [gameMode, setGameMode] = useState(initialRoom.gameMode || 'none');
+  const [showThemeSelector, setShowThemeSelector] = useState(false);
   const loadingProgress = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const bgAnim = useRef(new Animated.Value(0)).current;
@@ -102,6 +103,10 @@ export default function RoomScreen({ navigation, route }: Props) {
     ocean: { primary: '#00BFFF', accent: '#00BFFF08', bg: '#000', text: '#FFF' },
     sunset: { primary: '#FF4500', accent: '#FF450008', bg: '#000', text: '#FFF' },
     emerald: { primary: '#50C878', accent: '#50C87808', bg: '#000', text: '#FFF' },
+    royal: { primary: '#8A2BE2', accent: '#8A2BE208', bg: '#000', text: '#FFF' },
+    gold: { primary: '#FFD700', accent: '#FFD70008', bg: '#000', text: '#FFF' },
+    crimson: { primary: '#DC143C', accent: '#DC143C08', bg: '#000', text: '#FFF' },
+    bubblegum: { primary: '#FF69B4', accent: '#FF69B408', bg: '#000', text: '#FFF' },
   };
   const theme = THEMES[currentTheme] || THEMES.default;
 
@@ -245,10 +250,12 @@ export default function RoomScreen({ navigation, route }: Props) {
   }, [isPlaying, pulseAnim]);
 
   useEffect(() => {
-    if (initialRoom.roomCode !== activeRoomCode) {
+    if (initialRoom.roomCode && initialRoom.roomCode !== activeRoomCode) {
        joinRoom(initialRoom, isAnonymous);
     }
+  }, [joinRoom, initialRoom.roomCode, isAnonymous, activeRoomCode]);
 
+  useEffect(() => {
     let syncTimer: any;
     if (isHost && isPlaying && position > 0) {
       syncTimer = setInterval(() => {
@@ -263,7 +270,7 @@ export default function RoomScreen({ navigation, route }: Props) {
     return () => {
       if (syncTimer) clearInterval(syncTimer);
     };
-  }, [joinRoom, socket, initialRoom, isAnonymous, activeRoomCode, isHost, isPlaying, position]);
+  }, [socket, initialRoom.roomCode, isHost, isPlaying, position]);
 
   useEffect(() => {
     Animated.loop(
@@ -553,26 +560,40 @@ export default function RoomScreen({ navigation, route }: Props) {
           <Text style={styles.headerTitle}>{initialRoom.name || 'Room'}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Text style={styles.headerSubtitle}>#{initialRoom.roomCode}</Text>
-            <TouchableOpacity onPress={shareRoomLink} style={styles.shareBadge}>
-              <MaterialCommunityIcons name="content-copy" size={12} color={theme.primary} />
-              <Text style={styles.shareBadgeText}>INVITE</Text>
-            </TouchableOpacity>
           </View>
         </View>
+        {isHost && (
+          <TouchableOpacity 
+            onPress={() => setShowThemeSelector(!showThemeSelector)} 
+            style={[styles.headerIcon, { borderColor: theme.primary + '40', borderWidth: 1, marginRight: 10 }]}
+          >
+            <MaterialCommunityIcons name="palette" size={22} color={theme.primary} />
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity 
+          onPress={shareRoomLink} 
+          style={[styles.headerIcon, { borderColor: theme.primary + '40', borderWidth: 1, marginRight: 10 }]}
+        >
+          <MaterialCommunityIcons name="account-plus" size={22} color={theme.primary} />
+        </TouchableOpacity>
         <TouchableOpacity 
           onPress={() => setShowExitModal(true)} 
-          style={[styles.leaveCircle, { borderColor: theme.primary + '40' }]}
+          style={[styles.leaveBtn, { borderColor: isHost ? '#FF525240' : theme.primary + '40' }]}
         >
-          <MaterialCommunityIcons name={isHost ? "power" : "logout"} size={20} color="#FF5252" />
+          <MaterialCommunityIcons name={isHost ? "power" : "logout"} size={16} color={isHost ? "#FF5252" : "#FFF"} />
+          <Text style={[styles.leaveText, { color: isHost ? "#FF5252" : "#FFF" }]}>{isHost ? "CLOSE" : "LEAVE"}</Text>
         </TouchableOpacity>
       </View>
 
-      {isHost && activeTab === 'player' && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.themeBar} contentContainerStyle={{ gap: 10 }}>
+      {isHost && activeTab === 'player' && showThemeSelector && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.themeBar} contentContainerStyle={{ gap: 8 }}>
           {Object.keys(THEMES).map(t => (
             <TouchableOpacity 
               key={t} 
-              onPress={() => changeTheme(t)}
+              onPress={() => {
+                changeTheme(t);
+                // Optional: hide after selection? Let's keep it for now as user didn't say.
+              }}
               style={[
                 styles.themeDot, 
                 { backgroundColor: THEMES[t].primary },
@@ -598,8 +619,9 @@ export default function RoomScreen({ navigation, route }: Props) {
         )}
       </View>
 
-      <Animated.View style={{ flex: 1, backgroundColor: bgColor }}>
+      <View style={{ flex: 1, backgroundColor: '#000' }}>
         {activeTab === 'player' ? (
+        <Animated.View style={{ flex: 1, backgroundColor: bgColor }}>
         <ScrollView contentContainerStyle={{ alignItems: 'center', paddingTop: 40 }}>
           <Animated.View style={[styles.disc, { transform: [{ scale: pulseAnim }] }]}>
             <MaterialCommunityIcons name="music-circle" size={100} color={theme.primary} />
@@ -709,6 +731,7 @@ export default function RoomScreen({ navigation, route }: Props) {
             ))}
           </View>
         </ScrollView>
+        </Animated.View>
       ) : activeTab === 'queue' ? (
         <View style={{ flex: 1, padding: 20 }}>
           <View style={styles.queueHeader}>
@@ -878,7 +901,7 @@ export default function RoomScreen({ navigation, route }: Props) {
       )}
 
       {/* Video is now global and managed in PlayerContext */}
-      </Animated.View>
+      </View>
     </View>
   );
 }
@@ -907,9 +930,19 @@ const styles = StyleSheet.create({
   activeTabText: { color: '#FFF' },
   headerIcon: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111', borderRadius: 20 },
   headerSubtitle: { color: '#666', fontSize: 12, fontWeight: '600' },
-  shareBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#1DB95415', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: '#1DB95430' },
-  shareBadgeText: { color: '#1DB954', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
-  leaveCircle: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#FF525215', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#FF525230' },
+  leaveBtn: { 
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12, 
+    paddingVertical: 6,
+    borderRadius: 12, 
+    backgroundColor: '#FF525215', 
+    justifyContent: 'center', 
+    borderWidth: 1, 
+    borderColor: '#FF525230' 
+  },
+  leaveText: { fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   notifBadge: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FF5252', marginLeft: 4, marginTop: -8 },
   requestBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1DB95410', padding: 12, borderRadius: 12, marginBottom: 20, borderWidth: 1, borderColor: '#1DB95430', width: '85%', justifyContent: 'space-between' },
   requestBannerText: { color: '#1DB954', fontWeight: '700', fontSize: 12 },
@@ -1023,8 +1056,8 @@ const styles = StyleSheet.create({
   waitingSub: { color: '#666', fontSize: 14, textAlign: 'center', marginTop: 10 },
   cancelWaitBtn: { marginTop: 60, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 30, borderWidth: 1, borderColor: '#333' },
   cancelWaitText: { color: '#666', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
-  themeBar: { maxHeight: 40, marginTop: 10, paddingHorizontal: 20 },
-  themeDot: { width: 30, height: 30, borderRadius: 15, marginRight: 10 },
+  themeBar: { maxHeight: 30, marginTop: 0, marginBottom: 5, paddingHorizontal: 20 },
+  themeDot: { width: 20, height: 20, borderRadius: 10, marginRight: 10 },
   reactionContainer: { flexDirection: 'row', justifyContent: 'center', gap: 15, marginTop: 30, paddingVertical: 10 },
   emojiBtn: { backgroundColor: 'rgba(255,255,255,0.05)', padding: 10, borderRadius: 20 },
   roleBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
