@@ -2,15 +2,26 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { usePlayer } from '../context/PlayerContext';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
 
 export default function MiniPlayer() {
   const { currentTrack, isPlaying, togglePlayback, activeRoomCode, leaveRoom } = usePlayer();
   const navigation = useNavigation<any>();
-  const route = useRoute();
+  
+  const state = useNavigationState(s => s);
+
+  const checkIfRoomActive = (navState: any): boolean => {
+    if (!navState) return false;
+    const route = navState.routes[navState.index];
+    if (route.name === 'Room') return true;
+    if (route.state) return checkIfRoomActive(route.state);
+    return false;
+  };
+
+  const isRoomScreen = checkIfRoomActive(state);
 
   // Don't show if no track or if we are already in the Room screen (since it has a full player)
-  if (!currentTrack.url || route.name === 'Room') {
+  if (!currentTrack.url || isRoomScreen) {
     return null;
   }
 
@@ -56,7 +67,7 @@ export default function MiniPlayer() {
 const styles = StyleSheet.create({
   miniPlayer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 85,
     left: 0,
     right: 0,
     height: 70,

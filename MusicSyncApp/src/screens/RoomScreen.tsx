@@ -261,10 +261,10 @@ export default function RoomScreen({ navigation, route }: Props) {
       syncTimer = setInterval(() => {
         socket.emit('room-playback', {
           roomCode: initialRoom.roomCode,
-          action: 'seek',
+          action: 'position-update', // Use position-update for background sync
           position: position
         });
-      }, 7000);
+      }, 5000); // Sync every 5 seconds
     }
 
     return () => {
@@ -638,7 +638,7 @@ export default function RoomScreen({ navigation, route }: Props) {
       <View style={{ flex: 1, backgroundColor: '#000' }}>
         {activeTab === 'player' ? (
         <Animated.View style={{ flex: 1, backgroundColor: bgColor }}>
-        <ScrollView contentContainerStyle={{ alignItems: 'center', paddingTop: 40 }}>
+        <ScrollView contentContainerStyle={{ alignItems: 'center', paddingTop: 10 }}>
           <Animated.View style={[styles.disc, { transform: [{ scale: pulseAnim }] }]}>
             <MaterialCommunityIcons name="music-circle" size={100} color={theme.primary} />
           </Animated.View>
@@ -686,14 +686,18 @@ export default function RoomScreen({ navigation, route }: Props) {
             <View style={styles.timerContainer}>
               <View style={styles.progressWrapper}>
                 <View style={styles.progressBg}>
-                  <View style={[styles.progressFill, { width: `${(position / (duration || 1)) * 100}%`, backgroundColor: theme.primary }]} />
+                  <View style={[styles.progressFill, { width: `${(position / (duration || 1)) * 100}%`, backgroundColor: theme.primary, shadowColor: theme.primary }]} />
+                  {/* Glow Knob */}
+                  <View style={[styles.progressKnob, { left: `${(position / (duration || 1)) * 100}%`, backgroundColor: theme.primary, shadowColor: theme.primary }]} />
                 </View>
                 <TouchableOpacity 
                    style={StyleSheet.absoluteFill} 
+                   activeOpacity={1}
                    onPress={(e) => {
                      if (isHost || hasPermission) {
                         const { locationX } = e.nativeEvent;
-                        const seekPos = (locationX / (SCREEN_WIDTH * 0.8)) * duration;
+                        // Better calculation: Use 85% width which is timerContainer's width
+                        const seekPos = (locationX / (SCREEN_WIDTH * 0.85)) * duration;
                         seek(seekPos);
                       }
                    }} 
@@ -719,7 +723,7 @@ export default function RoomScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           )}
 
-          {(isHost || hasPermission) && (
+          {(isHost || hasPermission) && !currentTrack.url && (
             <TouchableOpacity onPress={pickSong} style={[styles.pickBtn, { borderColor: theme.primary + '40' }]} disabled={isPicking}>
               <MaterialCommunityIcons name="folder-music-outline" size={20} color={theme.primary} />
               <Text style={[styles.pickBtnText, { color: theme.primary }]}>{isPicking ? 'PICKING...' : 'SELECT FROM DEVICE'}</Text>
@@ -1007,24 +1011,26 @@ const styles = StyleSheet.create({
   msgInput: { flex: 1, backgroundColor: '#111', color: '#FFF', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 25, fontSize: 14, borderWidth: 1, borderColor: '#333' },
   sendMsgBtn: { marginLeft: 10, width: 44, height: 44, borderRadius: 22, backgroundColor: '#1DB954', justifyContent: 'center', alignItems: 'center', shadowColor: '#1DB954', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
   loaderContainer: { width: '80%', height: 4, backgroundColor: '#111', borderRadius: 2, marginBottom: 20, overflow: 'hidden' },
-  loaderBar: { height: '100%', backgroundColor: '#1DB954', shadowColor: '#1DB954', shadowOpacity: 0.5, shadowRadius: 5 },
-  timerContainer: { width: '85%', marginBottom: 30 },
-  progressWrapper: { height: 20, justifyContent: 'center' },
-  progressBg: { height: 4, backgroundColor: '#333', borderRadius: 2, width: '100%' },
-  progressFill: { height: '100%', backgroundColor: '#1DB954', borderRadius: 2 },
-  timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  timeLabel: { color: '#FFF', fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'], opacity: 0.8 },
+  loaderBar: { height: '100%', backgroundColor: '#1DB954', shadowColor: '#1DB954', shadowOpacity: 0.8, shadowRadius: 10 },
+  timerContainer: { width: '85%', marginVertical: 20 },
+  progressWrapper: { height: 30, justifyContent: 'center' },
+  progressBg: { height: 6, backgroundColor: '#1A1A1A', borderRadius: 3, width: '100%', overflow: 'visible' },
+  progressFill: { height: '100%', backgroundColor: '#1DB954', borderRadius: 3, shadowOpacity: 0.6, shadowRadius: 8, elevation: 5 },
+  progressKnob: { position: 'absolute', width: 14, height: 14, borderRadius: 7, top: -4, marginLeft: -7, shadowOpacity: 0.8, shadowRadius: 10, elevation: 8 },
+  timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12 },
+  timeLabel: { color: '#FFF', fontSize: 13, fontWeight: '800', fontVariant: ['tabular-nums'], opacity: 0.9, letterSpacing: 0.5 },
   unloadAction: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#FF525210',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    gap: 8,
+    backgroundColor: '#FF525208',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#FF525230',
-    marginBottom: 12
+    borderColor: '#FF525225',
+    marginBottom: 20,
+    marginTop: 5
   },
   unloadActionText: { color: '#FF5252', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, width: '85%' },

@@ -34,7 +34,7 @@ router.post('/', authenticateToken, async (req, res) => {
 router.get('/public', optionalAuth, async (req, res) => {
   try {
     let filter = { $or: [] };
-    const publicCondition = { isPublic: true };
+    const publicCondition = { isPublic: true, status: 'online' };
     
     if (req.query.mood && req.query.mood !== 'any') {
       publicCondition.mood = req.query.mood;
@@ -68,7 +68,7 @@ router.get('/public', optionalAuth, async (req, res) => {
 // Get global stats (total listeners & active rooms)
 router.get('/stats/global', async (req, res) => {
   try {
-    const rooms = await Room.find({ isPublic: true });
+    const rooms = await Room.find({ isPublic: true, status: 'online' });
     const totalPublicRooms = rooms.length;
     const totalListeners = rooms.reduce((sum, r) => sum + (r.members?.length || 0), 0);
     

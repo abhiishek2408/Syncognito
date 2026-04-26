@@ -42,16 +42,24 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     socket.on('room-playback-sync', (data: any) => {
+      // If we're the host, we usually want to ignore syncs unless they are very far off
+      // because we are the source of truth.
+      const isRoomHost = data.currentTrack.hostSocketId === socket.id;
+      
       setCurrentTrack(data.currentTrack);
       setIsPlaying(data.currentTrack.isPlaying);
       setDuration(data.currentTrack.duration);
       
       const diff = Math.abs(positionRef.current - data.currentTrack.position);
-      if (diff > 2 && videoRef.current) {
+      // Only seek if we are a member OR if the host's local playback is way off (>5s)
+      if (videoRef.current && (diff > 5 || (!isRoomHost && diff > 2))) {
         videoRef.current.seek(data.currentTrack.position);
       }
-      setPosition(data.currentTrack.position);
-      positionRef.current = data.currentTrack.position;
+      
+      if (!isRoomHost || diff > 5) {
+        setPosition(data.currentTrack.position);
+        positionRef.current = data.currentTrack.position;
+      }
     });
 
     socket.on('room-state', (state: any) => {
@@ -74,6 +82,9 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (isPlaying) {
       localTimer = setInterval(() => {
         setPosition(prev => {
+          if (duration > 0 && prev >= duration) {
+            return prev; // Stop at duration
+          }
           const next = prev + 0.5;
           positionRef.current = next;
           return next;
@@ -103,13 +114,20 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const togglePlayback = () => {
-    const action = isPlaying ? 'pause' : 'play';
+    console.log('Toggling Playback. Current:', isPlaying, 'Room:', activeRoomCode);
+    const nextPlaying = !isPlaying;
+    const action = nextPlaying ? 'play' : 'pause';
     socket.emit('room-playback', { roomCode: activeRoomCode, action, position: positionRef.current });
-    setIsPlaying(!isPlaying);
+    setIsPlaying(nextPlaying);
   };
 
   const seek = (pos: number) => {
+    console.log('Seeking to:', pos, 'Room:', activeRoomCode);
     socket.emit('room-playback', { roomCode: activeRoomCode, action: 'seek', position: pos });
+    // Update locally for immediate feedback
+    setPosition(pos);
+    positionRef.current = pos;
+    if (videoRef.current) videoRef.current.seek(pos);
   };
 
   const pickTrack = (track: Track) => {
@@ -150,6 +168,16 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             console.error('Playback Error:', e);
             // We can't use useToast here easily as it's outside the provider, 
             // but we can log it.
+          }}
+          onEnd={() => {
+            setIsPlaying(false);
+            setPosition(duration);
+            positionRef.current = duration;
+            socket.emit('room-playback', { 
+              roomCode: activeRoomCode, 
+              action: 'pause', 
+              position: duration 
+            });
           }}
           style={{ width: 0, height: 0 }}
           playInBackground={true}

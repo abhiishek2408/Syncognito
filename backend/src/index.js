@@ -272,9 +272,10 @@ io.on('connection', (socket) => {
 
       // Only host or permitted members can control playback
       const isMemberPermitted = room.members.find(m => m.socketId === socket.id && m.hasPermission);
-      const isHost = info.userId && room.host.toString() === info.userId;
+      const isHost = (info.userId && room.host.toString() === info.userId) || (room.hostSocketId === socket.id);
 
       if (!isHost && !isMemberPermitted) {
+        console.log(`Playback control denied for socket ${socket.id}. IsHost: ${isHost}`);
         socket.emit('error-msg', { message: 'Only the host or permitted members can control playback' });
         return;
       }
@@ -283,14 +284,14 @@ io.on('connection', (socket) => {
       const now = Date.now();
       if (data.action === 'play') {
         room.currentTrack.isPlaying = true;
-        room.currentTrack.position = data.position || room.currentTrack.position;
+        room.currentTrack.position = (data.position !== undefined) ? data.position : room.currentTrack.position;
         room.currentTrack.lastSyncTimestamp = now;
       } else if (data.action === 'pause') {
         room.currentTrack.isPlaying = false;
-        room.currentTrack.position = data.position || room.currentTrack.position;
+        room.currentTrack.position = (data.position !== undefined) ? data.position : room.currentTrack.position;
         room.currentTrack.lastSyncTimestamp = now;
-      } else if (data.action === 'seek') {
-        room.currentTrack.position = data.position || 0;
+      } else if (data.action === 'seek' || data.action === 'position-update') {
+        room.currentTrack.position = (data.position !== undefined) ? data.position : 0;
         room.currentTrack.lastSyncTimestamp = now;
       } else if (data.action === 'track-change') {
         room.currentTrack.title = data.track?.title || '';
