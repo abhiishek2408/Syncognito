@@ -25,6 +25,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [globalStats, setGlobalStats] = useState({ listeners: 0, activeRooms: 0, friends: 0 });
+  const [startingRoomId, setStartingRoomId] = useState<string | null>(null);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
 
   const headers = React.useMemo(() => auth.token ? { Authorization: `Bearer ${auth.token}` } : {}, [auth.token]);
@@ -212,30 +213,38 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               </TouchableOpacity>
             </View>
           ) : (
-            publicRooms.map((room, i) => (
-              <TouchableOpacity
+            publicRooms.map((room, i) => {
+              const isHost = (room.host?._id === auth.user?._id || room.host === auth.user?._id);
+              return (
+              <View
                 key={room._id || i}
                 style={styles.roomPreview}
-                onPress={() => {
-                  const isHost = (room.host?._id === auth.user?._id || room.host === auth.user?._id);
-                  if (room.status === 'offline' && !isHost) {
-                    showToast('Room has not been started by the host yet.', 'warning');
-                    return;
-                  }
-                  navigation.navigate('Room', { room, isAnonymous: false, isHost });
-                }}
-                activeOpacity={0.7}
               >
                 <View style={styles.roomPreviewHeader}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.roomPreviewName} numberOfLines={1}>{room.name}</Text>
                     <View style={styles.roomPreviewStats}>
-                      <MaterialCommunityIcons name="account-group" size={12} color="#888" />
-                      <Text style={styles.roomPreviewMeta}>{room.members?.length || 0} listening</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <MaterialCommunityIcons name="account-group" size={12} color="#888" />
+                        <Text style={styles.roomPreviewMeta}>{room.members?.length || 0} listening</Text>
+                      </View>
+
+                      {room.status === 'online' ? (
+                        <View style={[styles.liveIndicatorMini, { backgroundColor: '#1DB95415', borderColor: '#1DB95430', borderWidth: 1 }]}>
+                          <View style={[styles.liveDotMini, { backgroundColor: '#1DB954' }]} />
+                          <Text style={[styles.liveTextMini, { color: '#1DB954' }]}>ONLINE</Text>
+                        </View>
+                      ) : (
+                        <View style={[styles.liveIndicatorMini, { backgroundColor: '#44415', borderColor: '#44430', borderWidth: 1 }]}>
+                          <View style={[styles.liveDotMini, { backgroundColor: '#888' }]} />
+                          <Text style={[styles.liveTextMini, { color: '#888' }]}>OFFLINE</Text>
+                        </View>
+                      )}
+
                       {room.isPublic ? (
-                        <View style={[styles.liveIndicatorMini, { backgroundColor: '#1DB95415' }]}>
-                          <MaterialCommunityIcons name="earth" size={10} color="#1DB954" />
-                          <Text style={[styles.liveTextMini, { color: '#1DB954' }]}>PUBLIC</Text>
+                        <View style={[styles.liveIndicatorMini, { backgroundColor: '#BB86FC15' }]}>
+                          <MaterialCommunityIcons name="earth" size={10} color="#BB86FC" />
+                          <Text style={[styles.liveTextMini, { color: '#BB86FC' }]}>PUBLIC</Text>
                         </View>
                       ) : (
                         <View style={[styles.liveIndicatorMini, { backgroundColor: '#FFB74D15' }]}>
@@ -243,27 +252,10 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                           <Text style={[styles.liveTextMini, { color: '#FFB74D' }]}>PRIVATE</Text>
                         </View>
                       )}
-                      {room.currentTrack?.isPlaying && (
-                        <View style={styles.liveIndicatorMini}>
-                          <View style={styles.liveDotMini} />
-                          <Text style={styles.liveTextMini}>LIVE</Text>
-                        </View>
-                      )}
                     </View>
                   </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    {activeRoomCode === room.roomCode && currentTrack.url && (
-                      <TouchableOpacity 
-                        style={styles.cardPlayBtn} 
-                        onPress={() => togglePlayback()}
-                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      >
-                        <MaterialCommunityIcons name={isPlaying ? 'pause' : 'play'} size={18} color="#000" />
-                      </TouchableOpacity>
-                    )}
-                    <View style={styles.roomPreviewCodeBadge}>
-                      <Text style={styles.roomPreviewCode}>#{room.roomCode}</Text>
-                    </View>
+                  <View style={styles.roomPreviewCodeBadge}>
+                    <Text style={styles.roomPreviewCode}>#{room.roomCode}</Text>
                   </View>
                 </View>
                 
@@ -273,8 +265,67 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                     <Text style={styles.roomPreviewTrack} numberOfLines={1}>{room.currentTrack.title}</Text>
                   </View>
                 ) : null}
-              </TouchableOpacity>
-            ))
+
+                <View style={styles.roomActionRow}>
+                  {isHost && room.status === 'offline' ? (
+                    <TouchableOpacity 
+                      style={styles.startRoomCardBtn}
+                      onPress={() => {
+                        setStartingRoomId(room._id);
+                        setTimeout(() => {
+                          setStartingRoomId(null);
+                          navigation.navigate('Room', { room, isAnonymous: false, isHost: true });
+                        }, 1500);
+                      }}
+                      disabled={startingRoomId === room._id}
+                    >
+                      {startingRoomId === room._id ? (
+                        <ActivityIndicator size="small" color="#000" />
+                      ) : (
+                        <>
+                          <MaterialCommunityIcons name="play-circle" size={16} color="#000" />
+                          <Text style={styles.startRoomCardText}>START ROOM SESSION</Text>
+                        </>
+                      )}
+                    </TouchableOpacity>
+                  ) : room.status === 'online' ? (
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                      {isHost ? (
+                        <TouchableOpacity 
+                          style={[styles.joinRoomCardBtn, { flex: 1, backgroundColor: '#FF525215', borderColor: '#FF525240' }]}
+                          onPress={() => navigation.navigate('Room', { room, isAnonymous: false, isHost: true })}
+                        >
+                          <MaterialCommunityIcons name="power" size={16} color="#FF5252" />
+                          <Text style={[styles.joinRoomCardText, { color: '#FF5252' }]}>END SESSION</Text>
+                        </TouchableOpacity>
+                      ) : activeRoomCode === room.roomCode ? (
+                        <TouchableOpacity 
+                          style={[styles.joinRoomCardBtn, { flex: 1, backgroundColor: '#FF525215', borderColor: '#FF525240' }]}
+                          onPress={() => leaveRoom()}
+                        >
+                          <MaterialCommunityIcons name="logout" size={16} color="#FF5252" />
+                          <Text style={[styles.joinRoomCardText, { color: '#FF5252' }]}>LEAVE ROOM</Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity 
+                          style={[styles.joinRoomCardBtn, { flex: 1 }]}
+                          onPress={() => navigation.navigate('Room', { room, isAnonymous: false, isHost })}
+                        >
+                          <MaterialCommunityIcons name="login-variant" size={16} color="#FFF" />
+                          <Text style={styles.joinRoomCardText}>JOIN SYNC</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  ) : (
+                    <View style={styles.offlineStatusFull}>
+                      <MaterialCommunityIcons name="clock-outline" size={14} color="#666" />
+                      <Text style={styles.offlineStatusText}>Waiting for host to start...</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+              );
+            })
           )}
         </View>
 
@@ -618,4 +669,49 @@ const styles = StyleSheet.create({
   pulseIconWrap: { width: 34, height: 34, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   pulseName: { fontSize: 14, fontWeight: '700' },
   pulseDot: { position: 'absolute', top: 12, right: 12, width: 4, height: 4, borderRadius: 2, opacity: 0.5 },
+  startRoomCardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#1DB954',
+    paddingVertical: 10,
+    borderRadius: 12,
+    shadowColor: '#1DB954',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5
+  },
+  startRoomCardText: {
+    color: '#000',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 1
+  },
+  roomActionRow: { 
+    marginTop: 15, 
+    borderTopWidth: 1, 
+    borderTopColor: '#1A1A1A', 
+    paddingTop: 12,
+  },
+  joinRoomCardBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#1A1A1A',
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#333'
+  },
+  joinRoomCardText: { color: '#FFF', fontWeight: '800', fontSize: 11, letterSpacing: 1 },
+  offlineStatusFull: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+  },
+  offlineStatusText: { color: '#444', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
 });

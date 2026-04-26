@@ -648,6 +648,7 @@ async function handleLeaveRoom(socket) {
         room.status = 'offline';
         room.currentTrack.isPlaying = false;
         room.hostSocketId = null;
+        room.members = []; // Clear all members when host closes the room
         await room.save();
         
         // Notify everyone that the room is closed
