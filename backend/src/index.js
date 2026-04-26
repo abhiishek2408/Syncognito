@@ -179,12 +179,17 @@ io.on('connection', (socket) => {
       } 
       // 3. If it's a regular member joining
       else {
-        // Check if already an approved member
+        // Check if already an approved member (by userId)
         const isAlreadyMember = room.members.find(m => 
           (userId && m.userId?.toString() === userId.toString()) || (m.socketId === socket.id)
         );
 
         if (isAlreadyMember) {
+          // Update their socketId in case they reconnected with a new one
+          isAlreadyMember.socketId = socket.id;
+          isAlreadyMember.displayName = name;
+          await room.save();
+
           // Just send the state, no need for approval
           socket.emit('room-state', {
             roomCode: room.roomCode,
@@ -195,6 +200,8 @@ io.on('connection', (socket) => {
             songQueue: room.songQueue,
             isHost: false
           });
+          // Broadcast updated member list so everyone sees the reconnection
+          io.to(socketKey).emit('room-update', { members: room.members });
           return;
         }
 

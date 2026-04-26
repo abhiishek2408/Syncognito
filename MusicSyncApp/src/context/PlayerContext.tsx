@@ -18,6 +18,7 @@ type PlayerContextType = {
   duration: number;
   activeRoomCode: string | null;
   joinRoom: (room: any, isAnonymous: boolean) => void;
+  setRoomState: (room: any) => void;
   leaveRoom: () => void;
   togglePlayback: () => void;
   seek: (pos: number) => void;
@@ -97,6 +98,8 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [isPlaying]);
 
   const joinRoom = (room: any, isAnonymous: boolean) => {
+    // Only emit join-room if we are NOT already in this room
+    if (room.roomCode === activeRoomCode) return;
     setActiveRoomCode(room.roomCode);
     socket.emit('join-room', {
       roomCode: room.roomCode,
@@ -104,6 +107,18 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       userId: auth.user?._id,
       displayName: auth.user?.name
     });
+  };
+
+  // Set room state locally WITHOUT emitting join-room again
+  // Used after approval to avoid re-triggering the join flow
+  const setRoomState = (room: any) => {
+    setActiveRoomCode(room.roomCode);
+    if (room.currentTrack) {
+      setCurrentTrack(room.currentTrack);
+      setIsPlaying(room.currentTrack.isPlaying);
+      setPosition(room.currentTrack.position);
+      setDuration(room.currentTrack.duration);
+    }
   };
 
   const leaveRoom = () => {
@@ -150,7 +165,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   return (
     <PlayerContext.Provider value={{
       currentTrack, isPlaying, position, duration, activeRoomCode,
-      joinRoom, leaveRoom, togglePlayback, seek, pickTrack, unloadTrack
+      joinRoom, setRoomState, leaveRoom, togglePlayback, seek, pickTrack, unloadTrack
     }}>
       {children}
       {currentTrack.url ? (

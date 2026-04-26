@@ -68,8 +68,10 @@ export default function RoomScreen({ navigation, route }: Props) {
 
   const { 
     currentTrack, isPlaying, position, duration, activeRoomCode,
-    togglePlayback, seek, pickTrack, unloadTrack, joinRoom, leaveRoom 
+    togglePlayback, seek, pickTrack, unloadTrack, joinRoom, setRoomState, leaveRoom 
   } = usePlayer();
+
+  const hasJoinedRef = useRef(false);
 
   const [isPicking, setIsPicking] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
@@ -173,11 +175,13 @@ export default function RoomScreen({ navigation, route }: Props) {
 
     socket.on('join-approved', (data: any) => {
       setIsWaitingApproval(false);
+      hasJoinedRef.current = true;
       showToast('Joined successfully!', 'success');
       if (data.roomState) {
         setMembers(data.roomState.members || []);
         setMessages(data.roomState.messages || []);
-        joinRoom(data.roomState, isAnonymous);
+        // Use setRoomState instead of joinRoom to avoid re-emitting 'join-room'
+        setRoomState(data.roomState);
       }
     });
 
@@ -264,10 +268,12 @@ export default function RoomScreen({ navigation, route }: Props) {
   }, [isPlaying, pulseAnim]);
 
   useEffect(() => {
-    if (initialRoom.roomCode && initialRoom.roomCode !== activeRoomCode && !isWaitingApproval) {
+    // Only emit join-room ONCE when first entering the screen
+    if (initialRoom.roomCode && !hasJoinedRef.current && !isWaitingApproval) {
+       hasJoinedRef.current = true;
        joinRoom(initialRoom, isAnonymous);
     }
-  }, [joinRoom, initialRoom.roomCode, isAnonymous, activeRoomCode, isWaitingApproval]);
+  }, [initialRoom.roomCode]);
 
   useEffect(() => {
     let syncTimer: any;
