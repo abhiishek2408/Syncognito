@@ -158,7 +158,26 @@ io.on('connection', (socket) => {
       } 
       // 3. If it's a regular member joining
       else {
-        // Add to pending members (filter existing pending first)
+        // Check if already an approved member
+        const isAlreadyMember = room.members.find(m => 
+          (userId && m.userId?.toString() === userId.toString()) || (m.socketId === socket.id)
+        );
+
+        if (isAlreadyMember) {
+          // Just send the state, no need for approval
+          socket.emit('room-state', {
+            roomCode: room.roomCode,
+            name: room.name,
+            members: room.members,
+            currentTrack: room.currentTrack,
+            messages: room.messages.slice(-50),
+            songQueue: room.songQueue,
+            isHost: false
+          });
+          return;
+        }
+
+        // Add to pending members
         room.pendingMembers = room.pendingMembers.filter(m => 
           (userId && m.userId?.toString() === userId.toString()) || (m.socketId === socket.id)
         );

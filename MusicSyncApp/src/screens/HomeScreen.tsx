@@ -311,13 +311,21 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                           </TouchableOpacity>
                         </>
                       ) : activeRoomCode === room.roomCode ? (
-                        <TouchableOpacity 
-                          style={[styles.joinRoomCardBtn, { flex: 1, backgroundColor: '#FF525215', borderColor: '#FF525240' }]}
-                          onPress={() => leaveRoom()}
-                        >
-                          <MaterialCommunityIcons name="logout" size={16} color="#FF5252" />
-                          <Text style={[styles.joinRoomCardText, { color: '#FF5252' }]}>LEAVE ROOM</Text>
-                        </TouchableOpacity>
+                        <>
+                          <TouchableOpacity 
+                            style={[styles.joinRoomCardBtn, { flex: 3 }]}
+                            onPress={() => navigation.navigate('Room', { room, isAnonymous: false, isHost: false })}
+                          >
+                            <MaterialCommunityIcons name="login-variant" size={16} color="#FFF" />
+                            <Text style={styles.joinRoomCardText}>ENTER ROOM</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity 
+                            style={[styles.joinRoomCardBtn, { flex: 1, backgroundColor: '#FF525215', borderColor: '#FF525240' }]}
+                            onPress={() => leaveRoom()}
+                          >
+                            <MaterialCommunityIcons name="logout" size={16} color="#FF5252" />
+                          </TouchableOpacity>
+                        </>
                       ) : (
                         <TouchableOpacity 
                           style={[styles.joinRoomCardBtn, { flex: 1 }]}

@@ -137,6 +137,13 @@ export default function RoomScreen({ navigation, route }: Props) {
       }
     });
 
+    socket.on('room-state', (data: any) => {
+      setIsWaitingApproval(false);
+      if (data.members) setMembers(data.members);
+      if (data.messages) setMessages(data.messages);
+      if (data.songQueue) setSongQueue(data.songQueue);
+    });
+
     socket.on('error-msg', (data: any) => {
       showToast(data.message, 'error');
     });
@@ -222,6 +229,7 @@ export default function RoomScreen({ navigation, route }: Props) {
       socket.off('permission-status');
       socket.off('error-msg');
       socket.off('room-update');
+      socket.off('room-state');
       socket.off('room-closed');
       socket.off('waiting-for-approval');
       socket.off('join-approved');
