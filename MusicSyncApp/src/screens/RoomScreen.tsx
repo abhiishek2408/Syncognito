@@ -121,7 +121,10 @@ export default function RoomScreen({ navigation, route }: Props) {
     socket.on('hand-raised', (request: any) => {
       if (isHost) {
         setPendingRequests(prev => [...prev, request]);
-        showToast(`${request.displayName} wants to play music`, 'info');
+        showToast(`${request.displayName} wants to play music`, 'info', 6000, {
+          label: 'APPROVE',
+          onPress: () => approveRequest(request.socketId)
+        });
       }
     });
 
@@ -187,7 +190,10 @@ export default function RoomScreen({ navigation, route }: Props) {
     socket.on('new-join-request', (data: any) => {
       if (isHost) {
         setJoinRequests(prev => [...prev, data]);
-        showToast(`New join request from ${data.displayName}`, 'info');
+        showToast(`Join request: ${data.displayName}`, 'info', 6000, {
+          label: 'ACCEPT',
+          onPress: () => approveJoin(data.socketId)
+        });
       }
     });
 

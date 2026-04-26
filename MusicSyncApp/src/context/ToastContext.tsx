@@ -8,7 +8,7 @@ const { width } = Dimensions.get('window');
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
 type ToastContextType = {
-  showToast: (message: string, type?: ToastType, duration?: number) => void;
+  showToast: (message: string, type?: ToastType, duration?: number, action?: { label: string, onPress: () => void }) => void;
 };
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -17,6 +17,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [message, setMessage] = useState('');
   const [type, setType] = useState<ToastType>('info');
   const [visible, setVisible] = useState(false);
+  const [action, setAction] = useState<{ label: string, onPress: () => void } | null>(null);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(100)).current;
@@ -24,11 +25,12 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const showToast = useCallback((msg: string, t: ToastType = 'info', duration: number = 3500) => {
+  const showToast = useCallback((msg: string, t: ToastType = 'info', duration: number = 3500, act?: { label: string, onPress: () => void }) => {
     if (timerRef.current) clearTimeout(timerRef.current);
     
     setMessage(msg);
     setType(t);
+    setAction(act || null);
     setVisible(true);
     
     progressAnim.setValue(0);
@@ -52,6 +54,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     ]).start(() => {
       setVisible(false);
       setMessage('');
+      setAction(null);
     });
   };
 
@@ -97,6 +100,19 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             <View style={styles.textContainer}>
               <Text style={styles.toastText} numberOfLines={2}>{message}</Text>
             </View>
+            
+            {action && (
+              <TouchableOpacity 
+                style={[styles.actionButton, { backgroundColor: getColor() }]} 
+                onPress={() => {
+                  action.onPress();
+                  hideToast();
+                }}
+              >
+                <Text style={styles.actionButtonText}>{action.label}</Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity onPress={hideToast} style={styles.dismissButton}>
               <MaterialCommunityIcons name="close" size={20} color="#666" />
             </TouchableOpacity>
@@ -197,5 +213,17 @@ const styles = StyleSheet.create({
   dismissButton: {
     padding: 8,
     marginLeft: 4,
+  },
+  actionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  actionButtonText: {
+    color: '#000',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
 });
