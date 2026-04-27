@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, 
   ActivityIndicator, RefreshControl, Dimensions, Animated, Share, TextInput, Modal, ScrollView, Vibration, Image, Linking
@@ -10,6 +10,7 @@ import AuthContext from '../context/AuthContext';
 import API_URL from '../utils/api';
 import { useToast } from '../context/ToastContext';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { Swipeable } from 'react-native-gesture-handler';
 
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -138,7 +139,12 @@ export default function NglScreen({ navigation }: any) {
       const resp = await axios.get(`${API_URL}/api/ngl/me`, {
         headers: { Authorization: `Bearer ${auth.token}` }
       });
-      setMessages(resp.data || []);
+      const msgs = resp.data || [];
+      setMessages(msgs);
+      // Sync pinned state from server
+      setPinnedMessages(msgs.filter((m: any) => m.isPinned).map((m: any) => m._id));
+      // Sync revealed state (read messages)
+      setRevealedMessages(msgs.filter((m: any) => m.isRead).map((m: any) => m._id));
     } catch (err) {
       console.warn('NGL fetch error:', err);
       showToast('Failed to load notes', 'error');
@@ -148,6 +154,26 @@ export default function NglScreen({ navigation }: any) {
       Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
     }
   }, [auth.token, fadeAnim, showToast]);
+
+  const togglePinApi = async (id: string) => {
+    try {
+      await axios.patch(`${API_URL}/api/ngl/${id}/pin`, {}, {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+    } catch (err) {
+      console.warn('Pin toggle error:', err);
+    }
+  };
+
+  const markAsReadApi = async (id: string) => {
+    try {
+      await axios.patch(`${API_URL}/api/ngl/${id}/read`, {}, {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+    } catch (err) {
+      console.warn('Mark read error:', err);
+    }
+  };
 
 
 
@@ -231,65 +257,125 @@ export default function NglScreen({ navigation }: any) {
     }
   };
 
+  // Unread count
+  const unreadCount = messages.filter(m => !revealedMessages.includes(m._id) && !m.isRead).length;
+
+  const markAllAsRead = async () => {
+    try {
+      await axios.patch(`${API_URL}/api/ngl/read-all`, {}, {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+      setRevealedMessages(messages.map(m => m._id));
+      showToast('All messages marked as read', 'success');
+    } catch (err) {
+      console.warn('Mark all read error:', err);
+    }
+  };
+
+  // Swipe action renderers
+  const renderLeftActions = (item: any) => (
+    <View style={styles.swipeActionLeft}>
+      <MaterialCommunityIcons name="pin" size={22} color="#000" />
+      <Text style={styles.swipeActionText}>PIN</Text>
+    </View>
+  );
+
+  const renderRightActions = (item: any) => (
+    <View style={styles.swipeActionRight}>
+      <MaterialCommunityIcons name="delete" size={22} color="#FFF" />
+      <Text style={[styles.swipeActionText, { color: '#FFF' }]}>DELETE</Text>
+    </View>
+  );
+
   const renderItem = ({ item }: { item: any }) => {
-    const isRevealed = revealedMessages.includes(item._id);
+    const isRevealed = revealedMessages.includes(item._id) || item.isRead;
 
     const msgPinned = pinnedMessages.includes(item._id);
 
     return (
-      <TouchableOpacity 
-        activeOpacity={0.9}
-        onPress={() => {
-          if (!isRevealed) {
-            setRevealedMessages(prev => [...prev, item._id]);
-            triggerHaptic('medium');
-          }
-          navigation.navigate('NglMessageDetail', { message: item });
+      <Swipeable
+        renderLeftActions={() => renderLeftActions(item)}
+        renderRightActions={() => renderRightActions(item)}
+        onSwipeableLeftOpen={() => {
+          triggerHaptic('medium');
+          setPinnedMessages(prev => prev.includes(item._id) ? prev.filter(id => id !== item._id) : [...prev, item._id]);
+          togglePinApi(item._id);
         }}
+        onSwipeableRightOpen={() => {
+          triggerHaptic('heavy');
+          deleteMessage(item._id);
+        }}
+        overshootLeft={false}
+        overshootRight={false}
       >
-        <Animated.View style={[styles.messageCard, { opacity: fadeAnim, borderStyle: isRevealed ? 'solid' : 'dashed' }, msgPinned && { borderColor: 'rgba(255,215,0,0.4)' }]}>
-          <View style={styles.cardHeader}>
-            <View style={styles.anonLabelRow}>
-              {msgPinned && <MaterialCommunityIcons name="pin" size={12} color="#FFD700" />}
-              <MaterialCommunityIcons 
-                name={isRevealed ? "email-open-outline" : "email-outline"} 
-                size={16} 
-                color="#1DB954" 
-              />
-              <Text style={styles.anonLabel}>
-                {msgPinned ? 'PINNED' : isRevealed ? 'REVEALED NOTE' : 'NEW ANONYMOUS NOTE'}
-              </Text>
+        <TouchableOpacity 
+          activeOpacity={0.9}
+          onPress={() => {
+            if (!isRevealed) {
+              setRevealedMessages(prev => [...prev, item._id]);
+              markAsReadApi(item._id);
+              triggerHaptic('medium');
+            }
+            navigation.navigate('NglMessageDetail', { message: item });
+          }}
+        >
+          <Animated.View style={[styles.messageCard, { opacity: fadeAnim, borderStyle: isRevealed ? 'solid' : 'dashed' }, msgPinned && { borderColor: 'rgba(255,215,0,0.4)' }]}>
+            <View style={styles.cardHeader}>
+              <View style={styles.anonLabelRow}>
+                {msgPinned && <MaterialCommunityIcons name="pin" size={12} color="#FFD700" />}
+                <MaterialCommunityIcons 
+                  name={isRevealed ? "email-open-outline" : "email-outline"} 
+                  size={16} 
+                  color="#1DB954" 
+                />
+                <Text style={styles.anonLabel}>
+                  {msgPinned ? 'PINNED' : isRevealed ? 'REVEALED NOTE' : 'NEW ANONYMOUS NOTE'}
+                </Text>
+              </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {item.reaction && <Text style={{ fontSize: 14 }}>{item.reaction}</Text>}
+                <TouchableOpacity onPress={() => {
+                  triggerHaptic('light');
+                  setPinnedMessages(prev => prev.includes(item._id) ? prev.filter(id => id !== item._id) : [...prev, item._id]);
+                  togglePinApi(item._id);
+                }}>
+                  <MaterialCommunityIcons name={msgPinned ? "pin" : "pin-outline"} size={18} color={msgPinned ? "#FFD700" : "#444"} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteMessage(item._id)}>
+                  <MaterialCommunityIcons name="delete-outline" size={18} color="#FF5252" />
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <TouchableOpacity onPress={() => {
-                triggerHaptic('light');
-                setPinnedMessages(prev => prev.includes(item._id) ? prev.filter(id => id !== item._id) : [...prev, item._id]);
-              }}>
-                <MaterialCommunityIcons name={msgPinned ? "pin" : "pin-outline"} size={18} color={msgPinned ? "#FFD700" : "#444"} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => deleteMessage(item._id)}>
-                <MaterialCommunityIcons name="delete-outline" size={18} color="#FF5252" />
-              </TouchableOpacity>
+            
+            <View style={{ paddingVertical: 4 }}>
+              {isRevealed ? (
+                <Text style={styles.messageText} numberOfLines={1} ellipsizeMode="tail">
+                  {item.text}
+                </Text>
+              ) : (
+                <Text style={[styles.messageText, { color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', fontSize: 13 }]}>
+                  Tap to reveal message...
+                </Text>
+              )}
             </View>
-          </View>
-          
-          <View style={{ paddingVertical: 4 }}>
-            {isRevealed ? (
-              <Text style={styles.messageText} numberOfLines={1} ellipsizeMode="tail">
-                {item.text}
-              </Text>
-            ) : (
-              <Text style={[styles.messageText, { color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', fontSize: 13 }]}>
-                Tap to reveal message...
-              </Text>
-            )}
-          </View>
 
-          <View style={[styles.cardFooter, { marginTop: 4 }]}>
-            <Text style={styles.timeLabel}>{new Date(item.createdAt).toLocaleDateString()}</Text>
-          </View>
-        </Animated.View>
-      </TouchableOpacity>
+            <View style={[styles.cardFooter, { marginTop: 4 }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={styles.timeLabel}>{new Date(item.createdAt).toLocaleDateString()}</Text>
+                {item.deviceHint && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(29,185,84,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+                    <MaterialCommunityIcons 
+                      name={item.deviceHint === 'Android' ? 'android' : item.deviceHint === 'iOS' ? 'apple' : 'web'} 
+                      size={10} color="#555" 
+                    />
+                    <Text style={{ color: '#555', fontSize: 8, fontWeight: '700' }}>{item.deviceHint}</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </Animated.View>
+        </TouchableOpacity>
+      </Swipeable>
     );
   };
 
@@ -335,6 +421,14 @@ export default function NglScreen({ navigation }: any) {
                 </ScrollView>
               </View>
 
+              {/* Mark All Read */}
+              {unreadCount > 0 && (
+                <TouchableOpacity onPress={markAllAsRead} style={styles.markAllReadBtn}>
+                  <MaterialCommunityIcons name="email-check" size={16} color="#1DB954" />
+                  <Text style={styles.markAllReadText}>Mark all as read ({unreadCount})</Text>
+                </TouchableOpacity>
+              )}
+
               {/* Stats Dashboard */}
               <View style={styles.statsRow}>
                 <View style={styles.statCard}>
@@ -348,6 +442,10 @@ export default function NglScreen({ navigation }: any) {
                 <View style={styles.statCard}>
                   <Text style={styles.statNumber}>{thisWeekMessages}</Text>
                   <Text style={styles.statLabel}>THIS WEEK</Text>
+                </View>
+                <View style={[styles.statCard, unreadCount > 0 && { borderColor: 'rgba(255,82,82,0.3)' }]}>
+                  <Text style={[styles.statNumber, unreadCount > 0 && { color: '#FF5252' }]}>{unreadCount}</Text>
+                  <Text style={styles.statLabel}>UNREAD</Text>
                 </View>
               </View>
 
@@ -834,5 +932,14 @@ const styles = StyleSheet.create({
   qotdCard: { marginHorizontal: 16, backgroundColor: '#0D0D0D', borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.15)' },
   qotdLabel: { color: '#FFD700', fontSize: 10, fontWeight: '900', letterSpacing: 1.5 },
   qotdText: { color: '#CCC', fontSize: 14, fontWeight: '600', lineHeight: 20 },
+
+  // Swipe Actions
+  swipeActionLeft: { backgroundColor: '#FFD700', borderRadius: 20, justifyContent: 'center', alignItems: 'center', width: 80, marginBottom: 10, marginRight: 4 },
+  swipeActionRight: { backgroundColor: '#FF5252', borderRadius: 20, justifyContent: 'center', alignItems: 'center', width: 80, marginBottom: 10, marginLeft: 4 },
+  swipeActionText: { color: '#000', fontSize: 10, fontWeight: '900', marginTop: 4, letterSpacing: 1 },
+
+  // Mark All Read
+  markAllReadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginHorizontal: 16, marginBottom: 10, paddingVertical: 10, borderRadius: 14, backgroundColor: 'rgba(29,185,84,0.08)', borderWidth: 1, borderColor: 'rgba(29,185,84,0.2)' },
+  markAllReadText: { color: '#1DB954', fontSize: 12, fontWeight: '800' },
 });
 

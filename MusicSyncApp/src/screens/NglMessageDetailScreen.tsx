@@ -1,8 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Share, Animated, Vibration, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
+import axios from 'axios';
+import AuthContext from '../context/AuthContext';
+import API_URL from '../utils/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -30,8 +33,9 @@ type Props = {
 
 export default function NglMessageDetailScreen({ route, navigation }: Props) {
   const { message } = route.params;
-  const [selectedReaction, setSelectedReaction] = useState<string | null>(null);
-  const [isPinned, setIsPinned] = useState(false);
+  const auth = useContext(AuthContext);
+  const [selectedReaction, setSelectedReaction] = useState<string | null>(message.reaction || null);
+  const [isPinned, setIsPinned] = useState(message.isPinned || false);
   const [cardThemeIndex, setCardThemeIndex] = useState(0);
   
   // Animations
@@ -80,7 +84,16 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
 
   const handleReaction = (emoji: string, index: number) => {
     Vibration.vibrate(15);
-    setSelectedReaction(prev => prev === emoji ? null : emoji);
+    const newReaction = selectedReaction === emoji ? null : emoji;
+    setSelectedReaction(newReaction);
+    
+    // Persist to backend
+    if (auth.token) {
+      axios.patch(`${API_URL}/api/ngl/${message._id}/react`, 
+        { reaction: newReaction },
+        { headers: { Authorization: `Bearer ${auth.token}` } }
+      ).catch(err => console.warn('Reaction API error:', err));
+    }
     
     // Bounce animation
     Animated.sequence([
@@ -92,6 +105,13 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
   const togglePin = () => {
     Vibration.vibrate(20);
     setIsPinned(!isPinned);
+    
+    // Persist to backend
+    if (auth.token) {
+      axios.patch(`${API_URL}/api/ngl/${message._id}/pin`, {},
+        { headers: { Authorization: `Bearer ${auth.token}` } }
+      ).catch(err => console.warn('Pin API error:', err));
+    }
     
     Animated.sequence([
       Animated.timing(pinRotate, { toValue: 1, duration: 200, useNativeDriver: true }),
@@ -177,7 +197,21 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
                   <Text style={styles.messageText}>{message.text}</Text>
                   
                   <View style={styles.cardFooter}>
-                    <Text style={styles.timeLabel}>{new Date(message.createdAt).toLocaleDateString()}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <Text style={styles.timeLabel}>{new Date(message.createdAt).toLocaleDateString()}</Text>
+                      {message.deviceHint && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 }}>
+                          <MaterialCommunityIcons 
+                            name={message.deviceHint === 'Android' ? 'android' : message.deviceHint === 'iOS' ? 'apple' : 'web'} 
+                            size={12} 
+                            color="rgba(255,255,255,0.7)" 
+                          />
+                          <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 9, fontWeight: '700' }}>
+                            {message.deviceHint}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                     {selectedReaction && (
                       <Text style={{ fontSize: 24 }}>{selectedReaction}</Text>
                     )}
