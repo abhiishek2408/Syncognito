@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput,
-  Modal, ActivityIndicator, ScrollView, Alert, Share
+  Modal, ActivityIndicator, ScrollView, Alert, Share, TouchableWithoutFeedback, Keyboard
 } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useToast } from '../context/ToastContext';
@@ -20,6 +20,7 @@ export default function RoomsScreen({ navigation }: Props) {
   const [rooms, setRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [joinCode, setJoinCode] = useState('');
+  const [activeTab, setActiveTab] = useState<'active'|'my_rooms'>('active');
   const [showCreate, setShowCreate] = useState(false);
   const [newRoomName, setNewRoomName] = useState('');
   const [newRoomPublic, setNewRoomPublic] = useState(true);
@@ -260,12 +261,31 @@ export default function RoomsScreen({ navigation }: Props) {
         </TouchableOpacity>
       </View>
 
+      {/* Tabs */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity 
+          style={[styles.tabBtn, activeTab === 'active' && styles.tabBtnActive]} 
+          onPress={() => setActiveTab('active')}
+        >
+          <Text style={[styles.tabText, activeTab === 'active' && styles.tabTextActive]}>Active Rooms</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.tabBtn, activeTab === 'my_rooms' && styles.tabBtnActive]} 
+          onPress={() => setActiveTab('my_rooms')}
+        >
+          <Text style={[styles.tabText, activeTab === 'my_rooms' && styles.tabTextActive]}>My Rooms</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Room list */}
       {loading ? (
         <ActivityIndicator size="large" color="#1DB954" style={{ marginTop: 40 }} />
       ) : (
         <FlatList
-          data={rooms}
+          data={rooms.filter(r => {
+            if (activeTab === 'active') return r.status === 'online' && r.isPublic;
+            return r.host?._id === auth.user?._id || r.host === auth.user?._id;
+          })}
           keyExtractor={item => item._id || item.roomCode}
           renderItem={renderRoom}
           contentContainerStyle={styles.list}
@@ -283,9 +303,11 @@ export default function RoomsScreen({ navigation }: Props) {
 
       {/* Create Room Modal */}
       <Modal visible={showCreate} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Create a Room</Text>
+        <TouchableWithoutFeedback onPress={() => { setShowCreate(false); Keyboard.dismiss(); }}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Create a Room</Text>
 
             <TextInput
               style={styles.modalInput}
@@ -323,8 +345,10 @@ export default function RoomsScreen({ navigation }: Props) {
                 {creating ? <ActivityIndicator color="#000" /> : <Text style={styles.confirmText}>Create</Text>}
               </TouchableOpacity>
             </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
 
       {/* Custom Delete Confirmation Modal */}
@@ -370,11 +394,16 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
   title: { color: '#fff', fontSize: 26, fontWeight: '800' },
   createBtn: { padding: 4 },
-  joinRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 12, gap: 8 },
-  joinInput: { flex: 1, backgroundColor: '#1A1A1A', color: '#fff', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, fontSize: 15, letterSpacing: 2, borderWidth: 1, borderColor: '#2A2A2A' },
-  joinBtn: { backgroundColor: '#1DB954', paddingHorizontal: 18, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  joinBtnText: { color: '#000', fontWeight: '700', fontSize: 15 },
-  anonBtn: { backgroundColor: '#7E57C2', paddingHorizontal: 14 },
+  joinRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 16, gap: 10, height: 40 },
+  joinInput: { flex: 1, backgroundColor: '#18181A', color: '#fff', paddingHorizontal: 16, borderRadius: 14, fontSize: 14, letterSpacing: 1.5, borderWidth: 1, borderColor: '#222' },
+  joinBtn: { backgroundColor: '#1DB954', paddingHorizontal: 20, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  joinBtnText: { color: '#000', fontWeight: '800', fontSize: 13 },
+  anonBtn: { backgroundColor: '#7E57C2', width: 40, paddingHorizontal: 0, justifyContent: 'center', alignItems: 'center' },
+  tabContainer: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 14, gap: 8 },
+  tabBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#333', backgroundColor: 'transparent' },
+  tabBtnActive: { backgroundColor: '#1DB954', borderColor: '#1DB954' },
+  tabText: { color: '#888', fontWeight: '700', fontSize: 12 },
+  tabTextActive: { color: '#000' },
   list: { paddingHorizontal: 16, paddingBottom: 100 },
   roomCard: { 
     backgroundColor: '#0D0D0D', 

@@ -206,28 +206,25 @@ export default function FriendsScreen() {
       </View>
 
       <View style={styles.tabWrapper}>
-        <View style={styles.tabContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabContainer}>
           {[
-            { id: 'friends', label: 'Friends', icon: 'account-multiple' },
-            { id: 'received', label: 'Received', icon: 'account-arrow-left', badge: received.length },
-            { id: 'sent', label: 'Sent', icon: 'account-arrow-right', badge: sent.length },
-            { id: 'search', label: 'Find', icon: 'account-search' }
+            { id: 'friends', label: 'Friends' },
+            { id: 'received', label: 'Received', badge: received.length },
+            { id: 'sent', label: 'Sent', badge: sent.length },
+            { id: 'search', label: 'Find' }
           ].map(tab => (
             <TouchableOpacity 
               key={tab.id} 
               style={[styles.tabBtn, activeTab === tab.id && styles.activeTabBtn]} 
               onPress={() => setActiveTab(tab.id as any)}
             >
-              <View style={styles.tabIconGroup}>
-                <MaterialCommunityIcons name={tab.icon} size={20} color={activeTab === tab.id ? '#1DB954' : '#666'} />
-                {tab.badge ? (
-                  <View style={styles.badge}><Text style={styles.badgeText}>{tab.badge}</Text></View>
-                ) : null}
-              </View>
               <Text style={[styles.tabText, activeTab === tab.id && styles.activeTabText]}>{tab.label}</Text>
+              {tab.badge ? (
+                <View style={styles.badge}><Text style={styles.badgeText}>{tab.badge}</Text></View>
+              ) : null}
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
@@ -313,20 +310,19 @@ const styles = StyleSheet.create({
   title: { color: '#fff', fontSize: 32, fontWeight: '900', letterSpacing: -1 },
   subtitle: { color: '#666', fontSize: 14, marginTop: 4 },
   
-  tabWrapper: { paddingHorizontal: 24, marginBottom: 10 },
-  tabContainer: { flexDirection: 'row', backgroundColor: '#0A0A0A', borderRadius: 20, padding: 6, borderWidth: 1, borderColor: '#1A1A1A' },
-  tabBtn: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 15, gap: 4 },
-  activeTabBtn: { backgroundColor: '#111', borderWidth: 1, borderColor: '#222' },
-  tabIconGroup: { position: 'relative' },
-  tabText: { fontSize: 10, color: '#444', fontWeight: '800', textTransform: 'uppercase' },
-  activeTabText: { color: '#1DB954' },
+  tabWrapper: { marginBottom: 14 },
+  tabContainer: { flexDirection: 'row', paddingHorizontal: 24, gap: 8 },
+  tabBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#333', backgroundColor: 'transparent' },
+  activeTabBtn: { backgroundColor: '#1DB954', borderColor: '#1DB954' },
+  tabText: { color: '#888', fontWeight: '700', fontSize: 12 },
+  activeTabText: { color: '#000' },
   
-  badge: { position: 'absolute', top: -4, right: -12, backgroundColor: '#EF5350', minWidth: 16, height: 16, borderRadius: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#0A0A0A' },
-  badgeText: { color: '#fff', fontSize: 8, fontWeight: '900' },
+  badge: { backgroundColor: '#EF5350', marginLeft: 6, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  badgeText: { color: '#fff', fontSize: 10, fontWeight: '900' },
   
   searchContainer: { paddingHorizontal: 24, marginBottom: 20 },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0A0A0A', borderRadius: 16, paddingHorizontal: 16, height: 56, borderWidth: 1, borderColor: '#1A1A1A' },
-  searchInput: { flex: 1, color: '#fff', fontSize: 16, marginLeft: 10, fontWeight: '500' },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0A0A0A', borderRadius: 14, paddingHorizontal: 14, height: 42, borderWidth: 1, borderColor: '#1A1A1A' },
+  searchInput: { flex: 1, color: '#fff', fontSize: 14, marginLeft: 8, fontWeight: '500' },
   
   listSection: { paddingHorizontal: 24, marginTop: 10 },
   sectionHeader: { color: '#333', fontSize: 11, fontWeight: '900', textTransform: 'uppercase', marginBottom: 16, letterSpacing: 1 },

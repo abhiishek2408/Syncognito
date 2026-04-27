@@ -12,6 +12,7 @@ import RoomsScreen from '../screens/RoomsScreen';
 import RoomScreen from '../screens/RoomScreen';
 import AlarmScreen from '../screens/AlarmScreen';
 import NglScreen from '../screens/NglScreen';
+import NglMessageDetailScreen from '../screens/NglMessageDetailScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 
 const Tab = createBottomTabNavigator();
@@ -45,6 +46,7 @@ function ProfileStack() {
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Help" component={HelpScreen} />
       <Stack.Screen name="Ngl" component={NglScreen} />
+      <Stack.Screen name="NglMessageDetail" component={NglMessageDetailScreen} />
     </Stack.Navigator>
   );
 }

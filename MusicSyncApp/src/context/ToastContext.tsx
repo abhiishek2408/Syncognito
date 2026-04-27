@@ -132,8 +132,33 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             style={styles.toastContent}
             onLayout={(e) => { toastHeightRef.current = e.nativeEvent.layout.height; }}
           >
-            {/* Left accent bar */}
-            <View style={[styles.leftAccent, { backgroundColor: accentColor }]} />
+            {/* Clipping container for elements that should respect rounded corners */}
+            <View style={[StyleSheet.absoluteFill, { overflow: 'hidden', borderRadius: 16 }]}>
+              {/* Left accent bar */}
+              <View style={[styles.leftAccent, { backgroundColor: accentColor }]} />
+              
+              {/* Progress bar */}
+              <View style={styles.progressWrapper}>
+                <Animated.View 
+                  style={[
+                    styles.progressBarContainer, 
+                    { 
+                      width: progressAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ['100%', '0%']
+                      })
+                    }
+                  ]}
+                >
+                  <LinearGradient
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    colors={[`${accentColor}60`, accentColor]}
+                    style={styles.progressBarGradient}
+                  />
+                </Animated.View>
+              </View>
+            </View>
 
             <View style={[styles.iconContainer, { backgroundColor: lightAccent }]}>
               <MaterialCommunityIcons name={getIcon()} size={22} color={accentColor} />
@@ -158,28 +183,6 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               <MaterialCommunityIcons name="close" size={20} color="#999" />
             </TouchableOpacity>
 
-            {/* Progress bar */}
-            <View style={styles.progressWrapper}>
-              <Animated.View 
-                style={[
-                  styles.progressBarContainer, 
-                  { 
-                    width: progressAnim.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: ['100%', '0%']
-                    })
-                  }
-                ]}
-              >
-                <LinearGradient
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  colors={[`${accentColor}60`, accentColor]}
-                  style={styles.progressBarGradient}
-                />
-              </Animated.View>
-            </View>
-
             {/* Zig-zag right edge */}
             <View style={styles.zigzagContainer}>
               <ZigZagRight color={accentColor} />
@@ -193,8 +196,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 // Zig-zag right edge that creates a torn/ticket effect
 const ZigZagRight = ({ color }: { color: string }) => {
-  const zigSize = 8;
-  const count = 12; // enough triangles to cover toast height
+  const zigSize = 4;
+  const count = 25; // enough triangles to cover toast height
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
@@ -267,7 +270,7 @@ const styles = StyleSheet.create({
     width: 4,
     flexDirection: 'column',
     justifyContent: 'center',
-    overflow: 'visible',
+    overflow: 'hidden',
   },
   iconContainer: {
     width: 42,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput,
-  Modal, Alert, ActivityIndicator, ScrollView,
+  Modal, Alert, ActivityIndicator, ScrollView, TouchableWithoutFeedback, Keyboard,
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -56,6 +56,26 @@ export default function AlarmScreen() {
       prefillCurrent();
     }
   }, [showCreate]);
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      // Keep the existing time, just update the date
+      const newDate = new Date(triggerDate);
+      newDate.setFullYear(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate());
+      setTriggerDate(newDate);
+    }
+  };
+
+  const onTimeChange = (event: any, selectedDate?: Date) => {
+    setShowTimePicker(false);
+    if (selectedDate) {
+      // Keep the existing date, just update the time
+      const newDate = new Date(triggerDate);
+      newDate.setHours(selectedDate.getHours(), selectedDate.getMinutes(), 0, 0);
+      setTriggerDate(newDate);
+    }
+  };
 
   const createAlarm = async () => {
     if (triggerDate <= new Date()) {
@@ -328,8 +348,10 @@ export default function AlarmScreen() {
 
       {/* Create Alarm Modal */}
       <Modal visible={showCreate} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <TouchableWithoutFeedback onPress={() => { setShowCreate(false); resetForm(); Keyboard.dismiss(); }}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{editingId ? 'Edit Alarm' : 'Set Alarm'}</Text>
             <Text style={styles.modalSubTitle}>Enter date and time details below</Text>
 
@@ -373,6 +395,25 @@ export default function AlarmScreen() {
                   </TouchableOpacity>
                 </View>
               </View>
+
+              {showDatePicker && (
+                <DateTimePicker
+                  value={triggerDate}
+                  mode="date"
+                  display="default"
+                  onChange={onDateChange}
+                  minimumDate={new Date()}
+                />
+              )}
+
+              {showTimePicker && (
+                <DateTimePicker
+                  value={triggerDate}
+                  mode="time"
+                  display="default"
+                  onChange={onTimeChange}
+                />
+              )}
 
               {/* Message */}
               <Text style={styles.fieldLabel}>Message</Text>
@@ -466,8 +507,10 @@ export default function AlarmScreen() {
                 {creating ? <ActivityIndicator color="#000" /> : <Text style={styles.confirmText}>{editingId ? 'Save Changes' : 'Set Alarm'}</Text>}
               </TouchableOpacity>
             </View>
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
 
       {/* Delete Confirmation Modal */}
@@ -885,4 +928,7 @@ type Alarm = {
   title: string;
   isTriggered: boolean;
   toneUrl?: string | null;
+  duration?: number;
+  repetitionOn?: boolean;
+  repeatCount?: number;
 };
