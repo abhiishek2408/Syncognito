@@ -27,6 +27,53 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const [globalStats, setGlobalStats] = useState({ listeners: 0, activeRooms: 0, friends: 0 });
   const [startingRoomId, setStartingRoomId] = useState<string | null>(null);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
+  const pulseAnim = React.useRef(new Animated.Value(0.1)).current;
+
+  useEffect(() => {
+    if (loading) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 0.4, duration: 1000, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 0.1, duration: 1000, useNativeDriver: true }),
+        ])
+      ).start();
+    }
+  }, [loading, pulseAnim]);
+
+  const SkeletonItem = ({ style }: { style: any }) => (
+    <Animated.View style={[style, { opacity: pulseAnim, backgroundColor: '#1A1A1A' }]} />
+  );
+
+  const HomeSkeleton = () => (
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
+      <View style={styles.welcomeSection}>
+        <View>
+          <SkeletonItem style={{ width: 150, height: 28, borderRadius: 8, marginBottom: 8 }} />
+          <SkeletonItem style={{ width: 200, height: 14, borderRadius: 4 }} />
+        </View>
+        <SkeletonItem style={{ width: 44, height: 44, borderRadius: 22 }} />
+      </View>
+
+      <View style={styles.quickCardRow}>
+        {[1, 2, 3].map(i => (
+          <SkeletonItem key={i} style={[styles.gridCard, { borderWidth: 0 }]} />
+        ))}
+      </View>
+
+      <View style={styles.section}>
+        <SkeletonItem style={[styles.spotlightCard, { borderWidth: 0 }]} />
+      </View>
+
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <SkeletonItem style={{ width: 120, height: 20, borderRadius: 6 }} />
+        </View>
+        {[1, 2].map(i => (
+          <SkeletonItem key={i} style={[styles.roomPreview, { height: 120, borderWidth: 0, marginBottom: 12 }]} />
+        ))}
+      </View>
+    </ScrollView>
+  );
 
   const headers = React.useMemo(() => auth.token ? { Authorization: `Bearer ${auth.token}` } : {}, [auth.token]);
 
@@ -83,6 +130,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
   return (
     <View style={styles.container}>
+      {loading ? <HomeSkeleton /> : (
       <ScrollView 
         contentContainerStyle={{ paddingBottom: 100 }}
         refreshControl={
@@ -183,9 +231,6 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                   <MaterialCommunityIcons name="account-multiple-plus" size={16} color="#666" />
                   <Text style={styles.avatarGroupText}>Invite anyone via link</Text>
                 </View>
-                <TouchableOpacity style={[styles.joinSpotlightBtn, { backgroundColor: '#BB86FC' }]} onPress={() => navigation.navigate('Rooms')}>
-                  <Text style={[styles.joinSpotlightText, { color: '#000' }]}>Create</Text>
-                </TouchableOpacity>
               </View>
             </View>
           </TouchableOpacity>
@@ -202,9 +247,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           </View>
 
 
-          {loading ? (
-            <ActivityIndicator color="#1DB954" style={{ marginTop: 20 }} />
-          ) : publicRooms.length === 0 ? (
+          {publicRooms.length === 0 ? (
             <View style={styles.emptyCard}>
               <MaterialCommunityIcons name="music-off" size={32} color="#333" />
               <Text style={styles.emptyText}>No active rooms</Text>
@@ -396,31 +439,31 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}><MaterialCommunityIcons name="trending-up" size={20} color="#BB86FC" /> Around the World</Text>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingBottom: 10 }}>
+          <View style={styles.trendingRow}>
             <View style={styles.trendingCard}>
               <View style={[styles.trendingIcon, { backgroundColor: '#1DB95420' }]}>
-                <MaterialCommunityIcons name="headphones" size={24} color="#1DB954" />
+                <MaterialCommunityIcons name="headphones" size={20} color="#1DB954" />
               </View>
               <Text style={styles.trendingVal}>{globalStats.listeners > 1000 ? `${(globalStats.listeners / 1000).toFixed(1)}k` : globalStats.listeners}</Text>
-              <Text style={styles.trendingLabel}>Listeners Live</Text>
+              <Text style={styles.trendingLabel} numberOfLines={1}>Listeners</Text>
             </View>
             
             <View style={styles.trendingCard}>
               <View style={[styles.trendingIcon, { backgroundColor: '#BB86FC20' }]}>
-                <MaterialCommunityIcons name="playlist-music" size={24} color="#BB86FC" />
+                <MaterialCommunityIcons name="playlist-music" size={20} color="#BB86FC" />
               </View>
               <Text style={styles.trendingVal}>{globalStats.activeRooms}</Text>
-              <Text style={styles.trendingLabel}>Active Rooms</Text>
+              <Text style={styles.trendingLabel} numberOfLines={1}>Rooms</Text>
             </View>
 
             <View style={styles.trendingCard}>
               <View style={[styles.trendingIcon, { backgroundColor: '#64B5F620' }]}>
-                <MaterialCommunityIcons name="account-group" size={24} color="#64B5F6" />
+                <MaterialCommunityIcons name="account-group" size={20} color="#64B5F6" />
               </View>
               <Text style={styles.trendingVal}>{globalStats.friends}</Text>
-              <Text style={styles.trendingLabel}>{auth.token ? 'My Friends' : 'Community'}</Text>
+              <Text style={styles.trendingLabel} numberOfLines={1}>{auth.token ? 'Friends' : 'Users'}</Text>
             </View>
-          </ScrollView>
+          </View>
         </View>
 
 
@@ -451,9 +494,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
       </Animated.View>
     </ScrollView>
-
-
-      {/* Mini Player */}
+      )}
     </View>
   );
 }
@@ -618,25 +659,30 @@ const styles = StyleSheet.create({
   miniPlayBtn: { padding: 4 },
   miniLeaveBtn: { padding: 8, marginLeft: 4, borderLeftWidth: 1, borderLeftColor: '#222' },
   // Trending
+  trendingRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingBottom: 10,
+  },
   trendingCard: { 
-    width: 130, 
+    flex: 1,
     backgroundColor: '#0D0D0D', 
-    borderRadius: 24, 
-    padding: 16, 
+    borderRadius: 20, 
+    padding: 12, 
     borderWidth: 1.5, 
     borderColor: '#1E1E1E',
     alignItems: 'center',
-    gap: 8
+    gap: 6
   },
   trendingIcon: { 
-    width: 48, 
-    height: 48, 
-    borderRadius: 16, 
+    width: 40, 
+    height: 40, 
+    borderRadius: 12, 
     justifyContent: 'center', 
     alignItems: 'center' 
   },
-  trendingVal: { color: '#fff', fontSize: 18, fontWeight: '800' },
-  trendingLabel: { color: '#666', fontSize: 11, fontWeight: '600' },
+  trendingVal: { color: '#fff', fontSize: 16, fontWeight: '800' },
+  trendingLabel: { color: '#666', fontSize: 10, fontWeight: '600' },
   // Spotlight
   spotlightCard: { 
     height: 180, 
@@ -665,16 +711,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center', 
     gap: 6, 
-    backgroundColor: 'rgba(255,255,255,0.05)', 
-    alignSelf: 'flex-start', 
-    paddingHorizontal: 10, 
-    paddingVertical: 5, 
-    borderRadius: 20, 
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8, 
+    paddingVertical: 3, 
+    borderRadius: 10, 
     borderWidth: 1, 
-    borderColor: 'rgba(255,255,255,0.1)' 
+    borderColor: 'rgba(255,255,255,0.08)' 
   },
-  liveBeam: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#1DB954' },
-  liveBadgeText: { color: '#fff', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  liveBeam: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#1DB954' },
+  liveBadgeText: { color: '#fff', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
   spotlightTitle: { color: '#fff', fontSize: 24, fontWeight: '900', lineHeight: 28 },
   spotlightDesc: { color: '#888', fontSize: 12, lineHeight: 18 },
   spotlightFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

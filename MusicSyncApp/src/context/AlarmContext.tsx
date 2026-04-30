@@ -73,14 +73,22 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (!auth.token) return;
       const now = new Date();
       alarms.forEach(alarm => {
-        if (!alarm.isTriggered && !triggeredRef.current.has(alarm._id) && new Date(alarm.triggerAt) <= now) {
+        const triggerTime = new Date(alarm.triggerAt).getTime();
+        if (!alarm.isTriggered && !triggeredRef.current.has(alarm._id) && triggerTime <= (now.getTime() + 2000)) {
           triggeredRef.current.add(alarm._id);
           
           // Play sound: use toneUrl or fallback to local 'alarm_tone'
-          const tone = alarm.toneUrl || 'alarm_tone';
+          const tone = alarm.toneUrl || 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
           setActiveToneUrl(tone);
           setActiveAlarmId(alarm._id);
 
+          // DEBUG TOAST: Detailed info
+          if (!alarm.toneUrl) {
+            showToast("DEBUG: toneUrl is NULL in DB, using default", "error", 5000);
+          } else {
+            showToast(`DEBUG: Playing Custom: ${alarm.toneUrl.substring(0, 40)}...`, "info", 5000);
+          }
+          
           showToast(`${alarm.title}: ${alarm.message || 'Alarm triggered!'}`, 'warning', 15000);
           
           // Auto-stop logic based on duration (default 30s)
@@ -110,12 +118,24 @@ export const AlarmProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {children}
       {activeToneUrl && (
         <Video 
-          source={activeToneUrl.startsWith('http') ? { uri: activeToneUrl } : { uri: activeToneUrl }}
+          key={activeToneUrl}
+          source={{ uri: activeToneUrl }}
           repeat={true}
-          style={{ width: 0, height: 0 }}
+          paused={false}
+          volume={1.0}
+          muted={false}
+          style={{ width: 1, height: 1, opacity: 0, position: 'absolute' }}
           ignoreSilentSwitch="ignore"
           playInBackground={true}
+          playWhenInactive={true}
           audioOnly={true}
+          onLoad={() => {
+            showToast('Alarm music starting...', 'info');
+          }}
+          onError={(e) => {
+            console.error('Alarm sound error:', e);
+            showToast(`Alarm Sound Error: ${e.error?.errorString || 'File not found or no internet'}`, 'error');
+          }}
         />
       )}
     </AlarmContext.Provider>

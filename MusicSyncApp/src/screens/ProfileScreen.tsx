@@ -111,31 +111,6 @@ export default function ProfileScreen({ navigation }: any) {
             <View style={styles.cardSection}>
               <Text style={styles.sectionTitle}>Account Info</Text>
               <View style={styles.infoCard}>
-                <View style={[styles.infoRow, { borderColor: '#1DB95430' }]}>
-                  <View style={[styles.infoIcon, { backgroundColor: '#1DB95415' }]}>
-                    <MaterialCommunityIcons name="shield-account" size={18} color="#1DB954" />
-                  </View>
-                  <View style={styles.infoContent}>
-                    <Text style={styles.infoLabel}>Role</Text>
-                    <Text style={styles.infoValue}>{(user.role || 'user').charAt(0).toUpperCase() + (user.role || 'user').slice(1)}</Text>
-                  </View>
-                  <MaterialCommunityIcons name="chevron-right" size={16} color="#333" />
-                </View>
-                
-                <View style={[styles.infoRow, { borderColor: statusColor(status) + '30' }]}>
-                  <View style={[styles.infoIcon, { backgroundColor: statusColor(status) + '15' }]}>
-                    <MaterialCommunityIcons name="circle" size={18} color={statusColor(status)} />
-                  </View>
-                  <View style={styles.infoContent}>
-                    <Text style={styles.infoLabel}>Status</Text>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <View style={[styles.statusIndicator, { backgroundColor: statusColor(status) }]} />
-                      <Text style={[styles.infoValue, { color: statusColor(status) }]}>{status.toUpperCase()}</Text>
-                    </View>
-                  </View>
-                  <MaterialCommunityIcons name="chevron-right" size={16} color="#333" />
-                </View>
-
                 <View style={[styles.infoRow, { borderBottomWidth: 0, borderColor: '#FFB74D30' }]}>
                   <View style={[styles.infoIcon, { backgroundColor: '#FFB74D15' }]}>
                     <MaterialCommunityIcons name="earth" size={18} color="#FFB74D" />

@@ -1,0 +1,31 @@
+diff --git a/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/core/GestureHandlerOrchestrator.kt b/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/core/GestureHandlerOrchestrator.kt
+index b92c87b..c7a447d 100644
+--- a/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/core/GestureHandlerOrchestrator.kt
++++ b/node_modules/react-native-gesture-handler/android/src/main/java/com/swmansion/gesturehandler/core/GestureHandlerOrchestrator.kt
+@@ -166,7 +166,7 @@ class GestureHandlerOrchestrator(
+     }
+ 
+     // Clear all awaiting handlers waiting for the current handler to fail
+-    for (otherHandler in awaitingHandlers.reversed()) {
++    for (otherHandler in awaitingHandlers.asReversed()) {
+       if (shouldHandlerBeCancelledBy(otherHandler, handler)) {
+         otherHandler.cancel()
+         otherHandler.isAwaiting = false
+@@ -203,7 +203,7 @@ class GestureHandlerOrchestrator(
+   }
+ 
+   private fun cancelAll() {
+-    for (handler in awaitingHandlers.reversed()) {
++    for (handler in awaitingHandlers.asReversed()) {
+       handler.cancel()
+     }
+     // Copy handlers to "prepared handlers" array, because the list of active handlers can change
+@@ -211,7 +211,7 @@ class GestureHandlerOrchestrator(
+     preparedHandlers.clear()
+     preparedHandlers.addAll(gestureHandlers)
+ 
+-    for (handler in gestureHandlers.reversed()) {
++    for (handler in gestureHandlers.asReversed()) {
+       handler.cancel()
+     }
+   }

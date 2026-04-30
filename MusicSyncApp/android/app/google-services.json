@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "862585517468-2bsi54ge68r0d7h9om2celmo0q4q0du3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.syncognito",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
           "client_id": "862585517468-8a95o0ojrnre3j667a2m6tljckmlfr37.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -22,11 +30,11 @@
           }
         },
         {
-          "client_id": "862585517468-2bsi54ge68r0d7h9om2celmo0q4q0du3.apps.googleusercontent.com",
+          "client_id": "862585517468-fgpc8foba465vm22lb04op6b5o7slnjf.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.syncognito",
-            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+            "certificate_hash": "4f44d29f38afafae2cd45f81577b8223f78c6de5"
           }
         },
         {

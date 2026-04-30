@@ -65,8 +65,8 @@ android {
         applicationId "com.syncognito"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
-        versionName "1.0.5"
+        versionCode 9
+        versionName "1.0.8"
     }
     signingConfigs {
         debug {

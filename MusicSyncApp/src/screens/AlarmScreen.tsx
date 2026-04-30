@@ -14,6 +14,7 @@ import Video from 'react-native-video';
 import { notificationService } from '../utils/notifications';
 import { AlarmCountdown } from '../components/AlarmCountdown';
 import { useAlarms } from '../context/AlarmContext';
+import RNFS from 'react-native-fs';
 
 export default function AlarmScreen() {
   const auth = useContext(AuthContext);
@@ -48,7 +49,9 @@ export default function AlarmScreen() {
   // Alarm triggering and dismissal now handled globally via useAlarms() hook
 
   const prefillCurrent = () => {
-    setTriggerDate(new Date());
+    const nextMin = new Date();
+    nextMin.setMinutes(nextMin.getMinutes() + 1, 0, 0); // 1 min in future, 0 sec
+    setTriggerDate(nextMin);
   };
 
   useEffect(() => {
@@ -85,11 +88,13 @@ export default function AlarmScreen() {
 
     setCreating(true);
     try {
+      const toneUrl = tone?.url || null;
+      
       const body = {
         triggerAt: triggerDate.toISOString(),
         message: message.trim(),
         title: title.trim() || 'Alarm',
-        toneUrl: tone?.url || null,
+        toneUrl: toneUrl,
         duration,
         repetitionOn,
         repeatCount: repetitionOn ? repeatCount : 0
@@ -97,7 +102,7 @@ export default function AlarmScreen() {
 
       if (editingId) {
         const resp = await axios.put(`${API_URL}/api/alarms/${editingId}`, body, { headers });
-        showToast('Alarm updated!', 'success');
+        showToast(toneUrl ? 'Alarm updated with custom tone! 🎉' : 'Alarm updated!', 'success');
         // Re-schedule notification
         await notificationService.scheduleAlarmNotification(
           editingId, 
@@ -107,7 +112,7 @@ export default function AlarmScreen() {
         );
       } else {
         const resp = await axios.post(`${API_URL}/api/alarms`, body, { headers });
-        showToast('Alarm set!', 'success');
+        showToast(toneUrl ? 'Alarm set with custom tone! 🎉' : 'Alarm set!', 'success');
         // Schedule notification
         if (resp.data?._id) {
           await notificationService.scheduleAlarmNotification(
@@ -134,13 +139,26 @@ export default function AlarmScreen() {
       const [res] = await DocumentPicker.pick({
         type: [DocumentPicker.types.audio],
       });
-      setTone({ url: res.uri, name: res.name || 'Custom Tone' });
+      
+      setLoading(true);
+      const fileName = `alarm_${Date.now()}_${res.name || 'tone.mp3'}`;
+      const destPath = `${RNFS.DocumentDirectoryPath}/${fileName}`;
+      
+      // Copy to persistent storage
+      await RNFS.copyFile(res.uri, destPath);
+      const persistentUri = `file://${destPath}`;
+      
+      setTone({ url: persistentUri, name: res.name || 'Custom Tone' });
+      showToast('Tone saved!', 'success');
     } catch (err: any) {
       if (DocumentPicker.isErrorWithCode(err) && err.code === DocumentPicker.errorCodes.OPERATION_CANCELED) {
         // user cancelled
       } else {
         console.warn(err);
+        showToast('Failed to pick audio file', 'error');
       }
+    } finally {
+      setLoading(false);
     }
   };
 

@@ -31,6 +31,17 @@ const SHARE_THEMES = [
   '#1E1E1E', // Dark
 ];
 
+const CARD_THEMES = [
+  ['#38ef7d', '#11998e'], // Green
+  ['#8A2BE2', '#4B0082'], // Purple
+  ['#FF1493', '#C71585'], // Pink
+  ['#FF4500', '#FF8C00'], // Orange
+  ['#00BFFF', '#1E90FF'], // Blue
+  ['#FFD700', '#FFA500'], // Gold
+  ['#00CED1', '#20B2AA'], // Teal
+  ['#1E1E1E', '#000000'], // Black
+];
+
 const GRADIENT_PALETTE = ['#FF0000', '#FF7F00', '#FFD700', '#00FF00', '#1DB954', '#00FFFF', '#0000FF', '#8A2BE2', '#FF1493', '#000000', '#FFFFFF'];
 
 
@@ -58,6 +69,12 @@ export default function NglScreen({ navigation }: any) {
   
   const [activeMainTab, setActiveMainTab] = useState<'inbox' | 'my_link'>('my_link');
   const [sharePrompt, setSharePrompt] = useState('Send me anonymous notes!');
+  const [cardThemeIndex, setCardThemeIndex] = useState(0);
+
+  const cycleTheme = () => {
+    triggerHaptic('light');
+    setCardThemeIndex((prev) => (prev + 1) % CARD_THEMES.length);
+  };
   const [revealedMessages, setRevealedMessages] = useState<string[]>([]);
   const [pinnedMessages, setPinnedMessages] = useState<string[]>([]);
 
@@ -393,16 +410,20 @@ export default function NglScreen({ navigation }: any) {
           ListHeaderComponent={
             <>
               <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                  <MaterialCommunityIcons name="chevron-left" size={32} color="#FFF" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Anonymous Notes</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtnMini}>
+                    <MaterialCommunityIcons name="chevron-left" size={28} color="#FFF" />
+                  </TouchableOpacity>
+                  <Text style={styles.headerTitle}>
+                    <MaterialCommunityIcons name="incognito" size={26} color="#1DB954" /> Anonymous
+                  </Text>
+                </View>
                 <TouchableOpacity onPress={shareNglLink} style={styles.shareIconBtn}>
-                  <MaterialCommunityIcons name="share-variant" size={24} color="#1DB954" />
+                  <MaterialCommunityIcons name="share-variant" size={22} color="#1DB954" />
                 </TouchableOpacity>
               </View>
               <View style={styles.tabWrapper}>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabContainer}>
+                <View style={styles.tabContainer}>
                   {[
                     { id: 'my_link', label: 'My Link' },
                     { id: 'inbox', label: 'Inbox', badge: messages.length }
@@ -418,7 +439,7 @@ export default function NglScreen({ navigation }: any) {
                       ) : null}
                     </TouchableOpacity>
                   ))}
-                </ScrollView>
+                </View>
               </View>
 
               {/* Mark All Read */}
@@ -450,12 +471,38 @@ export default function NglScreen({ navigation }: any) {
               </View>
 
               {/* Question of the Day */}
-              <View style={styles.qotdCard}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <MaterialCommunityIcons name="lightbulb-on" size={18} color="#FFD700" />
-                  <Text style={styles.qotdLabel}>QUESTION OF THE DAY</Text>
+              <TouchableOpacity 
+                activeOpacity={0.85}
+                onPress={() => {
+                  setSharePrompt(questionOfTheDay);
+                  setActiveMainTab('my_link');
+                  triggerHaptic('medium');
+                  
+                  // Also copy link with this prompt
+                  const slugOrId = anonSlug || auth.user?._id;
+                  const shareUrl = `https://syncognito-nine.vercel.app/anon/${slugOrId}`;
+                  Clipboard.setString(shareUrl);
+                  showToast('Prompt set! Link copied — share it now 🚀', 'success');
+                }}
+              >
+                <View style={styles.qotdCard}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <MaterialCommunityIcons name="lightbulb-on" size={18} color="#FFD700" />
+                      <Text style={styles.qotdLabel}>QUESTION OF THE DAY</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(29,185,84,0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 }}>
+                      <MaterialCommunityIcons name="arrow-right" size={14} color="#1DB954" />
+                      <Text style={{ color: '#1DB954', fontSize: 10, fontWeight: '800' }}>USE</Text>
+                    </View>
+                  </View>
+                  <Text style={[styles.qotdText, { marginTop: 8 }]}>{questionOfTheDay}</Text>
                 </View>
-                <Text style={styles.qotdText}>{questionOfTheDay}</Text>
+              </TouchableOpacity>
+
+              {/* Section Title */}
+              <View style={{ marginHorizontal: SCREEN_WIDTH * 0.05, marginBottom: 12, marginTop: 10, alignItems: 'flex-start' }}>
+                <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 0.5, textAlign: 'left' }}>YOUR INBOX</Text>
               </View>
             </>
           }
@@ -488,16 +535,20 @@ export default function NglScreen({ navigation }: any) {
         <View style={{ flex: 1, justifyContent: 'space-between' }}>
           <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                <MaterialCommunityIcons name="chevron-left" size={32} color="#FFF" />
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>Anonymous Notes</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtnMini}>
+                  <MaterialCommunityIcons name="chevron-left" size={28} color="#FFF" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>
+                  <MaterialCommunityIcons name="incognito" size={26} color="#1DB954" /> Anonymous
+                </Text>
+              </View>
               <TouchableOpacity onPress={shareNglLink} style={styles.shareIconBtn}>
-                <MaterialCommunityIcons name="share-variant" size={24} color="#1DB954" />
+                <MaterialCommunityIcons name="share-variant" size={22} color="#1DB954" />
               </TouchableOpacity>
             </View>
             <View style={styles.tabWrapper}>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabContainer}>
+              <View style={styles.tabContainer}>
                 {[
                   { id: 'my_link', label: 'My Link' },
                   { id: 'inbox', label: 'Inbox', badge: messages.length }
@@ -513,14 +564,33 @@ export default function NglScreen({ navigation }: any) {
                     ) : null}
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </View>
             </View>
           <LinearGradient 
-            colors={['#38ef7d', '#11998e']} 
+            colors={CARD_THEMES[cardThemeIndex]} 
             start={{ x: 0, y: 0 }} 
             end={{ x: 1, y: 1 }}
-            style={[styles.linkBanner, { flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 0, paddingBottom: 12, marginBottom: 12, marginHorizontal: 50, height: 220, borderWidth: 0, shadowColor: '#38ef7d', shadowOpacity: 0.3, shadowRadius: 15 }]}
+            style={[styles.linkBanner, { 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'flex-start', 
+              paddingTop: 0, 
+              paddingBottom: 12, 
+              marginBottom: 30, 
+              marginHorizontal: SCREEN_WIDTH * 0.12, 
+              height: SCREEN_WIDTH * 0.62, 
+              borderWidth: 0, 
+              shadowColor: CARD_THEMES[cardThemeIndex][0], 
+              shadowOpacity: 0.3, 
+              shadowRadius: 15 
+            }]}
           >
+            <TouchableOpacity 
+              style={{ position: 'absolute', top: 12, right: 12, width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' }} 
+              onPress={cycleTheme}
+            >
+              <MaterialCommunityIcons name="palette" size={16} color="#FFF" />
+            </TouchableOpacity>
              {auth.user?.avatar ? (
                <Image source={{ uri: auth.user.avatar }} style={[styles.avatarPicLarge, { width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: '#FFF', marginTop: 16 }]} />
              ) : (
@@ -532,21 +602,18 @@ export default function NglScreen({ navigation }: any) {
 
              <View style={{ width: '100%', paddingHorizontal: 0, marginTop: 1 }}>
                 <View style={{ width: '100%', marginBottom: 4, maxHeight: 100 }}>
-                  <TextInput 
-                    style={[{ width: '100%', textAlign: 'center', textAlignVertical: 'center', backgroundColor: 'transparent', borderWidth: 0, paddingVertical: 8, paddingHorizontal: 16, fontSize: 20, fontWeight: '900', marginBottom: 0, color: '#FFF', letterSpacing: 0.5, textShadowColor: 'rgba(0,0,0,0.3)', textShadowOffset: {width: 0, height: 1}, textShadowRadius: 2 }]} 
-                    value={sharePrompt} 
-                    onChangeText={setSharePrompt} 
-                    placeholder="e.g. Ask me anything!"
-                    placeholderTextColor="rgba(255,255,255,0.6)"
-                    maxLength={45}
-                    multiline={true}
-                    numberOfLines={3}
-                  />
+                    <TextInput 
+                      style={[{ width: '100%', textAlign: 'center', textAlignVertical: 'center', backgroundColor: 'transparent', borderWidth: 0, paddingVertical: 8, paddingHorizontal: 16, fontSize: 18, fontWeight: '900', marginBottom: 0, color: '#FFF', letterSpacing: 0.5, textShadowColor: 'rgba(0,0,0,0.3)', textShadowOffset: {width: 0, height: 1}, textShadowRadius: 2 }]} 
+                      value={sharePrompt} 
+                      onChangeText={setSharePrompt} 
+                      placeholder="e.g. Ask me anything!"
+                      placeholderTextColor="rgba(255,255,255,0.6)"
+                      multiline={true}
+                      numberOfLines={3}
+                    />
                 </View>
              </View>
-             <View style={{ position: 'absolute', bottom: 14, left: 16 }}>
-               <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 }}>{sharePrompt.length}/45</Text>
-             </View>
+             {/* Character limit removed */}
              <View style={{ position: 'absolute', bottom: 10, right: 12, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
                 {sharePrompt !== SHARE_PROMPTS[0] && (
                   <TouchableOpacity onPress={() => { setSharePrompt(SHARE_PROMPTS[0]); triggerHaptic('light'); }}>
@@ -562,26 +629,38 @@ export default function NglScreen({ navigation }: any) {
           </LinearGradient>
 
 
-          <View style={{ marginHorizontal: 32, marginBottom: 8, marginTop: 10 }}>
-            <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 0.5 }}>STEP 1: COPY YOUR LINK</Text>
+          <View style={{ marginHorizontal: SCREEN_WIDTH * 0.05, marginBottom: 16, marginTop: 10, alignItems: 'center' }}>
+            <Text style={{ color: '#FFF', fontSize: Math.min(16, SCREEN_WIDTH * 0.045), fontWeight: '900', letterSpacing: 0.5, textAlign: 'center' }}>STEP 1: COPY YOUR LINK</Text>
           </View>
-          <View style={[styles.linkBanner, { flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingVertical: 24, marginTop: 0 }]}>
+          <View style={[styles.linkBanner, { flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, marginTop: 0, marginHorizontal: 16 }]}>
             <View style={{ alignItems: 'center', marginBottom: 16 }}>
                <Text style={[styles.linkTitle, { textAlign: 'center', fontSize: 11 }]}>YOUR SECRET LINK</Text>
 
             </View>
-            <View style={[styles.bannerActions, { width: '100%', justifyContent: 'center', gap: 16 }]}>
-              <TouchableOpacity style={[styles.copyLinkBtn, { width: 48, height: 48, borderRadius: 24 }]} onPress={copyNglLink}>
-                <MaterialCommunityIcons name="content-copy" size={20} color="#000" />
+            <View style={{ flexDirection: 'row', width: '100%', gap: 10, paddingHorizontal: 12, marginTop: 4 }}>
+              <TouchableOpacity 
+                style={{ flex: 1, height: 48, backgroundColor: '#111', borderRadius: 24, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#222' }} 
+                onPress={copyNglLink}
+              >
+                <Text style={{ color: '#FFF', fontWeight: '900', fontSize: 11, letterSpacing: 1 }}>COPY LINK</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.editLinkBtn, { width: 48, height: 48, borderRadius: 24 }]} onPress={() => { triggerHaptic('light'); setShowSlugModal(true); }}>
-                <MaterialCommunityIcons name="pencil" size={20} color="#000" />
+              <TouchableOpacity 
+                style={{ flex: 1, height: 48, backgroundColor: '#1DB954', borderRadius: 24, justifyContent: 'center', alignItems: 'center' }} 
+                onPress={shareNglLink}
+              >
+                <Text style={{ color: '#000', fontWeight: '900', fontSize: 11, letterSpacing: 1 }}>SHARE LINK</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity 
+              style={{ position: 'absolute', top: 12, right: 12 }} 
+              onPress={() => { triggerHaptic('light'); setShowSlugModal(true); }}
+            >
+              <MaterialCommunityIcons name="pencil" size={16} color="#444" />
+            </TouchableOpacity>
           </View>
 
-          <View style={{ marginHorizontal: 32, marginBottom: 12, marginTop: 20 }}>
-            <Text style={{ color: '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 0.5 }}>STEP 2: SHARE ON INSTAGRAM</Text>
+          <View style={{ marginHorizontal: SCREEN_WIDTH * 0.05, marginBottom: 16, marginTop: SCREEN_WIDTH * 0.1, alignItems: 'center' }}>
+            <Text style={{ color: '#FFF', fontSize: Math.min(16, SCREEN_WIDTH * 0.045), fontWeight: '900', letterSpacing: 0.5, textAlign: 'center' }}>STEP 2: SHARE ON INSTAGRAM</Text>
           </View>
           <TouchableOpacity style={styles.igShareBanner} activeOpacity={0.9} onPress={shareNglLink}>
             <LinearGradient colors={['#1DB954', '#1AA34A']} start={{x: 0, y: 0}} end={{x: 1, y: 1}} style={styles.igGradient}>
@@ -787,17 +866,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center', 
     justifyContent: 'space-between', 
-    paddingHorizontal: 20, 
-    paddingTop: 15, 
-    paddingBottom: 15,
+    paddingHorizontal: 8, 
+    paddingTop: 4, 
+    paddingBottom: 12,
     backgroundColor: '#050505',
   },
-  backBtn: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 22, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '800', letterSpacing: 0.5 },
-  shareIconBtn: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(29, 185, 84, 0.15)', borderRadius: 22 },
+  backBtnMini: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' },
+  headerTitle: { color: '#FFF', fontSize: 26, fontWeight: '800' },
+  shareIconBtn: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(29, 185, 84, 0.1)', borderRadius: 10 },
   
-  tabWrapper: { marginBottom: 6 },
-  tabContainer: { flexDirection: 'row', paddingHorizontal: 20, gap: 8 },
+  tabWrapper: { marginBottom: 24, paddingHorizontal: 16 },
+  tabContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   tabBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#333', backgroundColor: 'transparent' },
   activeTabBtn: { backgroundColor: '#1DB954', borderColor: '#1DB954' },
   tabText: { color: '#888', fontWeight: '700', fontSize: 12 },
@@ -806,7 +885,23 @@ const styles = StyleSheet.create({
   badge: { backgroundColor: '#EF5350', marginLeft: 6, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   badgeText: { color: '#fff', fontSize: 10, fontWeight: '900' },
   
-  linkBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0A0A0A', marginHorizontal: 32, marginBottom: 16, marginTop: 4, paddingVertical: 24, paddingHorizontal: 18, borderRadius: 28, borderWidth: 1, borderColor: 'rgba(29, 185, 84, 0.3)', shadowColor: '#1DB954', shadowOpacity: 0.15, shadowRadius: 20, elevation: 5 },
+  linkBanner: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#0A0A0A', 
+    marginHorizontal: SCREEN_WIDTH * 0.05, 
+    marginBottom: 16, 
+    marginTop: 4, 
+    paddingVertical: 24, 
+    paddingHorizontal: 18, 
+    borderRadius: 28, 
+    borderWidth: 1, 
+    borderColor: 'rgba(29, 185, 84, 0.3)', 
+    shadowColor: '#1DB954', 
+    shadowOpacity: 0.15, 
+    shadowRadius: 20, 
+    elevation: 5 
+  },
   bannerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 14 },
   linkInfo: { flex: 1 },
   linkTitle: { color: '#1DB954', fontSize: 10, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
@@ -814,7 +909,7 @@ const styles = StyleSheet.create({
   avatarPicLarge: { width: 64, height: 64, borderRadius: 32 },
   avatarPlaceholderLarge: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(29, 185, 84, 0.2)', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#1DB954' },
   
-  igShareBanner: { marginHorizontal: 16, borderRadius: 20, shadowColor: '#FD1D1D', shadowOpacity: 0.3, shadowRadius: 15, elevation: 8 },
+  igShareBanner: { marginHorizontal: 16, borderRadius: 20 },
   igGradient: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 20 },
   igIconWrapper: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 14 },
   igTextWrapper: { flex: 1 },
@@ -828,7 +923,7 @@ const styles = StyleSheet.create({
   promptChip: { backgroundColor: 'rgba(29, 185, 84, 0.1)', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(29, 185, 84, 0.3)' },
   promptChipText: { color: '#1DB954', fontSize: 12, fontWeight: '700' },
   
-  listContent: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 100 },
+  listContent: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 100 },
   messageCard: { backgroundColor: '#0D0D0D', borderRadius: 20, padding: 12, marginBottom: 10, borderWidth: 1.5, borderColor: 'rgba(29, 185, 84, 0.15)', shadowColor: '#1DB954', shadowOpacity: 0.08, shadowRadius: 15, elevation: 3 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   anonLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(29, 185, 84, 0.08)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
@@ -841,7 +936,7 @@ const styles = StyleSheet.create({
   emptyIconCircle: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#0A0A0A', justifyContent: 'center', alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(29,185,84,0.3)', shadowColor: '#1DB954', shadowOpacity: 0.2, shadowRadius: 20, elevation: 8 },
   emptyTitle: { color: '#FFF', fontSize: 16, fontWeight: '800', marginBottom: 8, letterSpacing: 0.5 },
   emptySub: { color: '#777', fontSize: 14, textAlign: 'center', lineHeight: 22, marginBottom: 24, fontWeight: '500' },
-  mainShareBtn: { backgroundColor: '#1DB954', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, shadowColor: '#1DB954', shadowOpacity: 0.4, shadowRadius: 20, elevation: 10, flex: 1, alignItems: 'center' },
+  mainShareBtn: { backgroundColor: '#1DB954', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, flex: 1, alignItems: 'center' },
   mainShareBtnText: { color: '#000', fontWeight: '800', fontSize: 10, marginTop: 4, letterSpacing: 1.5 },
   emptyActionRow: { flexDirection: 'row', gap: 12, width: '100%', marginTop: 10 },
   mainCopyBtn: { backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', flex: 1, alignItems: 'center' },
@@ -876,7 +971,7 @@ const styles = StyleSheet.create({
   shareActionRow: { flexDirection: 'row', gap: 16 },
   shareCancel: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 14, backgroundColor: '#111', borderWidth: 1, borderColor: '#222' },
   shareCancelText: { color: '#888', fontWeight: '800', letterSpacing: 1 },
-  shareConfirm: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, borderRadius: 14, backgroundColor: '#1DB954', shadowColor: '#1DB954', shadowOpacity: 0.3, shadowRadius: 15, elevation: 5 },
+  shareConfirm: { flex: 2, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 12, borderRadius: 14, backgroundColor: '#1DB954' },
   shareConfirmText: { color: '#000', fontWeight: '800', fontSize: 10, marginTop: 4, letterSpacing: 1.5 },
 
   bannerActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
@@ -929,7 +1024,7 @@ const styles = StyleSheet.create({
   statLabel: { color: '#555', fontSize: 9, fontWeight: '800', letterSpacing: 1.5, marginTop: 4 },
 
   // Question of the Day
-  qotdCard: { marginHorizontal: 16, backgroundColor: '#0D0D0D', borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.15)' },
+  qotdCard: { marginHorizontal: 4, backgroundColor: '#0D0D0D', borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.15)' },
   qotdLabel: { color: '#FFD700', fontSize: 10, fontWeight: '900', letterSpacing: 1.5 },
   qotdText: { color: '#CCC', fontSize: 14, fontWeight: '600', lineHeight: 20 },
 

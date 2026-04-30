@@ -69,9 +69,12 @@ const RootNavigator = () => {
   );
 };
 
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
 function App() {
   return (
-    <SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
       <StatusBar barStyle="light-content" />
       <AuthProvider>
         <NotificationHandler />
@@ -86,6 +89,7 @@ function App() {
         </ToastProvider>
       </AuthProvider>
     </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

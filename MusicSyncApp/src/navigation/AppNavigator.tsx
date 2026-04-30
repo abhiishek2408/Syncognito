@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Image } from 'react-native';
 import HomeScreen from '../screens/HomeScreen';
@@ -59,14 +60,20 @@ export default function AppNavigator() {
         headerShown: false,
         tabBarActiveTintColor: '#1DB954',
         tabBarInactiveTintColor: '#666',
-        tabBarStyle: {
-          backgroundColor: '#000',
-          borderTopColor: '#1A1A1A',
-          borderTopWidth: 1,
-          height: 85,
-          paddingBottom: 22,
-          paddingTop: 10,
-        },
+        tabBarStyle: ((route) => {
+          const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+          if (routeName === 'Ngl' || routeName === 'NglMessageDetail') {
+            return { display: 'none' };
+          }
+          return {
+            backgroundColor: '#000',
+            borderTopColor: '#1A1A1A',
+            borderTopWidth: 1,
+            height: 85,
+            paddingBottom: 22,
+            paddingTop: 10,
+          };
+        })(route),
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         tabBarIcon: ({ color, size }) => {
           if (route.name === 'Home') {

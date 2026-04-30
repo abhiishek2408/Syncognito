@@ -28,7 +28,7 @@ router.get('/', authenticateToken, async (req, res) => {
 // Create a new alarm
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { triggerAt, message, title, duration, repetitionOn, repeatCount } = req.body;
+    const { triggerAt, message, title, duration, repetitionOn, repeatCount, toneUrl } = req.body;
     if (!triggerAt) return res.status(400).json({ message: 'triggerAt is required' });
     const alarm = await Alarm.create({
       userId: req.user.id,
@@ -38,6 +38,7 @@ router.post('/', authenticateToken, async (req, res) => {
       duration: duration || 30,
       repetitionOn: repetitionOn || false,
       repeatCount: repeatCount || 0,
+      toneUrl: toneUrl || null,
     });
     res.status(201).json(alarm);
   } catch (err) {
@@ -49,7 +50,7 @@ router.post('/', authenticateToken, async (req, res) => {
 // Update an alarm
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
-    const { triggerAt, message, title, isTriggered, duration, repetitionOn, repeatCount } = req.body;
+    const { triggerAt, message, title, isTriggered, duration, repetitionOn, repeatCount, toneUrl } = req.body;
     
     // If marking as triggered, handle repetition or delete
     if (isTriggered === true) {
@@ -79,6 +80,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     if (duration !== undefined) alarm.duration = duration;
     if (repetitionOn !== undefined) alarm.repetitionOn = repetitionOn;
     if (repeatCount !== undefined) alarm.repeatCount = repeatCount;
+    if (toneUrl !== undefined) alarm.toneUrl = toneUrl;
     await alarm.save();
     res.json(alarm);
   } catch (err) {

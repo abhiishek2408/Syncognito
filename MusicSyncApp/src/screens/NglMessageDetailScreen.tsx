@@ -18,12 +18,14 @@ const REACTIONS = [
 ];
 
 const CARD_THEMES = [
-  ['#38ef7d', '#11998e'],  // Green
-  ['#8A2BE2', '#6A0DAD'],  // Purple
-  ['#FF512F', '#DD2476'],  // Red-Pink
-  ['#00BFFF', '#0080FF'],  // Blue
-  ['#FFD700', '#FF8C00'],  // Gold
-  ['#FF1493', '#8B008B'],  // Pink-Purple
+  ['#38ef7d', '#11998e'], // Green
+  ['#8A2BE2', '#4B0082'], // Purple
+  ['#FF1493', '#C71585'], // Pink
+  ['#FF4500', '#FF8C00'], // Orange
+  ['#00BFFF', '#1E90FF'], // Blue
+  ['#FFD700', '#FFA500'], // Gold
+  ['#00CED1', '#20B2AA'], // Teal
+  ['#1E1E1E', '#000000'], // Black
 ];
 
 type Props = {
@@ -144,15 +146,19 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <MaterialCommunityIcons name="chevron-left" size={30} color="#FFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Anonymous Note</Text>
-        <TouchableOpacity onPress={togglePin}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtnMini}>
+            <MaterialCommunityIcons name="chevron-left" size={28} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>
+            <MaterialCommunityIcons name="incognito" size={26} color="#1DB954" /> Anonymous
+          </Text>
+        </View>
+        <TouchableOpacity onPress={togglePin} style={styles.pinBtnMini}>
           <Animated.View style={{ transform: [{ rotate: pinSpin }] }}>
             <MaterialCommunityIcons 
               name={isPinned ? "pin" : "pin-outline"} 
-              size={24} 
+              size={22} 
               color={isPinned ? "#FFD700" : "#555"} 
             />
           </Animated.View>
@@ -179,8 +185,7 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
             ))}
           </View>
           
-          <TouchableOpacity activeOpacity={0.95} onPress={cycleTheme}>
-            <View style={styles.messageCard}>
+          <View style={styles.messageCard}>
               <LinearGradient colors={currentTheme} style={styles.cardGradient} start={{x:0, y:0}} end={{x:1, y:1}}>
                   <View style={styles.cardHeaderRow}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -217,8 +222,7 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
                     )}
                   </View>
               </LinearGradient>
-            </View>
-          </TouchableOpacity>
+          </View>
         </Animated.View>
 
         {/* Emoji Reactions */}
@@ -243,44 +247,35 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
           </View>
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.actionsSection}>
-          <TouchableOpacity style={styles.actionCard} activeOpacity={0.8} onPress={shareAsStoryCard}>
-            <LinearGradient colors={['#833AB4', '#FD1D1D', '#F56040']} start={{x: 0, y: 0}} end={{x: 1, y: 1}} style={styles.actionGradient}>
-              <MaterialCommunityIcons name="instagram" size={22} color="#FFF" />
-              <Text style={styles.actionText}>Share as Story</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionCard} activeOpacity={0.8} onPress={togglePin}>
-            <View style={[styles.actionFlat, isPinned && { backgroundColor: 'rgba(255, 215, 0, 0.15)', borderColor: '#FFD700' }]}>
-              <MaterialCommunityIcons name={isPinned ? "pin" : "pin-outline"} size={22} color={isPinned ? "#FFD700" : "#888"} />
-              <Text style={[styles.actionText, { color: isPinned ? '#FFD700' : '#888' }]}>
-                {isPinned ? 'Pinned' : 'Pin It'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
-
-      {/* Bottom Reply Button */}
-      <View style={styles.bottomSection}>
-        <TouchableOpacity style={styles.replyMainBtn} activeOpacity={0.9} onPress={shareAsStoryCard}>
-          <LinearGradient colors={['#1DB954', '#1AA34A']} style={styles.replyGradient}>
-            <MaterialCommunityIcons name="share-variant" size={22} color="#000" />
-            <Text style={styles.replyBtnText}>SHARE & REPLY</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
-  );
-}
+ 
+       {/* Bottom Actions Row */}
+       <View style={styles.bottomSection}>
+         <TouchableOpacity style={styles.replyMainBtn} activeOpacity={0.9} onPress={shareAsStoryCard}>
+           <LinearGradient colors={['#1DB954', '#1AA34A']} style={styles.replyGradient}>
+             <MaterialCommunityIcons name="share-variant" size={20} color="#000" />
+             <Text style={styles.replyBtnText}>SHARE & REPLY</Text>
+           </LinearGradient>
+         </TouchableOpacity>
+       </View>
+     </SafeAreaView>
+   );
+ }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#050505' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 56 },
-  backBtn: { width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '800' },
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: 16, 
+    paddingTop: 10, 
+    paddingBottom: 8,
+    backgroundColor: '#050505',
+  },
+  backBtnMini: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 10 },
+  headerTitle: { color: '#FFF', fontSize: 26, fontWeight: '800' },
+  pinBtnMini: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   scrollContent: { paddingHorizontal: 24, paddingBottom: 20 },
   
   // Card
@@ -292,7 +287,7 @@ const styles = StyleSheet.create({
   cardHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   iconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   cardTitle: { color: '#FFF', fontSize: 13, fontWeight: '900', letterSpacing: 1.5 },
-  themeBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' },
+  themeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' },
   messageText: { color: '#FFF', fontSize: 22, fontWeight: '900', textAlign: 'center', lineHeight: 30, marginVertical: 16 },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
   timeLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '700' },
@@ -301,9 +296,9 @@ const styles = StyleSheet.create({
   reactionsSection: { marginBottom: 24 },
   sectionLabel: { color: '#555', fontSize: 11, fontWeight: '800', letterSpacing: 2, marginBottom: 12 },
   reactionsRow: { flexDirection: 'row', justifyContent: 'center', gap: 12 },
-  reactionBubble: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#111', justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: '#222' },
+  reactionBubble: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#111', justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: '#222' },
   reactionBubbleActive: { backgroundColor: 'rgba(29, 185, 84, 0.15)', borderColor: '#1DB954' },
-  reactionEmoji: { fontSize: 26 },
+  reactionEmoji: { fontSize: 20 },
 
   // Actions
   actionsSection: { flexDirection: 'row', gap: 12, marginBottom: 24 },
@@ -313,7 +308,10 @@ const styles = StyleSheet.create({
   actionText: { color: '#FFF', fontSize: 13, fontWeight: '800' },
 
   // Bottom
-  bottomSection: { paddingHorizontal: 24, paddingBottom: 20 },
+  bottomSection: { paddingHorizontal: 24, paddingBottom: 24 },
+  bottomActionsRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  pinBtnSmall: { width: 58, height: 58, borderRadius: 18, backgroundColor: '#111', justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: '#222' },
+  pinBtnActive: { backgroundColor: 'rgba(255, 215, 0, 0.1)', borderColor: '#FFD700' },
   replyMainBtn: { width: '100%', height: 58, borderRadius: 18, overflow: 'hidden' },
   replyGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
   replyBtnText: { color: '#000', fontSize: 15, fontWeight: '900', letterSpacing: 0.5 },

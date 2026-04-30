@@ -1,0 +1,680 @@
+﻿--------- beginning of main
+04-28 05:46:46.317  3543  5152 W HidlServiceManagement: Waited one second for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice
+04-28 05:46:46.318   557   557 I hwservicemanager: Since com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice is not registered, trying to start it as a lazy HAL.
+04-28 05:46:46.319  3543  5152 I HidlServiceManagement: getService: Trying again for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice...
+04-28 05:46:46.321   557 22850 W libc    : Unable to set property "ctl.interface_start" to "com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice": error code: 0x20
+--------- beginning of system
+04-28 05:46:46.385  1290  5922 I ActivityTaskManager: START u0 {flg=0x10000000 cmp=com.syncognito/.MainActivity mCallingUid=2000} from uid 2000 and from pid 22853
+04-28 05:46:46.385  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag falsestateINITIALIZING
+04-28 05:46:46.386  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestateINITIALIZING
+04-28 05:46:46.386   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/io_percent not supported
+04-28 05:46:46.386   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 1]
+04-28 05:46:46.386   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/sample_ms not supported
+04-28 05:46:46.386   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 3]
+04-28 05:46:46.387  1290  5922 V SensorManager: setScreenShotDisableImpl
+04-28 05:46:46.387  1290  5922 D SensorService: debug_oplusGeminiProximity setScreenShotDisable in SensorService
+04-28 05:46:46.388  1290  5922 E ColorZoomWindowManagerService: onConfigurationChanged rotation not changed - prevRotation: 0
+04-28 05:46:46.388   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/io_percent not supported
+04-28 05:46:46.388   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 1]
+04-28 05:46:46.388   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/sample_ms not supported
+04-28 05:46:46.388   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 3]
+04-28 05:46:46.390   987   987 E ANDR-PERF-MPCTL: invalid request, no optimizations performed
+04-28 05:46:46.390  1290  5922 E ColorZoomWindowManagerService: onConfigurationChanged rotation not changed - prevRotation: 0
+04-28 05:46:46.393  1290  5922 D ColorZoomWindowRUSConfigManager: isSupportZoomModeWithPolicyLocked: target = com.syncognito/.MainActivity
+04-28 05:46:46.393  1290  5922 D ColorZoomWindowRUSConfigManager: targetPkg = com.syncognito
+04-28 05:46:46.393  1290  5922 V ColorZoomWindowManagerService: unSupportZoom: false ,callingPid: 22853 ,sourceStack: null
+04-28 05:46:46.394  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestateRESUMED
+04-28 05:46:46.394  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestatePAUSING
+04-28 05:46:46.391   987   987 E ANDR-PERF-MPCTL: invalid request, no optimizations performed
+04-28 05:46:46.394  1290  5922 D ActivityTrigger: ActivityTrigger activityPauseTrigger 
+04-28 05:46:46.394  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag falsestatePAUSING
+04-28 05:46:46.400 22853 22855 I cmd     : oneway function results will be dropped but finished with status OK and parcel size 4
+04-28 05:46:46.402  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestatePAUSED
+04-28 05:46:46.403  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag falsestatePAUSED
+04-28 05:46:46.403   954  3444 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+04-28 05:46:46.404  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestateRESUMED
+04-28 05:46:46.405  1290  5922 I ColorAccessController: enter isIgnoreAppSwitchActivity
+04-28 05:46:46.405  1290  5922 I ColorAccessController: enter isIgnoreAppSwitchActivity and intent != null
+04-28 05:46:46.405  1290  5922 I ColorAccessController: enter isIgnoreAppSwitchActivity and componentName != null
+04-28 05:46:46.405  1290  5922 I ColorAccessController: enter isIgnoreAppSwitchActivity and packageName&activity is not Empty
+04-28 05:46:46.407  1290  5922 V SensorManager: setScreenShotDisableImpl
+04-28 05:46:46.408  1290  5922 D SensorService: debug_oplusGeminiProximity setScreenShotDisable in SensorService
+04-28 05:46:46.408  1290  5922 I ColorHansManager : ColorHansManager : resume pkg: com.syncognito, uid:10732, prev pkg: com.oppo.launcher, prev uid: 10044
+04-28 05:46:46.409  1290  5922 V SensorManager: setScreenShotDisableImpl
+04-28 05:46:46.409  1290  5922 D SensorService: debug_oplusGeminiProximity setScreenShotDisable in SensorService
+04-28 05:46:46.410  1290  3658 I ColorHansManager : enter fastfreezer
+04-28 05:46:46.410  1290  5922 V SensorManager: setScreenShotDisableImpl
+04-28 05:46:46.410  1290  5922 D SensorService: debug_oplusGeminiProximity setScreenShotDisable in SensorService
+04-28 05:46:46.413   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/io_percent not supported
+04-28 05:46:46.413   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 1]
+04-28 05:46:46.413   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/sample_ms not supported
+04-28 05:46:46.413   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 3]
+04-28 05:46:46.414  1290  3658 I ColorHansManager : freeze uid: 10400 package: com.instagram.android reason: fastfreezer|10732 scene: FastFreezerScene
+04-28 05:46:46.414  1290  1597 D CompatibilityChangeReporter: Compat change id reported: 135634846; UID 10732; state: DISABLED
+04-28 05:46:46.414  1290  1597 D CompatibilityChangeReporter: Compat change id reported: 135754954; UID 10732; state: ENABLED
+04-28 05:46:46.415  1290  3658 I ColorHansManager : freeze uid: 10149 package: com.whatsapp reason: fastfreezer|10732 scene: FastFreezerScene
+04-28 05:46:46.415  1290  1734 D CompatibilityChangeReporter: Compat change id reported: 143937733; UID 10732; state: ENABLED
+04-28 05:46:46.416  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.418   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/io_percent not supported
+04-28 05:46:46.419   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 1]
+04-28 05:46:46.419   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/sample_ms not supported
+04-28 05:46:46.419   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 3]
+04-28 05:46:46.421   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/io_percent not supported
+04-28 05:46:46.421   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 1]
+04-28 05:46:46.421   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/sample_ms not supported
+04-28 05:46:46.421   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 3]
+04-28 05:46:46.433   804   804 D Zygote  : Forked child process 22857
+04-28 05:46:46.435 22857 22857 W Zygote  : Unable to open libbeluga.so: dlopen failed: library "libbeluga.so" not found.
+04-28 05:46:46.417  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.435  1290  1734 I ActivityManager: Start proc 22857:com.syncognito/u0a732 for pre-top-activity {com.syncognito/com.syncognito.MainActivity}
+04-28 05:46:46.444  1290  1600 D ColorViewRootUtil: initSwipState, isDisplayCompatApp false
+04-28 05:46:46.444  1290  1600 D ColorViewRootUtil: mScreenHeight 1600, mScreenWidth 720
+04-28 05:46:46.444  1290  1600 D WindowManager: Add to mViews: DecorView@f583fa2[syncognito],pkg= com.syncognito
+04-28 05:46:46.445  1290  1600 D OppoDisplayPolicy: com.syncognito, no change cutoutMode: 0
+04-28 05:46:46.446 22857 22857 E com.syncognito: Unknown bits set in runtime_flags: 0x40000000
+04-28 05:46:46.450 22857 22857 E com.syncognito: Not starting debugger since process cannot load the jdwp agent.
+04-28 05:46:46.457 22857 22857 E RefClass: java.lang.reflect.InvocationTargetException
+04-28 05:46:46.457  1290  5555 I InputDispatcher: Focus left window: Window{f971242 u0 com.oppo.launcher/com.oppo.launcher.Launcher} in display 0
+04-28 05:46:46.458 22857 22857 I OneTrace: Mark active for pid=22857? true
+04-28 05:46:46.459  1290  1600 D OppoDisplayPolicy: com.syncognito, no change cutoutMode: 0
+04-28 05:46:46.460  1290  5555 D ColorInputMethodManagerServiceEx: onHandleImeWindowVisibleStatus handledVis: 0, switcher visible: 0, switcher active: 0, needsToShowImeSwitcher: false
+04-28 05:46:46.463  1290  1600 V WindowManager: Changing focus from Window{f971242 u0 com.oppo.launcher/com.oppo.launcher.Launcher} to null,diplayid=0
+04-28 05:46:46.464  1290  1600 D Theia.NoFocusWindow: FocusWindowErrorScene CheckFreezeScreen
+04-28 05:46:46.465  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.465  1290  1600 V OplusZoomWindowDecorViewHelper: setLastReportedMergedConfiguration mZoomDisplayHeight: 1600 getDecorView.DecorView@f583fa2[syncognito]
+04-28 05:46:46.471  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestateRESUMED
+04-28 05:46:46.472  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag falsestateRESUMED
+04-28 05:46:46.473  1033  3099 D DispPerfService: onframeavailable pid=1290, slot=0, seq=1843, name=system_server:Splash Screen com.syncognito#0
+04-28 05:46:46.476  1290  5922 I ColorAppSwitchManagerService: appswitch hasProcess ActivityRecord{c2f7842 u0 com.syncognito/.MainActivity t3525}
+04-28 05:46:46.477  1290  5922 I InputDispatcher: setFocusedApplication displayId=0 <invalid>
+04-28 05:46:46.477  1290  3845 V DCSEX-AppSwitchManager: OnAppSwitchObserver: onAppExit , info = OplusAppExitInfo = {  targetName = com.oppo.launcher hasResumingActivity = true resumingPackageName = com.syncognito resumingActivityName = com.syncognito.MainActivity resumingWindowMode = 1 isResumingMultiApp = false isResumingFirstStart = true extension = Bundle[{taskId=3525, uid=10732}]}
+04-28 05:46:46.477   944   944 E ORMS_HAL: open /sys/class/devfreq/soc:qcom,cpu-cpu-llcc-bw/bw_hwmon/hist_memory failed(No such file or directory)
+04-28 05:46:46.477  1290  8146 D DCSEX-AppLaunchEventRecorder: onAppSwitch from = com.oppo.launcher to = com.syncognito
+04-28 05:46:46.477   944   944 E ORMS_HAL: open /sys/class/devfreq/soc:qcom,cpu-cpu-llcc-bw/bw_hwmon/hyst_trigger_count failed(No such file or directory)
+04-28 05:46:46.477  3831  3975 I [0]DCS-BackgroundAppData: sendAppBgEvent: has no pkgName=com.syncognito
+04-28 05:46:46.478   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/io_percent not supported
+04-28 05:46:46.478   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 1]
+04-28 05:46:46.478   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/sample_ms not supported
+04-28 05:46:46.478   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 3]
+04-28 05:46:46.478  6492  6870 W OppoGuardElf: ThermalControlUtils: mForegroundPkg=com.syncognito
+04-28 05:46:46.480  1290  3586 D OppoDisplayPolicy: com.android.systemui, change system app cutoutMode: color always
+04-28 05:46:46.481 22857 22857 I oplus.android.OplusFrameworkFactoryImpl: get feature:IOplusScreenModeFeature
+04-28 05:46:46.481 22857 22857 I oplus.android.OplusFrameworkFactoryImpl: getOplusScreenModeFeature
+04-28 05:46:46.482  1290  3845 V DCSEX-AppSwitchManager: OnAppSwitchObserver: onAppEnter , info = OplusAppEnterInfo = {  windowMode = 1 targetName = com.syncognito multiApp = false firstStart = true launchedFromPackage = com.android.shell intent = Intent { flg=0x10000000 cmp=com.syncognito/.MainActivity mCallingUid=2000 } extension = Bundle[{taskId=3525, uid=10732}]}
+04-28 05:46:46.483  4604 10050 D ZoomAppController: ignore onAppEnter: Invalid cvActionFlag = 0
+04-28 05:46:46.483  3831  3975 I [0]DCS-StrategyManager: isNeedUpload: true, type: 3, appID: 0, logTag: , eventID: 
+04-28 05:46:46.476  1290  5922 I ColorAppSwitchManagerService: appswitch hasProcess ActivityRecord{c2f7842 u0 com.syncognito/.MainActivity t3525}
+04-28 05:46:46.500  1290  1597 E OppoThermalStats: Error getting package info: com.syncognito
+04-28 05:46:46.500  1290  1597 D OplusKeepAliveManager: TOP_APP is ProcessRecord{41a75f2 22857:com.syncognito/u0a732} uid is 10732
+04-28 05:46:46.508  1033  1033 D OppoExLayer: ~Layer() sequence=1837, name=Surface(name=5373858 StatusBar)/@0xa172fc1 - animation-leash#0@0xb4000071e2b5f000
+04-28 05:46:46.508  1033  1033 D OppoExLayer: ~Layer() sequence=1838, name=Surface(name=c087153 NavigationBar0)/@0x943a2a1 - animation-leash#0@0xb4000071e2bde000
+04-28 05:46:46.512  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.512  1290  5555 D AS.AudioService: getParameters() keyValuePairs:OPLUS_AUDIO_GET_FOCUS_STACK
+04-28 05:46:46.513  6492  6870 W OppoGuardElf: ThermalControllHandler: tempLevel=7,userMode=3,gameUserMode=-1,appType=-1,envTempType=1,appStates=[]
+04-28 05:46:46.516  6492  6870 W OppoGuardElf: ThermalControllHandler: tempGear=7,configItemName=common_config
+04-28 05:46:46.516  6492  7267 W OppoGuardElf: ThermalControllHandler: MSG_THERMAL_CONTROL_CATEGORY_CHANGED
+04-28 05:46:46.512  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.516  1290  5922 D ColorAppListInterceptManager: shouldFilterTask
+04-28 05:46:46.516  1290  5922 D ColorAppListInterceptManager: shouldFilterTask::packageName = com.syncognito
+04-28 05:46:46.516  1290  5922 D ColorAppListInterceptManager: shouldFilterTask
+04-28 05:46:46.516  1290  5922 D ColorAppListInterceptManager: shouldFilterTask::packageName = com.android.settings
+04-28 05:46:46.525 22857 22857 I Perf    : Connecting to perf service.
+04-28 05:46:46.528 22857 22857 E Perf    :  perftest packageName : com.syncognito App is allowed to use Hide APIs  
+04-28 05:46:46.529  4892  4892 E oiface  : packageSwitch pkg com.syncognito, enter
+04-28 05:46:46.529  4892  4892 E oiface  : current package is com.syncognito and pid is 22857
+04-28 05:46:46.532 22857 22857 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+04-28 05:46:46.532 22857 22857 D NetworkSecurityConfig: No Network Security Config specified, using platform default
+04-28 05:46:46.539  4892  4904 E oiface  : Average freq 1437098 for 5s.
+04-28 05:46:46.539  4892  4904 E oiface  : Average freq 1346497 for 5s.
+04-28 05:46:46.538  1290  1290 W Binder:1290_1B: type=1400 audit(0.0:4285): avc: denied { read } for name="freq_table_mhz" dev="sysfs" ino=38800 scontext=u:r:system_server:s0 tcontext=u:object_r:vendor_sysfs_kgsl:s0 tclass=file permissive=0
+04-28 05:46:46.540  1290  5549 E ORMS_Platform : OplusResourceManagerPlatformUtils: readFile function exception:/sys/devices/platform/soc/5900000.qcom,kgsl-3d0/kgsl/kgsl-3d0/freq_table_mhz: open failed: EACCES (Permission denied)
+04-28 05:46:46.540  4892  4904 E oiface  : get gpu freq table failed
+04-28 05:46:46.544  4892  4904 E oiface  : client  not found, skipped
+04-28 05:46:46.544  4892  4904 D oiface  : forground package is com.syncognito
+04-28 05:46:46.552 22857 22857 I FirebaseApp: Device unlocked: initializing all Firebase APIs for app [DEFAULT]
+04-28 05:46:46.550  1290  1290 W Binder:1290_1E: type=1400 audit(0.0:4286): avc: denied { read } for name="freq_table_mhz" dev="sysfs" ino=38800 scontext=u:r:system_server:s0 tcontext=u:object_r:vendor_sysfs_kgsl:s0 tclass=file permissive=0
+04-28 05:46:46.553  1290  5922 E ORMS_Platform : OplusResourceManagerPlatformUtils: readFile function exception:/sys/devices/platform/soc/5900000.qcom,kgsl-3d0/kgsl/kgsl-3d0/freq_table_mhz: open failed: EACCES (Permission denied)
+04-28 05:46:46.554  4892  4904 E oiface  : get gpu freq table failed
+04-28 05:46:46.575 22857 22857 I FirebaseInitProvider: FirebaseApp initialization successful
+04-28 05:46:46.576 22857 22857 D ReactNativeFirebaseApp: received application context.
+04-28 05:46:46.581 22857 22857 D WM-WrkMgrInitializer: Initializing WorkManager with default configuration.
+04-28 05:46:46.589 22857 22884 I TetheringManager: registerTetheringEventCallback:com.syncognito
+04-28 05:46:46.591  1290  5555 W OppoPackageManagerService: uid 10732 pid 22857 call setComponentEnabledSetting(ComponentInfo{com.syncognito/androidx.work.impl.background.systemjob.SystemJobService}, 1, 0x1, 0)
+04-28 05:46:46.605 22857 22857 D NOTIFEE : (context): received application context
+04-28 05:46:46.611 22857 22887 I DpmTcmClient: RegisterTcmMonitor from: $Proxy1
+04-28 05:46:46.612 22857 22857 V SoLoader: Init System Loader delegate
+04-28 05:46:46.620   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/io_percent not supported
+04-28 05:46:46.620   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 1]
+04-28 05:46:46.620   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/sample_ms not supported
+04-28 05:46:46.620   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 3]
+04-28 05:46:46.625  1033  1098 W DisplayIdentification: Invalid EDID: falling back to serial number due to missing display name.
+04-28 05:46:46.625  1033  1098 W DisplayIdentification: Invalid EDID: falling back to ASCII text due to missing serial number.
+04-28 05:46:46.628 22857 22892 E libEGL  : Invalid file path for libcolorx-loader.so
+04-28 05:46:46.652 22857 22857 E MultiApp.Impl: OplusMultiAppImpl
+04-28 05:46:46.654 22857 22857 D AppCompatDelegate: Checking for metadata for AppLocalesMetadataHolderService : Service not found
+04-28 05:46:46.669 22857 22857 I oplus.android.OplusFrameworkFactoryImpl: getOplusRedPacketManager
+04-28 05:46:46.708 22857 22857 W linker  : Warning: "/data/app/~~tA3UQawTgtDD1A_IxSjsJg==/com.syncognito-zOYjYSt0xVacAJiVHzubDw==/base.apk!/lib/arm64-v8a/libc++_shared.so" unused DT entry: unknown processor-specific (type 0x70000001 arg 0x0) (ignoring)
+04-28 05:46:46.716 22857 22857 W linker  : Warning: "/data/app/~~tA3UQawTgtDD1A_IxSjsJg==/com.syncognito-zOYjYSt0xVacAJiVHzubDw==/base.apk!/lib/arm64-v8a/libruntimeexecutor.so" unused DT entry: unknown processor-specific (type 0x70000001 arg 0x0) (ignoring)
+04-28 05:46:46.765 22857 22857 D OplusInputMethodUtil: init DEBUG to false, update DEBUG_IME to false
+04-28 05:46:46.771 22857 22857 D ColorViewRootUtil: initSwipState, isDisplayCompatApp false
+04-28 05:46:46.771 22857 22857 D ColorViewRootUtil: mScreenHeight 1600, mScreenWidth 720
+04-28 05:46:46.772 22857 22857 D WindowManager: Add to mViews: DecorView@737810[MainActivity],pkg= com.syncognito
+04-28 05:46:46.777  1290  1600 V ColorZoomWindowManagerService: onAnimationFinished:  r = ActivityRecord{3574cda u0 com.oppo.launcher/.Launcher t2}
+04-28 05:46:46.778  1290  1600 I OplusMirageDisplayManagerService: onAnimationFinished:
+04-28 05:46:46.778  1290  1600 V ColorZoomWindowManagerService: onAnimationFinished:  r = ActivityRecord{c2f7842 u0 com.syncognito/.MainActivity t3525}
+04-28 05:46:46.778  1290  1600 I ColorAppSwitchManagerService:  handleAppVisible , r = ActivityRecord{c2f7842 u0 com.syncognito/.MainActivity t3525}
+04-28 05:46:46.778  1290  1600 I OplusMirageDisplayManagerService: onAnimationFinished:
+04-28 05:46:46.786  1290  3586 D OppoDisplayPolicy: com.syncognito, no change cutoutMode: 0
+04-28 05:46:46.790  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.791  1033  1033 D OppoExLayer: ~Layer() sequence=1845, name=Surface(name=Task=2)/@0xd73834d - animation-leash#0@0xb4000071e2ae8000
+04-28 05:46:46.791  1033  1033 D OppoExLayer: ~Layer() sequence=1844, name=Surface(name=Task=3525)/@0x860c287 - animation-leash#0@0xb4000071e2be1000
+04-28 05:46:46.814 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.drawer.ReactDrawerLayoutManager
+04-28 05:46:46.819 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.uimanager.LayoutShadowNode
+04-28 05:46:46.821 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.scroll.ReactHorizontalScrollViewManager
+04-28 05:46:46.824 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.scroll.ReactHorizontalScrollContainerViewManager
+04-28 05:46:46.825 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.progressbar.ReactProgressBarViewManager
+04-28 05:46:46.826 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.progressbar.ProgressBarShadowNode
+04-28 05:46:46.827 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.scroll.ReactScrollViewManager
+04-28 05:46:46.830 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.switchview.ReactSwitchManager
+04-28 05:46:46.832 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.switchview.ReactSwitchManager$ReactSwitchShadowNode
+04-28 05:46:46.833 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.swiperefresh.SwipeRefreshLayoutManager
+04-28 05:46:46.836 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.text.frescosupport.FrescoBasedReactTextInlineImageViewManager
+04-28 05:46:46.836 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.text.frescosupport.FrescoBasedReactTextInlineImageShadowNode
+04-28 05:46:46.837 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.image.ReactImageManager
+04-28 05:46:46.839 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.modal.ReactModalHostManager
+04-28 05:46:46.840 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.modal.ModalHostShadowNode
+04-28 05:46:46.841 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.text.ReactRawTextManager
+04-28 05:46:46.842 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.text.ReactRawTextShadowNode
+04-28 05:46:46.844 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.textinput.ReactTextInputManager
+04-28 05:46:46.847 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.textinput.ReactTextInputShadowNode
+04-28 05:46:46.849 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.text.ReactTextViewManager
+04-28 05:46:46.849 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.text.ReactTextShadowNode
+04-28 05:46:46.850 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.view.ReactViewManager
+04-28 05:46:46.851 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.text.ReactVirtualTextViewManager
+04-28 05:46:46.851 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.text.ReactVirtualTextShadowNode
+04-28 05:46:46.852 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.facebook.react.views.unimplementedview.ReactUnimplementedViewManager
+04-28 05:46:46.852 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.reactnativegooglesignin.RNGoogleSigninButtonViewManager
+04-28 05:46:46.853 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.gesturehandler.react.RNGestureHandlerRootViewManager
+04-28 05:46:46.854 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.gesturehandler.react.RNGestureHandlerButtonViewManager
+04-28 05:46:46.855 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.BV.LinearGradient.LinearGradientManager
+04-28 05:46:46.856 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.th3rdwave.safeareacontext.SafeAreaProviderManager
+04-28 05:46:46.857 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.th3rdwave.safeareacontext.SafeAreaViewManager
+04-28 05:46:46.858 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.th3rdwave.safeareacontext.SafeAreaViewShadowNode
+04-28 05:46:46.859 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenContainerViewManager
+04-28 05:46:46.860 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenViewManager
+04-28 05:46:46.862 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ModalScreenViewManager
+04-28 05:46:46.862 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenStackViewManager
+04-28 05:46:46.863 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenStackHeaderConfigViewManager
+04-28 05:46:46.864 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreenStackHeaderSubviewManager
+04-28 05:46:46.865 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.SearchBarManager
+04-28 05:46:46.867 22857 22900 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.brentvatne.react.ReactVideoViewManager
+04-28 05:46:46.877  1290  3586 D OppoDisplayPolicy: com.syncognito, no change cutoutMode: 0
+04-28 05:46:46.806  1290  1597 I chatty  : uid=1000(system) android.display identical 3 lines
+04-28 05:46:46.813  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.881  1290  3586 V WindowManager: Changing focus from null to Window{a8ea674 u0 com.syncognito/com.syncognito.MainActivity},diplayid=0
+04-28 05:46:46.885  1290  3586 D Theia.NoFocusWindow: FocusWindowErrorScene cancelCheckFreezeScreen
+04-28 05:46:46.886  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.888 22857 22857 V OplusZoomWindowDecorViewHelper: setLastReportedMergedConfiguration mZoomDisplayHeight: 1600 getDecorView.DecorView@737810[MainActivity]
+04-28 05:46:46.889 22857 22890 E libEGL  : Invalid file path for libcolorx-loader.so
+04-28 05:46:46.889 22857 22890 I AdrenoGLES-0: QUALCOMM build                   : 319c6d8, Ic907de5ed0
+04-28 05:46:46.889 22857 22890 I AdrenoGLES-0: Build Date                       : 09/21/20
+04-28 05:46:46.889 22857 22890 I AdrenoGLES-0: OpenGL ES Shader Compiler Version: EV031.32.02.01
+04-28 05:46:46.889 22857 22890 I AdrenoGLES-0: Local Branch                     : 
+04-28 05:46:46.889 22857 22890 I AdrenoGLES-0: Remote Branch                    : refs/tags/AU_LINUX_ANDROID_LA.UM.9.11.R1.10.00.00.679.015
+04-28 05:46:46.889 22857 22890 I AdrenoGLES-0: Remote Branch                    : NONE
+04-28 05:46:46.889 22857 22890 I AdrenoGLES-0: Reconstruct Branch               : NOTHING
+04-28 05:46:46.889 22857 22890 I AdrenoGLES-0: Build Config                     : S P 10.0.5 AArch64
+04-28 05:46:46.889 22857 22890 I AdrenoGLES-0: Driver Path                      : /vendor/lib64/egl/libGLESv2_adreno.so
+04-28 05:46:46.897 22857 22890 I AdrenoGLES-0: PFP: 0x016ee190, ME: 0x00000000
+04-28 05:46:46.894 22857 22857 W RenderThread: type=1400 audit(0.0:4287): avc: denied { read } for name="adreno_config.txt" dev="sda10" ino=4613191 scontext=u:r:untrusted_app:s0:c220,c258,c512,c768 tcontext=u:object_r:gpudump_config_file:s0 tclass=file permissive=0 app=com.syncognito
+04-28 05:46:46.902   557   557 I hwservicemanager: getTransport: Cannot find entry android.hardware.configstore@1.0::ISurfaceFlingerConfigs/default in either framework or device manifest.
+04-28 05:46:46.905 22857 22890 E libEGL  : Invalid file path for libcolorx-loader.so
+04-28 05:46:46.908 22857 22890 I chatty  : uid=10732(com.syncognito) identical 33 lines
+04-28 05:46:46.908 22857 22890 E libEGL  : Invalid file path for libcolorx-loader.so
+04-28 05:46:46.908  1033  1033 D OppoExLayer: ~Layer() sequence=1846, name=Surface(name=5373858 StatusBar)/@0xa172fc1 - animation-leash#1@0xb4000071d4096000
+04-28 05:46:46.908  1033  1033 D OppoExLayer: ~Layer() sequence=1847, name=Surface(name=c087153 NavigationBar0)/@0x943a2a1 - animation-leash#1@0xb4000071d497e000
+04-28 05:46:46.908 22857 22890 E libEGL  : Invalid file path for libcolorx-loader.so
+04-28 05:46:46.910 22857 22890 I chatty  : uid=10732(com.syncognito) identical 30 lines
+04-28 05:46:46.910 22857 22890 E libEGL  : Invalid file path for libcolorx-loader.so
+04-28 05:46:46.916   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 05:46:46.916   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 05:46:46.918   954  3885 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+04-28 05:46:46.918   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 05:46:46.922  4007  6137 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+04-28 05:46:46.953  1290  5555 W ActivityManager: setGlThreads detect 22857 22890
+04-28 05:46:46.932  4007  6137 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+04-28 05:46:46.953  1033  3100 D DispPerfService: onframeavailable pid=22857, slot=0, seq=1849, name=com.syncognito:com.syncognito/com.syncognito.MainActivity#0
+04-28 05:46:46.961  1290  3658 I ColorHansManager : unfreeze uid: 10149 package: com.whatsapp reason: F-direct scene: FastFreezerScene
+04-28 05:46:46.962  1290  3658 I ColorHansManager : unfreeze uid: 10400 package: com.instagram.android reason: F-direct scene: FastFreezerScene
+04-28 05:46:46.964  1290  3658 I ColorHansManager : exit fastfreezer, reason:F-direct
+04-28 05:46:46.964  1290  1699 D ArtManagerInternalImpl: /data/misc/iorapd/com.syncognito/9/com.syncognito.MainActivity/compiled_traces/compiled_trace.pb doesn't exist
+04-28 05:46:46.964  1290  3658 D OppoBasePowerManagerService: do restore jobs
+04-28 05:46:46.965 15043 15308 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1091)=>Start post callback cache refresh DNS resolution
+04-28 05:46:46.965  1290  1699 I ActivityTaskManager: Displayed com.syncognito/.MainActivity: +574ms
+04-28 05:46:46.964  1290  3658 D OppoBasePowerManagerService: do restore jobs
+04-28 05:46:46.967  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestateSTOPPING
+04-28 05:46:46.967  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag falsestateSTOPPING
+04-28 05:46:46.969  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.969   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 05:46:46.969   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 05:46:46.970  3797  3797 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:46.976  1290  5922 I InputDispatcher: Focus entered window: Window{a8ea674 u0 com.syncognito/com.syncognito.MainActivity} in display 0
+04-28 05:46:46.976 15043 15308 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1091)=>Start post callback cache refresh DNS resolution
+04-28 05:46:46.980 15043 15308 E msys    : E[N mns:DGWClient]_LogError(280)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-28 05:46:46.982 22857 22900 I ReactNativeJS: Running "Syncognito
+04-28 05:46:46.983  1290  5922 D InputMethodManagerService: isSecurity: attribute.packageName=com.syncognito
+04-28 05:46:46.983  1290  5922 D InputMethodManagerService: isSecurity= false (  enable=false needShow=false inBlackList=false  isExist=true )
+04-28 05:46:46.972  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.984  1290  5922 D ColorInputMethodManagerServiceEx: onHandleImeWindowVisibleStatus handledVis: 0, switcher visible: 0, switcher active: 0, needsToShowImeSwitcher: false
+04-28 05:46:46.985  1290  5922 D OplusVerificationCodeController: notifyImeAttributeChanged: 64false
+04-28 05:46:46.984  1290  5922 D ColorInputMethodManagerServiceEx: onHandleImeWindowVisibleStatus handledVis: 0, switcher visible: 0, switcher active: 0, needsToShowImeSwitcher: false
+04-28 05:46:46.986  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.990 15043 15308 E msys    : E[N mns:DGWClient]_LogError(280)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-28 05:46:46.994 22857 22857 I OplusFeatureCache: Milliseconds spent on init(): 4
+04-28 05:46:46.994 22857 22857 E ScreenmodeClient:  display mode not support 
+04-28 05:46:46.986  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:46.996  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestateSTOPPED
+04-28 05:46:46.996  1290  5922 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag falsestateSTOPPED
+04-28 05:46:46.997  5285  5285 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():2159 
+04-28 05:46:46.998  5285  5285 I Module  : DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatus():103 repeatCheckTimes = 0, locked = false
+04-28 05:46:46.999  5285  5285 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1434 onStartInput(EditorInfo{EditorInfo{packageName=com.syncognito, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=0, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=-1, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, false)
+04-28 05:46:46.999  5285  5285 I AndroidIME: LatinIMEBase.updateInputViewCoverNavigation():312 Update input view padding, isNavbarOverInputWindow=false, bottom inset=88
+04-28 05:46:47.000  1290  5555 D OppoDisplayPolicy: com.android.systemui, change system app cutoutMode: color always
+04-28 05:46:47.001  5285  5285 I Module  : DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatus():103 repeatCheckTimes = 1, locked = false
+04-28 05:46:47.002  1290  5549 D ColorInputMethodManagerServiceEx: onHandleImeWindowVisibleStatus handledVis: 0, switcher visible: 0, switcher active: 0, needsToShowImeSwitcher: false
+04-28 05:46:47.004  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.008  1033  1033 D OppoExLayer: ~Layer() sequence=1836, name=com.oppo.launcher/com.oppo.launcher.Launcher#0@0xb4000071e2b4c000
+04-28 05:46:47.016  1290  5555 D OppoDisplayPolicy: com.android.systemui, change system app cutoutMode: color always
+04-28 05:46:47.028 22857 22857 I ReactNative: [GESTURE HANDLER] Initialize gesture handler for root view com.facebook.react.ReactRootView{722b1b1 V.E...... ......ID 0,0-720,1448 #b}
+04-28 05:46:47.076 22857 22901 I WebViewFactory: Loading com.google.android.webview version 147.0.7727.55 (code 772705503)
+04-28 05:46:47.084 22857 22901 D ApplicationLoaders: Returning zygote-cached class loader: /system/framework/android.test.base.jar
+04-28 05:46:47.104 22857 22901 W linker  : Warning: "/data/app/~~PgJIi5OFSooqA40g4Pe6tw==/com.google.android.webview-3UdHazNjKnk7ND43vMVQCA==/base.apk!/lib/arm64-v8a/libwebviewchromium.so" unused DT entry: unknown processor-specific (type 0x70000001 arg 0x0) (ignoring)
+04-28 05:46:47.119   954  3444 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+04-28 05:46:47.136 22857 22901 I cr_WVCFactoryProvider: version=147.0.7727.55 (772705503) minSdkVersion=29 multiprocess=true packageId=127 splits=<none>
+04-28 05:46:47.142 22857 22920 I chromium: [0428/054647.142448:INFO:android_webview/browser/variations/variations_seed_loader.cc:67] Failed to open file for reading.: No such file or directory (2)
+04-28 05:46:47.142 22857 22920 I chromium: [0428/054647.142925:INFO:android_webview/browser/variations/variations_seed_loader.cc:67] Failed to open file for reading.: No such file or directory (2)
+04-28 05:46:47.153 22857 22901 I cr_LibraryLoader: Successfully loaded native library
+04-28 05:46:47.154 22857 22901 I cr_CachingUmaRecorder: Flushed 10 samples from 10 histograms, 0 samples were dropped.
+04-28 05:46:47.170 22857 22900 I ReactNativeJS: [Auth] No token found in storage
+04-28 05:46:47.180  1290  5555 D OppoDisplayPolicy: com.syncognito, no change cutoutMode: 0
+04-28 05:46:47.192  1033  1033 D OppoExLayer: ~Layer() sequence=1852, name=Surface(name=dd9a3f0 Splash Screen com.syncognito)/@0x1f3afd3 - animation-leash#0@0xb4000071d49c6000
+04-28 05:46:47.192  1033  1033 D OppoExLayer: ~Layer() sequence=1842, name=dd9a3f0 Splash Screen com.syncognito#0@0xb4000071d48d4000
+04-28 05:46:47.194  1033  1033 D OppoExLayer: ~Layer() sequence=1843, name=Splash Screen com.syncognito#0@0xb4000071d495a000
+04-28 05:46:47.219 22857 22901 W unknown:ViewManagerPropertyUpdater: Could not find generated setter for class com.swmansion.rnscreens.ScreensShadowNode
+04-28 05:46:47.226   977   994 I android.hardware.thermal@2.0-service.qti: uevent triggered for sensor: camera-ftherm-adc
+04-28 05:46:47.184  1290  1597 I chatty  : uid=1000(system) android.display identical 3 lines
+04-28 05:46:47.197  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.228 22857 22857 E OplusCustomizeRestrictionManager: sInstance is null, start a new sInstance
+04-28 05:46:47.228   977   994 I android.hardware.thermal@2.0-service.qti: uevent triggered for sensor: emmc-ufs-therm-adc
+04-28 05:46:47.236   977   994 I android.hardware.thermal@2.0-service.qti: uevent triggered for sensor: quiet-therm-adc
+04-28 05:46:47.250  1290  5922 D CompatibilityChangeReporter: Compat change id reported: 136274596; UID 10732; state: ENABLED
+04-28 05:46:47.256 25846 28799 W OplusExSystemServiceHelper: checkOplusExSystemService intent getComponent is null
+04-28 05:46:47.257  3161  3426 I BtGatt.ScanManager: msg.what = 6
+04-28 05:46:47.258 25846 25846 D BoundBrokerSvc: onBind: Intent { act=com.google.android.gms.auth.api.signin.service.START pkg=com.google.android.gms }
+04-28 05:46:47.258 25846 25846 D BoundBrokerSvc: Loading bound service for intent: Intent { act=com.google.android.gms.auth.api.signin.service.START pkg=com.google.android.gms }
+04-28 05:46:47.306  1290  5922 D OppoDisplayPolicy: com.syncognito, no change cutoutMode: 0
+04-28 05:46:47.309  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.319  3543  5152 W HidlServiceManagement: Waited one second for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice
+04-28 05:46:47.319   557   557 I hwservicemanager: Since com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice is not registered, trying to start it as a lazy HAL.
+04-28 05:46:47.320  3543  5152 I HidlServiceManagement: getService: Trying again for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice...
+04-28 05:46:47.321   557 22934 W libc    : Unable to set property "ctl.interface_start" to "com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice": error code: 0x20
+04-28 05:46:47.325 22857 22857 D AndroidRuntime: Shutting down VM
+--------- beginning of crash
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: FATAL EXCEPTION: main
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: Process: com.syncognito, PID: 22857
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: java.lang.NoSuchMethodError: No interface method removeLast()Ljava/lang/Object; in class Ljava/util/List; or its super classes (declaration of 'java.util.List' appears in /apex/com.android.art/javalib/core-oj.jar)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at com.swmansion.rnscreens.ScreenStack.obtainDrawingOp(ScreenStack.kt:319)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at com.swmansion.rnscreens.ScreenStack.drawChild(ScreenStack.kt:303)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.dispatchDraw(ViewGroup.java:4323)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at com.swmansion.rnscreens.ScreenStack.dispatchDraw(ScreenStack.kt:288)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.View.updateDisplayListIfDirty(View.java:21481)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4569)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4542)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.View.updateDisplayListIfDirty(View.java:21450)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4569)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4542)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.View.updateDisplayListIfDirty(View.java:21450)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4569)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4542)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.View.updateDisplayListIfDirty(View.java:21450)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4569)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4542)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.View.updateDisplayListIfDirty(View.java:21450)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4569)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4542)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.View.updateDisplayListIfDirty(View.java:21450)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4569)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4542)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.View.updateDisplayListIfDirty(View.java:21450)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4569)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4542)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.View.updateDisplayListIfDirty(View.java:21450)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.recreateChildDisplayList(ViewGroup.java:4569)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewGroup.dispatchGetDisplayList(ViewGroup.java:4542)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.View.updateDisplayListIfDirty(View.java:21450)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ThreadedRenderer.updateViewTreeDisplayList(ThreadedRenderer.java:559)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ThreadedRenderer.updateRootDisplayList(ThreadedRenderer.java:565)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ThreadedRenderer.draw(ThreadedRenderer.java:642)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewRootImpl.draw(ViewRootImpl.java:4515)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewRootImpl.performDraw(ViewRootImpl.java:4230)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewRootImpl.performTraversals(ViewRootImpl.java:3461)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewRootImpl.doTraversal(ViewRootImpl.java:2257)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.ViewRootImpl$TraversalRunnable.run(ViewRootImpl.java:8796)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.Choreographer$CallbackRecord.run(Choreographer.java:1161)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.Choreographer.doCallbacks(Choreographer.java:983)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.Choreographer.doFrame(Choreographer.java:908)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.view.Choreographer$FrameDisplayEventReceiver.run(Choreographer.java:1146)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.os.Handler.handleCallback(Handler.java:938)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:99)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:263)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:8292)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:612)
+04-28 05:46:47.326 22857 22857 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1006)
+04-28 05:46:47.328  1290  3652 D ColorAppStartupMonitor: notifyUnstableAppInfo: Bundle[{unstableTime=1777335407327, reason=crash, userId=0, safecenter=unstable, exceptionMsg=No interface method removeLast()Ljava/lang/Object; in class Ljava/util/List; or its super classes (declaration of 'java.util.List' appears in /apex/com.android.art/javalib/core-oj.jar), exceptionClass=java.lang.NoSuchMethodError, packageName=com.syncognito}]
+04-28 05:46:47.329  6492  6870 D StartupManager: onUpdateUnstableRecord: unstable crash!
+04-28 05:46:47.329  6492  6870 D StartupManager: onSysStateChanged: Bundle[{unstableTime=1777335407327, reason=crash, userId=0, safecenter=unstable, exceptionMsg=No interface method removeLast()Ljava/lang/Object; in class Ljava/util/List; or its super classes (declaration of 'java.util.List' appears in /apex/com.android.art/javalib/core-oj.jar), exceptionClass=java.lang.NoSuchMethodError, packageName=com.syncognito}]
+04-28 05:46:47.329  1290  5447 D OplusAmsUtilsFeatrue: detectExceptionsForOIDT type:0
+04-28 05:46:47.330 22857 22935 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:47.330  4007  7382 I FontLog : (REDACTED) Received query %s, URI %s
+04-28 05:46:47.331  4007  7382 I FontLog : (REDACTED) Query [%s] resolved to %s
+04-28 05:46:47.333  4007  7382 I FontLog : (REDACTED) Fetch %s end status %s
+04-28 05:46:47.333  1290  5447 W ActivityTaskManager:   Force finishing activity com.syncognito/.MainActivity
+04-28 05:46:47.335  1290  5447 I InputDispatcher: setFocusedApplication displayId=0 ActivityRecord{3574cda u0 com.oppo.launcher/.Launcher t2}
+04-28 05:46:47.335   944   944 E ORMS_HAL: open /sys/class/devfreq/soc:qcom,cpu-cpu-llcc-bw/bw_hwmon/hyst_trigger_count failed(No such file or directory)
+04-28 05:46:47.336  1290  5447 V WindowManager: Changing focus from Window{a8ea674 u0 com.syncognito/com.syncognito.MainActivity} to null,diplayid=0
+04-28 05:46:47.337   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/io_percent not supported
+04-28 05:46:47.337   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 1]
+04-28 05:46:47.337   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/sample_ms not supported
+04-28 05:46:47.337   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 3]
+04-28 05:46:47.337 25846 25865 W Auth.Api.SignIn: [Service,SignInChimeraService] **************************** WARNING ***************************
+04-28 05:46:47.337 25846 25865 W Auth.Api.SignIn: You are using the deprecated legacy Google Sign-In APIs from
+04-28 05:46:47.337 25846 25865 W Auth.Api.SignIn: play-services-auth SDK. Please migrate to the Credential Manager
+04-28 05:46:47.337 25846 25865 W Auth.Api.SignIn: APIs, see https://goo.gle/gsi-migration.
+04-28 05:46:47.337 25846 25865 W Auth.Api.SignIn: ****************************************************************
+04-28 05:46:47.338  1290  5447 D Theia.NoFocusWindow: FocusWindowErrorScene CheckFreezeScreen
+04-28 05:46:47.338  1290  5447 V ColorZoomWindowManagerService: prepareZoomTransition: curStack=Task{7f7cd9a #3525 visible=false type=standard mode=fullscreen translucent=true A=10732:com.syncognito U=0 StackId=3525 sz=1}   nextStackTask{161a560 #1 visible=true type=home mode=fullscreen translucent=true ?? U=0 StackId=1 sz=1}
+04-28 05:46:47.338  1290  5447 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestatePAUSING
+04-28 05:46:47.339  1290  5447 D ActivityTrigger: ActivityTrigger activityPauseTrigger 
+04-28 05:46:47.339 22857 22928 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:47.339  1290  5447 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag falsestatePAUSING
+04-28 05:46:47.352  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.352 22857 22857 I Process : Sending signal. PID: 22857 SIG: 9
+04-28 05:46:47.360  1290  5447 I InputDispatcher: Focus left window: Window{a8ea674 u0 com.syncognito/com.syncognito.MainActivity} in display 0
+04-28 05:46:47.367   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/io_percent not supported
+04-28 05:46:47.367   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 1]
+04-28 05:46:47.367   987  1044 E ANDR-PERF-OPTSHANDLER: Perflock resource /sys/class/devfreq/soc:qcom,llccbw/bw_hwmon/sample_ms not supported
+04-28 05:46:47.367   987  1044 E ANDR-PERF-RESOURCEQS: Failed to apply optimization [12, 3]
+04-28 05:46:47.391  1290  5555 I WindowManager: WIN DEATH: Window{a8ea674 u0 com.syncognito/com.syncognito.MainActivity}
+04-28 05:46:47.391  1290  5555 W InputDispatcher: Attempted to unregister already unregistered input channel 'a8ea674 com.syncognito/com.syncognito.MainActivity (server)'
+04-28 05:46:47.391  1290  5549 D DisplayManagerService: Display listener for pid 22857 died.
+04-28 05:46:47.392  1290 22936 I DropBoxManagerService: add tag=data_app_crash isTagEnabled=true flags=0x2
+04-28 05:46:47.393   804   804 I Zygote  : Process 22857 exited due to signal 9 (Killed)
+04-28 05:46:47.398  5615  7842 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:1701 android.content.ContextWrapper.startService:730 com.c.a.a.c.b.a:206 com.c.a.a.c.b.a:133 com.c.a.a.a.c.a:14 
+04-28 05:46:47.400  1290  5922 W WindowManager: Cannot find window which accessibility connection is added to
+04-28 05:46:47.401  1290  7028 D TheiaSocketClient: TheiaSend receive content : 4298113028:ApplicationFGCrash:1777335407401
+04-28 05:46:47.401  1290  3586 D TheiaCrashMonitor: com.syncognitocrash
+04-28 05:46:47.401  1290  3586 I ActivityManager: Process com.syncognito (pid 22857) has died: fg  TOP 
+04-28 05:46:47.401  1290  7028 D TheiaSocketClient: send message success
+04-28 05:46:47.401  1290  3586 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcast:1143 com.android.server.am.OppoExtraActivityManagerService.setKeyLockModeNormal:51 com.android.server.am.ActivityManagerService.appDiedLocked:4309 com.android.server.am.ActivityManagerService$AppDeathRecipient.binderDied:1788 android.os.IBinder$DeathRecipient.binderDied:305 
+04-28 05:46:47.401  1290  3856 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:1701 com.oplus.util.OplusStatisticsImpl.startService:216 com.oplus.util.OplusStatisticsImpl.sendDataToDCS:192 com.oplus.util.OplusStatisticsImpl.onCommonSync:84 com.oplus.util.OplusStatisticsImpl$1.run:124 
+04-28 05:46:47.401  1719  7181 I theia_socket: recv 4298113028:ApplicationFGCrash:1777335407401
+04-28 05:46:47.402  1719  7181 I theia_socket: nowEvent is not KeyEvent
+04-28 05:46:47.403  1290  1898 I libprocessgroup: Successfully killed process cgroup uid 10732 pid 22857 in 11ms
+04-28 05:46:47.403  1290  3586 E OppoThermalStats: Error getting package info: com.oppo.launcher
+04-28 05:46:47.403  1290 22936 D DropBoxManagerService: file :: /data/system/dropbox/data_app_crash@1777335407399.txt.gz
+04-28 05:46:47.405  1290  3586 D OplusKeepAliveManager: TOP_APP is ProcessRecord{256403a 3797:com.oppo.launcher/u0a44} uid is 10044
+04-28 05:46:47.409 25846 25846 D BoundBrokerSvc: onUnbind: Intent { act=com.google.android.gms.auth.api.signin.service.START pkg=com.google.android.gms }
+04-28 05:46:47.409  1033  1033 D OppoExLayer: ~Layer() sequence=1848, name=a8ea674 com.syncognito/com.syncognito.MainActivity#0@0xb4000071e2b13000
+04-28 05:46:47.410  1290  3586 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestateDESTROYED
+04-28 05:46:47.410  1290  3586 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag falsestateDESTROYED
+04-28 05:46:47.411  1290  3586 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestateDESTROYED
+04-28 05:46:47.411  1033  1033 D OppoExLayer: ~Layer() sequence=1849, name=com.syncognito/com.syncognito.MainActivity#0@0xb4000071d4993000
+04-28 05:46:47.413  1290  3586 V ColorZoomWindowManagerService: onAnimationFinished:  r = ActivityRecord{c2f7842 u0 com.syncognito/.MainActivity t3525 f}}
+04-28 05:46:47.413  1290  3586 I OplusMirageDisplayManagerService: onAnimationFinished:
+04-28 05:46:47.414  1290  3586 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag truestateRESUMED
+04-28 05:46:47.415  1290  3586 I ColorAccessController: enter isIgnoreAppSwitchActivity
+04-28 05:46:47.415  1290  3586 I ColorAccessController: enter isIgnoreAppSwitchActivity and intent != null
+04-28 05:46:47.415  1290  3586 I ColorAccessController: enter isIgnoreAppSwitchActivity and componentName != null
+04-28 05:46:47.415  1290  3586 I ColorAccessController: enter isIgnoreAppSwitchActivity and packageName&activity is not Empty
+04-28 05:46:47.415  1290  3586 I ColorHansManager : ColorHansManager : resume pkg: com.oppo.launcher, uid:10044, prev pkg: com.syncognito, prev uid: 10732
+04-28 05:46:47.416  1290  3658 I ColorHansManager : enter fastfreezer
+04-28 05:46:47.416  1290  3586 V ActivityTaskManager: Calling mServicetracker.OnActivityStateChange with flag falsestateRESUMED
+04-28 05:46:47.418  1290  3658 I ColorHansManager : freeze uid: 10400 package: com.instagram.android reason: fastfreezer|10044 scene: FastFreezerScene
+04-28 05:46:47.418  1290  3658 I ColorHansManager : freeze uid: 10149 package: com.whatsapp reason: fastfreezer|10044 scene: FastFreezerScene
+04-28 05:46:47.426  1033  1033 D OppoExLayer: ~Layer() sequence=1840, name=Task=3525#0@0xb4000071d4971000
+04-28 05:46:47.426  1033  1033 D OppoExLayer: ~Layer() sequence=1841, name=ActivityRecord{c2f7842 u0 com.syncognito/.MainActivity#0@0xb4000071d4048000
+04-28 05:46:47.429  1290  1597 W ActivityManager: setHasOverlayUi called on unknown pid: 22857
+04-28 05:46:47.430  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.436  3797  3797 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:47.438  3831  3975 I [0]DCS-StrategyManager: isNeedUpload: true, appID: 30060, logTag: anr_crash_stats, eventID: eap_anr_crash
+04-28 05:46:47.438  3831  3975 W [0]DCS  : preciseControlPackageDictionary is not include packageName=com.oplus.crashbox
+04-28 05:46:47.438  1290  1290 I OppoPhoneWindowManager: KeyLockModeReceiver KeyLockMode: 0 ProcessName: com.syncognito
+04-28 05:46:47.439  1290  1919 W BroadcastQueue: Background execution not allowed: receiving Intent { act=android.intent.action.DROPBOX_ENTRY_ADDED flg=0x10 (has extras) } to com.google.android.gms/.stats.service.DropBoxEntryAddedReceiver
+04-28 05:46:47.439  3797  3797 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:47.449  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.454  1290  5549 V WindowManager: Changing focus from null to Window{f971242 u0 com.oppo.launcher/com.oppo.launcher.Launcher},diplayid=0
+04-28 05:46:47.444  3797  3797 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:47.458  1290  5549 D Theia.NoFocusWindow: FocusWindowErrorScene cancelCheckFreezeScreen
+04-28 05:46:47.466  3797  3797 E Launcher.ColorBubbleTextView: mForceHideDot is false
+04-28 05:46:47.467  3797  3797 I chatty  : uid=10044(com.oppo.launcher) identical 3 lines
+04-28 05:46:47.467  3797  3797 E Launcher.ColorBubbleTextView: mForceHideDot is false
+04-28 05:46:47.470  3831  3975 I [0]DCS-StrategyManager: isNeedUpload: false, appID: 20120, logTag: CriticalLog, eventID: Theia
+04-28 05:46:47.470  3831  3975 W [0]DCS  : Record event failed. DCS reject event: [appId=20120,logTag=CriticalLog,eventId=Theia] . Pls check server config.
+04-28 05:46:47.474  3161  3426 I BtGatt.ScanManager: msg.what = 6
+04-28 05:46:47.474  1033  3100 D DispPerfService: onframeavailable pid=3797, slot=2, seq=1855, name=com.oppo.launcher:com.oppo.launcher/com.oppo.launcher.Launcher#0
+04-28 05:46:47.478  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.480  3212  3212 D OplusWallpaperServiceHelper: isNightMode is false
+04-28 05:46:47.480  3212  3212 I OplusWallpaperServiceHelper: getDarkModeWallpaperWindowAlpha. nightMode = false
+04-28 05:46:47.481  1290  4773 E ANDR-PERF-JNI: UXEngine Trigger - Returning null
+04-28 05:46:47.481  3797  4135 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:47.482  1290  1600 V WindowManager: mIsWallpaper: setAlpha ok mShownAlpha = 0.98
+04-28 05:46:47.485  1290  1600 V ColorZoomWindowManagerService: onAnimationFinished:  r = ActivityRecord{3574cda u0 com.oppo.launcher/.Launcher t2}
+04-28 05:46:47.485  1290  1600 I ColorAppSwitchManagerService:  handleAppVisible , r = ActivityRecord{3574cda u0 com.oppo.launcher/.Launcher t2}
+04-28 05:46:47.486  1290  1600 I OplusMirageDisplayManagerService: onAnimationFinished:
+04-28 05:46:47.486  1290  1600 I ColorAppSwitchManagerService:  handleAppVisible , r = ActivityRecord{3574cda u0 com.oppo.launcher/.Launcher t2}
+04-28 05:46:47.486  3797  4135 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:47.488  1290  3658 I ColorHansManager : unfreeze uid: 10149 package: com.whatsapp reason: F-direct scene: FastFreezerScene
+04-28 05:46:47.489  1290  3658 I ColorHansManager : unfreeze uid: 10400 package: com.instagram.android reason: F-direct scene: FastFreezerScene
+04-28 05:46:47.490  1290  3658 I ColorHansManager : exit fastfreezer, reason:F-direct
+04-28 05:46:47.491  1290  3658 D OppoBasePowerManagerService: do restore jobs
+04-28 05:46:47.491  3797  4135 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:47.493  1290  5548 I InputDispatcher: Focus entered window: Window{f971242 u0 com.oppo.launcher/com.oppo.launcher.Launcher} in display 0
+04-28 05:46:47.495  3797  4135 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:47.498  3797  3797 E Launcher.ColorBubbleTextView: mForceHideDot is false
+04-28 05:46:47.499  3797  3797 E Launcher.ColorBubbleTextView: mForceHideDot is false
+04-28 05:46:47.499  3797  4135 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:47.499  3797  3797 E Launcher.ColorBubbleTextView: mForceHideDot is false
+04-28 05:46:47.500  3797  3797 I chatty  : uid=10044(com.oppo.launcher) identical 5 lines
+04-28 05:46:47.500  3797  3797 E Launcher.ColorBubbleTextView: mForceHideDot is false
+04-28 05:46:47.501  1033  1033 D OppoExSurfaceFlinger: RESOLUTIONSWITCH get resolution (720, 1600) for config 0 !
+04-28 05:46:47.501  3797  3797 E Launcher.ColorBubbleTextView: mForceHideDot is false
+04-28 05:46:47.501  1033  1033 D OppoExSurfaceFlinger: RESOLUTIONSWITCH get resolution (720, 1600) for config 0 !
+04-28 05:46:47.501  3797  3797 E Launcher.ColorBubbleTextView: mForceHideDot is false
+04-28 05:46:47.501  3797  3797 I chatty  : uid=10044(com.oppo.launcher) identical 1 line
+04-28 05:46:47.501  3797  3797 E Launcher.ColorBubbleTextView: mForceHideDot is false
+04-28 05:46:47.504  3797  4135 E Parcel  : Reading a NULL string not supported here.
+04-28 05:46:47.504  1290  5447 D ColorAppListInterceptManager: shouldFilterTask
+04-28 05:46:47.504  1290  5447 D ColorAppListInterceptManager: shouldFilterTask::packageName = com.syncognito
+04-28 05:46:47.504  1290  5447 D ColorAppListInterceptManager: shouldFilterTask
+04-28 05:46:47.504  1290  5447 D ColorAppListInterceptManager: shouldFilterTask::packageName = com.android.settings
+04-28 05:46:47.504  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.504  1290  1597 I chatty  : uid=1000(system) android.display identical 2 lines
+04-28 05:46:47.505  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.506  1290  5447 D ColorAppListInterceptManager: shouldFilterTask
+04-28 05:46:47.506  1290  5447 D ColorAppListInterceptManager: shouldFilterTask::packageName = com.syncognito
+04-28 05:46:47.506  1290  5447 D ColorAppListInterceptManager: shouldFilterTask
+04-28 05:46:47.506  1290  5447 D ColorAppListInterceptManager: shouldFilterTask::packageName = com.android.settings
+04-28 05:46:47.512  1290  3658 D OppoBasePowerManagerService: do restore jobs
+04-28 05:46:47.513  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.513  1290  1597 I chatty  : uid=1000(system) android.display identical 2 lines
+04-28 05:46:47.513  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.513  1290  5922 D ColorInputMethodManagerServiceEx: onHandleImeWindowVisibleStatus handledVis: 0, switcher visible: 0, switcher active: 0, needsToShowImeSwitcher: false
+04-28 05:46:47.516  1290  5447 D InputMethodManagerService: isSecurity: attribute.packageName=com.oppo.launcher
+04-28 05:46:47.516  1290  5447 D InputMethodManagerService: isSecurity= false (  enable=false needShow=false inBlackList=false  isExist=true )
+04-28 05:46:47.517  1290  5447 D ColorInputMethodManagerServiceEx: onHandleImeWindowVisibleStatus handledVis: 0, switcher visible: 0, switcher active: 0, needsToShowImeSwitcher: false
+04-28 05:46:47.517  1290  5447 D OplusVerificationCodeController: notifyImeAttributeChanged: 64false
+04-28 05:46:47.523  5285  5285 I GoogleInputMethodService: GoogleInputMethodService.onFinishInput():2159 
+04-28 05:46:47.524  5285  5285 I Module  : DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatus():103 repeatCheckTimes = 0, locked = false
+04-28 05:46:47.525  5285  5285 I GoogleInputMethodService: GoogleInputMethodService.onStartInput():1434 onStartInput(EditorInfo{EditorInfo{packageName=com.oppo.launcher, inputType=0, inputTypeString=NULL, enableLearning=false, autoCorrection=false, autoComplete=false, imeOptions=0, privateImeOptions=null, actionName=UNSPECIFIED, actionLabel=null, initialSelStart=-1, initialSelEnd=-1, initialCapsMode=0, label=null, fieldId=-1, fieldName=null, extras=null, hintText=null, hintLocales=[]}}, false)
+04-28 05:46:47.525  5285  5285 I AndroidIME: LatinIMEBase.updateInputViewCoverNavigation():312 Update input view padding, isNavbarOverInputWindow=false, bottom inset=88
+04-28 05:46:47.529  5285  5285 I Module  : DeviceLockedStatusModuleProvider$Module.updateDeviceLockedStatus():103 repeatCheckTimes = 1, locked = false
+04-28 05:46:47.531  1290  5548 D OppoDisplayPolicy: com.android.systemui, change system app cutoutMode: color always
+04-28 05:46:47.533  1290  3230 D ColorInputMethodManagerServiceEx: onHandleImeWindowVisibleStatus handledVis: 0, switcher visible: 0, switcher active: 0, needsToShowImeSwitcher: false
+04-28 05:46:47.535  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.545  1290  3586 D OppoDisplayPolicy: com.android.systemui, change system app cutoutMode: color always
+04-28 05:46:47.652   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 05:46:47.652   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 05:46:47.655   954  3885 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+04-28 05:46:47.655   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 05:46:47.660  4007  6137 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+04-28 05:46:47.697   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 05:46:47.697   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 05:46:47.547  1290  1597 D PowerManagerService: setScreenBrightnessOverrideFromWindowManagerInternal brightness=NaN mScreenBrightnessOverrideFromWindowManager=NaN
+04-28 05:46:47.835  1290  1597 W ActivityTaskManager: Activity top resumed state loss timeout for ActivityRecord{c2f7842 u0 com.syncognito/.MainActivity t-1 f}}
+04-28 05:46:47.836  1290  3845 V DCSEX-AppSwitchManager: OnAppSwitchObserver: onAppExit , info = OplusAppExitInfo = {  targetName = com.syncognito hasResumingActivity = true resumingPackageName = com.oppo.launcher resumingActivityName = com.oppo.launcher.Launcher resumingWindowMode = 1 isResumingMultiApp = false isResumingFirstStart = false extension = Bundle[{taskId=2, uid=10044}]}
+04-28 05:46:47.837  1290  8146 D DCSEX-AppLaunchEventRecorder: onAppSwitch from = com.syncognito to = com.oppo.launcher
+04-28 05:46:47.837  1290  8146 D DCSEX-AppLaunchEventRecorder: recordExitApp = com.syncognito
+04-28 05:46:47.839  3831  3975 I [0]DCS-BackgroundAppData: sendAppBgEvent: has no pkgName=com.oppo.launcher
+04-28 05:46:47.841  1290  8146 E OplusTrack-ApkInfoUtil: java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Object android.os.Bundle.get(java.lang.String)' on a null object reference
+04-28 05:46:47.842  1290  8146 W System.err: java.lang.NullPointerException: Attempt to invoke virtual method 'java.lang.Object android.os.Bundle.get(java.lang.String)' on a null object reference
+04-28 05:46:47.841  6492  6870 W OppoGuardElf: ThermalControlUtils: mForegroundPkg=com.oppo.launcher
+04-28 05:46:47.842  1290  8146 W System.err: 	at com.oplus.statistics.h.b.d(ApkInfoUtil.java:136)
+04-28 05:46:47.842  1290  8146 W System.err: 	at com.oplus.statistics.b.b.a(TrackEvent.java:141)
+04-28 05:46:47.842  1290  8146 W System.err: 	at com.oplus.statistics.b.b.<init>(TrackEvent.java:47)
+04-28 05:46:47.842  1290  8146 W System.err: 	at com.oplus.statistics.b.a.<init>(CommonBean.java:37)
+04-28 05:46:47.842  1290  8146 W System.err: 	at com.oplus.statistics.c.a(OplusTrack.java:223)
+04-28 05:46:47.842  1290  8146 W System.err: 	at com.oplus.statistics.e.a.a$a.a(AppLaunchEventRecorder.java:143)
+04-28 05:46:47.842  1290  8146 W System.err: 	at com.oplus.statistics.e.a.a$a.a(AppLaunchEventRecorder.java:102)
+04-28 05:46:47.842  1290  8146 W System.err: 	at com.oplus.statistics.e.a.-$$Lambda$2fHLmT8JZlr5OzkT2xnqiCVdLEk.onAppSwitch(Unknown Source:2)
+04-28 05:46:47.842  1290  8146 W System.err: 	at com.oplus.statistics.c.b.a(AppSwitchMonitor.java:97)
+04-28 05:46:47.842  1290  8146 W System.err: 	at com.oplus.statistics.c.b.lambda$yF2sSrETF4wpk07pjuI1ubPVnB8(Unknown Source:0)
+04-28 05:46:47.842  1290  8146 W System.err: 	at com.oplus.statistics.c.-$$Lambda$b$yF2sSrETF4wpk07pjuI1ubPVnB8.accept(Unknown Source:4)
+04-28 05:46:47.842  1290  3845 V DCSEX-AppSwitchManager: OnAppSwitchObserver: onAppEnter , info = OplusAppEnterInfo = {  windowMode = 1 targetName = com.oppo.launcher multiApp = false firstStart = false launchedFromPackage = null intent = Intent { act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000100 cmp=com.oppo.launcher/.Launcher } extension = Bundle[{taskId=2, uid=10044}]}
+04-28 05:46:47.845  4604 10050 D ZoomAppController: ignore onAppEnter: Invalid cvActionFlag = 0
+04-28 05:46:47.845  1290  8146 W System.err: 	at java.util.concurrent.CopyOnWriteArrayList.forEach(CopyOnWriteArrayList.java:832)
+04-28 05:46:47.847   954  3444 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+04-28 05:46:47.848  1290  8146 W System.err: 	at com.oplus.statistics.c.b.b(AppSwitchMonitor.java:97)
+04-28 05:46:47.851  1290  8146 W System.err: 	at com.oplus.statistics.c.b.lambda$fX4Hi7f3z5t3AW9aa0q-E6iGF5w(Unknown Source:0)
+04-28 05:46:47.851  1290  8146 W System.err: 	at com.oplus.statistics.c.-$$Lambda$b$fX4Hi7f3z5t3AW9aa0q-E6iGF5w.run(Unknown Source:4)
+04-28 05:46:47.851  1290  8146 W System.err: 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1167)
+04-28 05:46:47.851  1290  8146 W System.err: 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:641)
+04-28 05:46:47.851  1290  8146 W System.err: 	at java.lang.Thread.run(Thread.java:923)
+04-28 05:46:47.851  1290  8146 W OplusTrack-TrackEvent: appId is empty
+04-28 05:46:47.852  3831  3975 I [0]DCS-StrategyManager: isNeedUpload: true, type: 3, appID: 0, logTag: , eventID: 
+04-28 05:46:47.852  1290  9185 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:1701 com.oplus.statistics.d.e.a:49 com.oplus.statistics.d.d.a:28 com.oplus.statistics.a.c.a:14 com.oplus.statistics.c.b:264 
+04-28 05:46:47.857  3831  3975 I [0]DCS-StrategyManager: isNeedUpload: true, type: 1, appID: 0, logTag: , eventID: 
+04-28 05:46:47.857  1290  5549 D AS.AudioService: getParameters() keyValuePairs:OPLUS_AUDIO_GET_FOCUS_STACK
+04-28 05:46:47.858  6492  6870 W OppoGuardElf: ThermalControllHandler: tempLevel=7,userMode=3,gameUserMode=-1,appType=-1,envTempType=1,appStates=[]
+04-28 05:46:47.861  6492  6870 W OppoGuardElf: ThermalControllHandler: tempGear=7,configItemName=common_config
+04-28 05:46:47.861  6492  7267 W OppoGuardElf: ThermalControllHandler: MSG_THERMAL_CONTROL_CATEGORY_CHANGED
+04-28 05:46:47.871  4892  4892 E oiface  : packageSwitch pkg com.oppo.launcher, enter
+04-28 05:46:47.872  4892  4892 E oiface  : current package is com.oppo.launcher and pid is 3797
+04-28 05:46:47.878  4892  4904 E oiface  : Average freq 1874526 for 1s.
+04-28 05:46:47.878  4892  4904 E oiface  : Average freq 1627813 for 1s.
+04-28 05:46:47.879  1290  5555 E ORMS_Platform : OplusResourceManagerPlatformUtils: readFile function exception:/sys/devices/platform/soc/5900000.qcom,kgsl-3d0/kgsl/kgsl-3d0/freq_table_mhz: open failed: EACCES (Permission denied)
+04-28 05:46:47.879  4892  4904 E oiface  : get gpu freq table failed
+04-28 05:46:47.874  1290  1290 W Binder:1290_1C: type=1400 audit(0.0:4288): avc: denied { read } for name="freq_table_mhz" dev="sysfs" ino=38800 scontext=u:r:system_server:s0 tcontext=u:object_r:vendor_sysfs_kgsl:s0 tclass=file permissive=0
+04-28 05:46:47.883  4892  4904 E oiface  : client  not found, skipped
+04-28 05:46:47.883  4892  4904 D oiface  : forground package is com.oppo.launcher
+04-28 05:46:47.889  1290  3230 E ORMS_Platform : OplusResourceManagerPlatformUtils: readFile function exception:/sys/devices/platform/soc/5900000.qcom,kgsl-3d0/kgsl/kgsl-3d0/freq_table_mhz: open failed: EACCES (Permission denied)
+04-28 05:46:47.889  4892  4904 E oiface  : get gpu freq table failed
+04-28 05:46:47.886  1290  1290 W Binder:1290_6: type=1400 audit(0.0:4289): avc: denied { read } for name="freq_table_mhz" dev="sysfs" ino=38800 scontext=u:r:system_server:s0 tcontext=u:object_r:vendor_sysfs_kgsl:s0 tclass=file permissive=0
+04-28 05:46:48.284  5621  5854 D HoraeHelper: Thermal length:1
+04-28 05:46:48.284  5621  5854 D HoraeHelper: skinThermal:38.936
+04-28 05:46:48.285  5621  5854 D HoraeHelper: getAllShellTemps tSize : 4
+04-28 05:46:48.321  3543  5152 W HidlServiceManagement: Waited one second for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice
+04-28 05:46:48.322   557   557 I hwservicemanager: Since com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice is not registered, trying to start it as a lazy HAL.
+04-28 05:46:48.323  3543  5152 I HidlServiceManagement: getService: Trying again for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice...
+04-28 05:46:48.326   557 22940 W libc    : Unable to set property "ctl.interface_start" to "com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice": error code: 0x20
+04-28 05:46:48.387   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 05:46:48.387   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 05:46:48.391   954  3885 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+04-28 05:46:48.391   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 05:46:48.398  4007  6137 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+04-28 05:46:48.433   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 05:46:48.433   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 05:46:48.479  1290  3705 I ColorGameSpaceManager: in handleApplicationSwitchInner ---- gamemode = 0 ----mModeStatus = 0
+04-28 05:46:48.585   954  3444 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+04-28 05:46:48.999   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 05:46:48.999   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 05:46:49.003   954  3885 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+04-28 05:46:49.003   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 05:46:49.009  4007  6137 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+04-28 05:46:49.045   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 05:46:49.045   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 05:46:49.101   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 05:46:49.101   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 05:46:49.101   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 05:46:49.108  4007  6137 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+04-28 05:46:49.144   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 05:46:49.144   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 05:46:49.150  1425  1466 D bspCriticalLog: power_monitor cpu-0-0-usr: open fail -1
+04-28 05:46:49.151  1425  1466 D bspCriticalLog: power_monitor cpu-1-0-usr: open fail -1
+04-28 05:46:49.151  1425  1464 D bspCriticalLog: thermal_monitor ddr-usr: open fail -1
+04-28 05:46:49.151  1425  1464 D bspCriticalLog: thermal_monitor gpuss-0-usr: open fail -1
+04-28 05:46:49.151  1425  1464 D bspCriticalLog: thermal_monitor cpu-0-0-usr: open fail -1
+04-28 05:46:49.151  1425  1464 D bspCriticalLog: thermal_monitor cpu-1-0-usr: open fail -1
+04-28 05:46:49.295   954  3444 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+04-28 05:46:49.324  3543  5152 W HidlServiceManagement: Waited one second for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice
+04-28 05:46:49.325   557   557 I hwservicemanager: Since com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice is not registered, trying to start it as a lazy HAL.
+04-28 05:46:49.325  3543  5152 I HidlServiceManagement: getService: Trying again for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice...
+04-28 05:46:49.327   557 22941 W libc    : Unable to set property "ctl.interface_start" to "com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice": error code: 0x20
+04-28 05:46:49.446  3797  4266 D Launcher.: panicValue = false
+04-28 05:46:49.844   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 05:46:49.844   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 05:46:49.849   954  3885 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+04-28 05:46:49.849   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 05:46:49.854  5531  6368 I Athena  : MemoryGuardAction: triggerMemory:1500MB, availMemory:1630MB
+04-28 05:46:49.892   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 05:46:49.892   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 05:46:49.950 15043 15308 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1091)=>Start post callback cache refresh DNS resolution
+04-28 05:46:49.964 15043 15308 E msys    : E[N mns:DGWClient]_LogError(280)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-28 05:46:49.964 15043 15308 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1091)=>Start post callback cache refresh DNS resolution
+04-28 05:46:49.973 15043 15308 E msys    : E[N mns:DGWClient]_LogError(280)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-28 05:46:49.987  1290  1608 V OppoBaseWatchdog: @WatchDog_ error e: java.io.FileNotFoundException: /d/wakeup_sources: open failed: ENOENT (No such file or directory)
+04-28 05:46:50.043   954  3444 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+04-28 05:46:50.326  3543  5152 W HidlServiceManagement: Waited one second for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice
+04-28 05:46:50.327   557   557 I hwservicemanager: Since com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice is not registered, trying to start it as a lazy HAL.
+04-28 05:46:50.328  3543  5152 I HidlServiceManagement: getService: Trying again for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice...
+04-28 05:46:50.331   557 22948 W libc    : Unable to set property "ctl.interface_start" to "com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice": error code: 0x20
+04-28 05:46:50.579   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 05:46:50.579   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 05:46:50.583   954  3885 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+04-28 05:46:50.583   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 05:46:50.588  4007  6137 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+04-28 05:46:50.589  4007 22613 I NearbyDiscovery: (REDACTED) loadFastPairModule: checkFeaturesAreAvailable:%d
+04-28 05:46:50.589  4007 22613 I NearbyDiscovery: loadFastPairModule: FastPair module is downloaded. [CONTEXT service_id=265 ]
+04-28 05:46:50.626   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 05:46:50.627   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 05:46:50.748 15043 15308 E msys    : E[N mns:DGWClient]_OnDiskCacheGetData(1091)=>Start post callback cache refresh DNS resolution
+04-28 05:46:50.762 15043 15308 E msys    : E[N mns:DGWClient]_LogError(280)=>Failed to resolve using system DNS resolver, getaddrinfo(): No address associated with hostname
+04-28 05:46:50.777   954  3444 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
+04-28 05:46:50.827  5621  5825 E libc    : Access denied finding property "vendor.oplus.media.vpp.osie_sr.on"
+04-28 05:46:50.850  1033  1033 D OppoExSurfaceFlinger: hecate traverse disp:44,com.android.systemui.ImageWallpaper#0,4
+04-28 05:46:50.850  1033  1033 D OppoExSurfaceFlinger: hecate traverse disp:1855,com.oppo.launcher/com.oppo.launcher.Launcher#0,1
+04-28 05:46:50.851  1033  1033 D OppoExSurfaceFlinger: hecate traverse disp:44,com.android.systemui.ImageWallpaper#0,4
+04-28 05:46:50.851  1033  1033 D OppoExSurfaceFlinger: hecate traverse disp:1855,com.oppo.launcher/com.oppo.launcher.Launcher#0,1
+04-28 05:46:50.871  1033  1163 D OppoExSurfaceFlinger: hecate pixels[0,0]=0xfffa7d81
+04-28 05:46:51.125  1290  3843 D BatteryLed: getLightInColorState, oppoLightMgr empty!
+04-28 05:46:51.134  3671  3671 D DeviceStatisticsService: chargerType=2 batteryLevel=94 totalBatteryCapacity=5000000
+04-28 05:46:51.134  3671  3671 D DeviceInfoHidlClient: isPowerInfoNeverSent()=true
+04-28 05:46:51.240   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 05:46:51.240   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 05:46:51.243   954  3885 D vendor.qti.bluetooth@1.0-wake_lock: Acquire wakelock is acquired 
+04-28 05:46:51.243   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 05:46:51.251  4007  6137 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+04-28 05:46:51.285   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 05:46:51.285   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 05:46:51.290   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_WAKE_IND: 0xFD
+04-28 05:46:51.290   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK ON
+04-28 05:46:51.290   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Writing IBS_WAKE_ACK
+04-28 05:46:51.295  4007  6137 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+04-28 05:46:51.301  4007  6137 I NearbyDiscovery: (REDACTED) BloomFilterAdvManager: Detected bloom filter but too far away, ignoring. %sm, %s
+04-28 05:46:51.329  3543  5152 W HidlServiceManagement: Waited one second for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice
+04-28 05:46:51.330   557   557 I hwservicemanager: Since com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice is not registered, trying to start it as a lazy HAL.
+04-28 05:46:51.331  3543  5152 I HidlServiceManagement: getService: Trying again for com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice...
+04-28 05:46:51.332   557 22953 W libc    : Unable to set property "ctl.interface_start" to "com.qualcomm.qti.uceservice@2.2::IUceService/com.qualcomm.qti.uceservice": error code: 0x20
+04-28 05:46:51.337   954  3885 I vendor.qti.bluetooth@1.0-ibs_handler: ProcessIbsCmd: Received IBS_SLEEP_IND: 0xFE
+04-28 05:46:51.337   954  3885 D vendor.qti.bluetooth@1.0-ibs_handler: SerialClockVote: vote for UART CLK OFF
+04-28 05:46:51.488   954  3444 D vendor.qti.bluetooth@1.0-wake_lock: Release wakelock is released 
