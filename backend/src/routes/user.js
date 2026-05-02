@@ -192,4 +192,34 @@ router.delete('/me/friend/:friendId', authenticateToken, async (req, res) => {
   }
 });
 
+// Get any user's public profile
+router.get('/:userId', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).select('name email avatar bio');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching user' });
+  }
+});
+
+// Get any user's stats
+router.get('/:userId/stats', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const [roomCount, user, alarmCount] = await Promise.all([
+      Room.countDocuments({ host: userId }),
+      User.findById(userId).select('friends'),
+      Alarm.countDocuments({ user: userId }),
+    ]);
+    res.json({
+      rooms: roomCount,
+      friends: user?.friends?.length || 0,
+      alarms: alarmCount,
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch stats' });
+  }
+});
+
 export default router;
