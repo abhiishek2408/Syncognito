@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import { Text, StyleSheet, TextStyle } from 'react-native';
 
 export const getTimeLeftString = (triggerAt: string) => {
@@ -30,6 +31,8 @@ interface Props {
 
 export const AlarmCountdown = ({ triggerAt, isPast, color, style }: Props) => {
   const [timeLeft, setTimeLeft] = useState(getTimeLeftString(triggerAt));
+  const { theme, accentColor } = useTheme();
+  const styles = getStyles(theme, accentColor);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -45,7 +48,7 @@ export const AlarmCountdown = ({ triggerAt, isPast, color, style }: Props) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
   default: {
     fontSize: 11,
     fontWeight: '700',

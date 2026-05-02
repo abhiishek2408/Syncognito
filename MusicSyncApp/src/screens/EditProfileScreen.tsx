@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, 
   ScrollView, Image, ActivityIndicator, Alert, Dimensions
@@ -11,6 +12,9 @@ import API_URL from '../utils/api';
 import { useToast } from '../context/ToastContext';
 
 export default function EditProfileScreen({ navigation }: any) {
+  const { theme, accentColor } = useTheme();
+  const dynamicStyles = getStyles(theme, accentColor);
+
   const auth = useContext(AuthContext);
   const { showToast } = useToast();
   const user = auth.user;
@@ -91,55 +95,55 @@ export default function EditProfileScreen({ navigation }: any) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+    <View style={dynamicStyles.container}>
+      <View style={dynamicStyles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={dynamicStyles.backBtn}>
           <MaterialCommunityIcons name="close" size={28} color="#FFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
-        <TouchableOpacity onPress={handleSave} disabled={saving} style={styles.saveBtn}>
+        <Text style={dynamicStyles.headerTitle}>Edit Profile</Text>
+        <TouchableOpacity onPress={handleSave} disabled={saving} style={dynamicStyles.saveBtn}>
           {saving ? (
             <ActivityIndicator color="#1DB954" size="small" />
           ) : (
-            <Text style={styles.saveBtnText}>Save</Text>
+            <Text style={dynamicStyles.saveBtnText}>Save</Text>
           )}
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={dynamicStyles.content}>
         {/* Avatar Section */}
-        <View style={styles.avatarSection}>
+        <View style={dynamicStyles.avatarSection}>
           <TouchableOpacity 
             activeOpacity={0.8} 
             onPress={handlePickImage} 
-            style={styles.avatarWrapper}
+            style={dynamicStyles.avatarWrapper}
             disabled={uploading}
           >
             {user?.avatar ? (
-              <Image source={{ uri: user.avatar }} style={styles.avatar} />
+              <Image source={{ uri: user.avatar }} style={dynamicStyles.avatar} />
             ) : (
-              <View style={[styles.avatar, styles.placeholder]}>
+              <View style={[dynamicStyles.avatar, dynamicStyles.placeholder]}>
                 <MaterialCommunityIcons name="account" size={60} color="#1DB954" />
               </View>
             )}
             {uploading && (
-              <View style={styles.uploadOverlay}>
+              <View style={dynamicStyles.uploadOverlay}>
                 <ActivityIndicator color="#FFF" />
               </View>
             )}
-            <View style={styles.cameraBtn}>
+            <View style={dynamicStyles.cameraBtn}>
                <MaterialCommunityIcons name="camera" size={16} color="#FFF" />
             </View>
           </TouchableOpacity>
-          <Text style={styles.changePicText}>Change Profile Picture</Text>
+          <Text style={dynamicStyles.changePicText}>Change Profile Picture</Text>
         </View>
 
         {/* Form Fields */}
-        <View style={styles.form}>
-           <View style={styles.inputGroup}>
-              <Text style={styles.label}>Display Name</Text>
+        <View style={dynamicStyles.form}>
+           <View style={dynamicStyles.inputGroup}>
+              <Text style={dynamicStyles.label}>Display Name</Text>
               <TextInput
-                style={styles.input}
+                style={dynamicStyles.input}
                 value={name}
                 onChangeText={setName}
                 placeholder="Your name"
@@ -147,20 +151,20 @@ export default function EditProfileScreen({ navigation }: any) {
               />
            </View>
 
-           <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email Address</Text>
-              <View style={styles.readOnlyInput}>
-                 <Text style={styles.readOnlyText}>{user?.email}</Text>
+           <View style={dynamicStyles.inputGroup}>
+              <Text style={dynamicStyles.label}>Email Address</Text>
+              <View style={dynamicStyles.readOnlyInput}>
+                 <Text style={dynamicStyles.readOnlyText}>{user?.email}</Text>
                  <MaterialCommunityIcons name="lock" size={14} color="#444" />
               </View>
            </View>
 
-           <View style={styles.inputGroup}>
-              <Text style={styles.label}>Anonymous Slug</Text>
-              <View style={styles.slugInputContainer}>
-                <Text style={styles.atSymbol}>@</Text>
+           <View style={dynamicStyles.inputGroup}>
+              <Text style={dynamicStyles.label}>Anonymous Slug</Text>
+              <View style={dynamicStyles.slugInputContainer}>
+                <Text style={dynamicStyles.atSymbol}>@</Text>
                 <TextInput
-                  style={styles.slugInput}
+                  style={dynamicStyles.slugInput}
                   value={slug}
                   onChangeText={(val) => setSlug(val.replace(/[^a-zA-Z0-9_\-]/g, '').toLowerCase())}
                   placeholder="your_secret_slug"
@@ -175,8 +179,8 @@ export default function EditProfileScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   header: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -185,29 +189,29 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#1A1A1A'
+    borderBottomColor: theme.surfaceDarker
   },
   backBtn: { padding: 4 },
-  headerTitle: { color: '#FFF', fontSize: 18, fontWeight: '800' },
+  headerTitle: { color: theme.text, fontSize: 18, fontWeight: '800' },
   saveBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 },
-  saveBtnText: { color: '#1DB954', fontSize: 16, fontWeight: '800' },
+  saveBtnText: { color: accentColor, fontSize: 16, fontWeight: '800' },
   
   content: { padding: 20 },
   avatarSection: { alignItems: 'center', marginBottom: 32 },
   avatarWrapper: { position: 'relative' },
-  avatar: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#111', borderWidth: 2, borderColor: '#1DB954' },
+  avatar: { width: 120, height: 120, borderRadius: 60, backgroundColor: theme.surface, borderWidth: 2, borderColor: accentColor },
   placeholder: { justifyContent: 'center', alignItems: 'center' },
   uploadOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 60, justifyContent: 'center', alignItems: 'center' },
-  cameraBtn: { position: 'absolute', bottom: 0, right: 0, backgroundColor: '#1DB954', width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#000' },
-  changePicText: { color: '#1DB954', marginTop: 12, fontSize: 14, fontWeight: '700' },
+  cameraBtn: { position: 'absolute', bottom: 0, right: 0, backgroundColor: accentColor, width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: theme.background },
+  changePicText: { color: accentColor, marginTop: 12, fontSize: 14, fontWeight: '700' },
 
   form: { gap: 24 },
   inputGroup: { gap: 8 },
-  label: { color: '#444', fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
-  input: { backgroundColor: '#0A0A0A', borderRadius: 14, padding: 16, color: '#FFF', fontSize: 16, borderWidth: 1, borderColor: '#222' },
-  slugInputContainer: { backgroundColor: '#0A0A0A', borderRadius: 14, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderWidth: 1, borderColor: '#222' },
-  atSymbol: { color: '#1DB954', fontSize: 16, fontWeight: '800', marginRight: 4 },
-  slugInput: { flex: 1, paddingVertical: 16, color: '#FFF', fontSize: 16 },
-  readOnlyInput: { backgroundColor: '#050505', borderRadius: 14, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: '#111' },
+  label: { color: theme.textSecondary, fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 1 },
+  input: { backgroundColor: theme.surface, borderRadius: 14, padding: 16, color: theme.text, fontSize: 16, borderWidth: 1, borderColor: theme.border },
+  slugInputContainer: { backgroundColor: theme.surface, borderRadius: 14, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, borderWidth: 1, borderColor: theme.border },
+  atSymbol: { color: accentColor, fontSize: 16, fontWeight: '800', marginRight: 4 },
+  slugInput: { flex: 1, paddingVertical: 16, color: theme.text, fontSize: 16 },
+  readOnlyInput: { backgroundColor: theme.surface, borderRadius: 14, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: theme.surface },
   readOnlyText: { color: '#555', fontSize: 16, fontWeight: '500' }
 });

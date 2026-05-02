@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import { View, Text, StyleSheet, TouchableOpacity, Share, Animated, Vibration, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -34,6 +35,9 @@ type Props = {
 };
 
 export default function NglMessageDetailScreen({ route, navigation }: Props) {
+  const { theme, accentColor } = useTheme();
+  const dynamicStyles = getStyles(theme, accentColor);
+
   const { message } = route.params;
   const auth = useContext(AuthContext);
   const [selectedReaction, setSelectedReaction] = useState<string | null>(message.reaction || null);
@@ -144,17 +148,17 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
   const currentTheme = CARD_THEMES[cardThemeIndex];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={dynamicStyles.container}>
+      <View style={dynamicStyles.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtnMini}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={dynamicStyles.backBtnMini}>
             <MaterialCommunityIcons name="chevron-left" size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>
+          <Text style={dynamicStyles.headerTitle}>
             <MaterialCommunityIcons name="incognito" size={26} color="#1DB954" /> Anonymous
           </Text>
         </View>
-        <TouchableOpacity onPress={togglePin} style={styles.pinBtnMini}>
+        <TouchableOpacity onPress={togglePin} style={dynamicStyles.pinBtnMini}>
           <Animated.View style={{ transform: [{ rotate: pinSpin }] }}>
             <MaterialCommunityIcons 
               name={isPinned ? "pin" : "pin-outline"} 
@@ -165,16 +169,16 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={dynamicStyles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Message Card */}
-        <Animated.View style={[styles.cardWrapper, { transform: [{ scale: cardScale }], opacity: cardOpacity }]}>
+        <Animated.View style={[dynamicStyles.cardWrapper, { transform: [{ scale: cardScale }], opacity: cardOpacity }]}>
           {/* Particle burst */}
-          <View style={styles.particleContainer}>
+          <View style={dynamicStyles.particleContainer}>
             {particles.map((p, i) => (
               <Animated.View
                 key={i}
                 style={[
-                  styles.particle,
+                  dynamicStyles.particle,
                   {
                     backgroundColor: ['#FFD700', '#FF1493', '#00BFFF', '#1DB954', '#FF4500', '#8A2BE2', '#FF69B4', '#00CED1'][i],
                     transform: [{ translateX: p.x }, { translateY: p.y }, { scale: p.scale }],
@@ -185,25 +189,25 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
             ))}
           </View>
           
-          <View style={styles.messageCard}>
-              <LinearGradient colors={currentTheme} style={styles.cardGradient} start={{x:0, y:0}} end={{x:1, y:1}}>
-                  <View style={styles.cardHeaderRow}>
+          <View style={dynamicStyles.messageCard}>
+              <LinearGradient colors={currentTheme} style={dynamicStyles.cardGradient} start={{x:0, y:0}} end={{x:1, y:1}}>
+                  <View style={dynamicStyles.cardHeaderRow}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <View style={styles.iconCircle}>
+                      <View style={dynamicStyles.iconCircle}>
                         <MaterialCommunityIcons name="incognito" size={28} color="#FFF" />
                       </View>
-                      <Text style={styles.cardTitle}>ANONYMOUS ASK</Text>
+                      <Text style={dynamicStyles.cardTitle}>ANONYMOUS ASK</Text>
                     </View>
-                    <TouchableOpacity onPress={cycleTheme} style={styles.themeBtn}>
+                    <TouchableOpacity onPress={cycleTheme} style={dynamicStyles.themeBtn}>
                       <MaterialCommunityIcons name="palette" size={18} color="#FFF" />
                     </TouchableOpacity>
                   </View>
                   
-                  <Text style={styles.messageText}>{message.text}</Text>
+                  <Text style={dynamicStyles.messageText}>{message.text}</Text>
                   
-                  <View style={styles.cardFooter}>
+                  <View style={dynamicStyles.cardFooter}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <Text style={styles.timeLabel}>{new Date(message.createdAt).toLocaleDateString()}</Text>
+                      <Text style={dynamicStyles.timeLabel}>{new Date(message.createdAt).toLocaleDateString()}</Text>
                       {message.deviceHint && (
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 }}>
                           <MaterialCommunityIcons 
@@ -226,9 +230,9 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
         </Animated.View>
 
         {/* Emoji Reactions */}
-        <View style={styles.reactionsSection}>
-          <Text style={styles.sectionLabel}>REACT</Text>
-          <View style={styles.reactionsRow}>
+        <View style={dynamicStyles.reactionsSection}>
+          <Text style={dynamicStyles.sectionLabel}>REACT</Text>
+          <View style={dynamicStyles.reactionsRow}>
             {REACTIONS.map((r, i) => (
               <TouchableOpacity 
                 key={r.emoji} 
@@ -236,11 +240,11 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
                 activeOpacity={0.7}
               >
                 <Animated.View style={[
-                  styles.reactionBubble,
-                  selectedReaction === r.emoji && styles.reactionBubbleActive,
+                  dynamicStyles.reactionBubble,
+                  selectedReaction === r.emoji && dynamicStyles.reactionBubbleActive,
                   { transform: [{ scale: reactionScales[i] }] },
                 ]}>
-                  <Text style={styles.reactionEmoji}>{r.emoji}</Text>
+                  <Text style={dynamicStyles.reactionEmoji}>{r.emoji}</Text>
                 </Animated.View>
               </TouchableOpacity>
             ))}
@@ -250,11 +254,11 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
       </ScrollView>
  
        {/* Bottom Actions Row */}
-       <View style={styles.bottomSection}>
-         <TouchableOpacity style={styles.replyMainBtn} activeOpacity={0.9} onPress={shareAsStoryCard}>
-           <LinearGradient colors={['#1DB954', '#1AA34A']} style={styles.replyGradient}>
+       <View style={dynamicStyles.bottomSection}>
+         <TouchableOpacity style={dynamicStyles.replyMainBtn} activeOpacity={0.9} onPress={shareAsStoryCard}>
+           <LinearGradient colors={['#1DB954', '#1AA34A']} style={dynamicStyles.replyGradient}>
              <MaterialCommunityIcons name="share-variant" size={20} color="#000" />
-             <Text style={styles.replyBtnText}>SHARE & REPLY</Text>
+             <Text style={dynamicStyles.replyBtnText}>SHARE & REPLY</Text>
            </LinearGradient>
          </TouchableOpacity>
        </View>
@@ -262,8 +266,8 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
    );
  }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050505' },
+const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.surface },
   header: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -271,10 +275,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, 
     paddingTop: 10, 
     paddingBottom: 8,
-    backgroundColor: '#050505',
+    backgroundColor: theme.surface,
   },
   backBtnMini: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 10 },
-  headerTitle: { color: '#FFF', fontSize: 26, fontWeight: '800' },
+  headerTitle: { color: theme.text, fontSize: 26, fontWeight: '800' },
   pinBtnMini: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   scrollContent: { paddingHorizontal: 24, paddingBottom: 20 },
   
@@ -286,9 +290,9 @@ const styles = StyleSheet.create({
   cardGradient: { flex: 1, padding: 24, justifyContent: 'space-between' },
   cardHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
   iconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  cardTitle: { color: '#FFF', fontSize: 13, fontWeight: '900', letterSpacing: 1.5 },
+  cardTitle: { color: theme.text, fontSize: 13, fontWeight: '900', letterSpacing: 1.5 },
   themeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' },
-  messageText: { color: '#FFF', fontSize: 22, fontWeight: '900', textAlign: 'center', lineHeight: 30, marginVertical: 16 },
+  messageText: { color: theme.text, fontSize: 22, fontWeight: '900', textAlign: 'center', lineHeight: 30, marginVertical: 16 },
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
   timeLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '700' },
 
@@ -296,23 +300,23 @@ const styles = StyleSheet.create({
   reactionsSection: { marginBottom: 24 },
   sectionLabel: { color: '#555', fontSize: 11, fontWeight: '800', letterSpacing: 2, marginBottom: 12 },
   reactionsRow: { flexDirection: 'row', justifyContent: 'center', gap: 12 },
-  reactionBubble: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#111', justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: '#222' },
-  reactionBubbleActive: { backgroundColor: 'rgba(29, 185, 84, 0.15)', borderColor: '#1DB954' },
+  reactionBubble: { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: theme.border },
+  reactionBubbleActive: { backgroundColor: 'rgba(29, 185, 84, 0.15)', borderColor: accentColor },
   reactionEmoji: { fontSize: 20 },
 
   // Actions
   actionsSection: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   actionCard: { flex: 1, height: 60, borderRadius: 18, overflow: 'hidden' },
   actionGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  actionFlat: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#111', borderRadius: 18, borderWidth: 1, borderColor: '#222' },
-  actionText: { color: '#FFF', fontSize: 13, fontWeight: '800' },
+  actionFlat: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: theme.surface, borderRadius: 18, borderWidth: 1, borderColor: theme.border },
+  actionText: { color: theme.text, fontSize: 13, fontWeight: '800' },
 
   // Bottom
   bottomSection: { paddingHorizontal: 24, paddingBottom: 24 },
   bottomActionsRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  pinBtnSmall: { width: 58, height: 58, borderRadius: 18, backgroundColor: '#111', justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: '#222' },
+  pinBtnSmall: { width: 58, height: 58, borderRadius: 18, backgroundColor: theme.surface, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: theme.border },
   pinBtnActive: { backgroundColor: 'rgba(255, 215, 0, 0.1)', borderColor: '#FFD700' },
   replyMainBtn: { width: '100%', height: 58, borderRadius: 18, overflow: 'hidden' },
   replyGradient: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  replyBtnText: { color: '#000', fontSize: 15, fontWeight: '900', letterSpacing: 0.5 },
+  replyBtnText: { color: theme.background, fontSize: 15, fontWeight: '900', letterSpacing: 0.5 },
 });

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../context/ThemeContext';
 import {
   View,
   Text,
@@ -26,6 +27,8 @@ type Props = {
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [isAuthenticating, setIsAuthenticating] = React.useState(false);
   const { showToast } = useToast();
+  const { theme, accentColor } = useTheme();
+  const styles = getStyles(theme, accentColor);
 
   const auth = React.useContext(AuthContext);
 
@@ -123,10 +126,10 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: theme.background,
   },
   content: { flex: 1, paddingHorizontal: 30, justifyContent: 'center', paddingVertical: 50, zIndex: 2 },
   circle1: {
@@ -134,7 +137,7 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: '#1DB954',
+    backgroundColor: accentColor,
     top: -50,
     right: -100,
     opacity: 0.15,
@@ -149,7 +152,7 @@ const styles = StyleSheet.create({
     left: -50,
     opacity: 0.2,
   },
-  logoContainer: { alignItems: 'center', marginBottom: 40 },
+  logoContainer: { alignItems: 'center', marginBottom: 40, marginTop: 60 },
   iconCircle: {
     width: 140,
     height: 140,
@@ -158,21 +161,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#222222',
   },
-  title: { fontSize: 36, fontWeight: '800', color: '#FFFFFF', letterSpacing: -1 },
+  title: { fontSize: 36, fontWeight: '800', color: theme.text, letterSpacing: -1 },
   subtitle: { fontSize: 16, color: '#AAAAAA', marginTop: 8 },
   buttonContainer: { width: '100%', alignItems: 'center', marginTop: 8 },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.text,
     width: '100%',
     height: 56,
     borderRadius: 28,
-    shadowColor: '#000',
+    shadowColor: theme.background,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
   buttonDisabled: { backgroundColor: '#CCCCCC' },
   googleIcon: { marginRight: 12 },
   gLogo: { width: 40, height: 40, marginRight: 12, resizeMode: 'contain' },
-  buttonText: { color: '#000', fontSize: 17, fontWeight: 'bold' },
+  buttonText: { color: theme.background, fontSize: 17, fontWeight: 'bold' },
   footerText: { color: '#555', fontSize: 12, marginTop: 20, textAlign: 'center' },
   chooseButton: {
     marginTop: 12,
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 6,
   },
-  chooseText: { color: '#fff', textDecorationLine: 'underline' },
+  chooseText: { color: theme.text, textDecorationLine: 'underline' },
 });
 
 export default LoginScreen;

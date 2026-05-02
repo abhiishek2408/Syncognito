@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback, useRef } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput,
   Modal, Alert, ActivityIndicator, ScrollView, TouchableWithoutFeedback, Keyboard,
@@ -17,6 +18,9 @@ import { useAlarms } from '../context/AlarmContext';
 import RNFS from 'react-native-fs';
 
 export default function AlarmScreen() {
+  const { theme, accentColor, isDarkMode } = useTheme();
+  const dynamicStyles = getStyles(theme, accentColor, isDarkMode);
+
   const auth = useContext(AuthContext);
   const { showToast } = useToast();
   const { alarms, loadAlarms, dismissAlarm } = useAlarms();
@@ -232,47 +236,52 @@ export default function AlarmScreen() {
     const diffMs = d.getTime() - currentTime.getTime();
     
     // Status over index for Expired
-    if (diffMs < 0) return { color: '#EF5350', bg: '#080303' }; // Ultra Deep Red
+    if (diffMs < 0) {
+      return { 
+        color: '#EF5350', 
+        bg: isDarkMode ? '#080303' : '#FFEBEE' // Ultra Deep Red vs Light Pink
+      };
+    }
 
-    // Palette for active alarms: Green, Purple, Orange, Blue
+    // Palette for active alarms: Accent, Purple, Orange, Blue
     const palette = [
-      { color: '#1DB954', bg: '#040B07' }, // Ultra Deep Green
-      { color: '#BB86FC', bg: '#05040A' }, // Ultra Deep Purple
-      { color: '#FFB74D', bg: '#080503' }, // Ultra Deep Orange
-      { color: '#64B5F6', bg: '#030508' }, // Ultra Deep Blue
+      { color: accentColor, bg: isDarkMode ? '#040B07' : theme.surface }, // Uses accent color for the first one
+      { color: '#BB86FC', bg: isDarkMode ? '#05040A' : '#F3E5F5' }, // Ultra Deep Purple vs Light Purple
+      { color: '#FFB74D', bg: isDarkMode ? '#080503' : '#FFF3E0' }, // Ultra Deep Orange vs Light Orange
+      { color: '#64B5F6', bg: isDarkMode ? '#030508' : '#E3F2FD' }, // Ultra Deep Blue vs Light Blue
     ];
     return palette[index % palette.length];
   };
 
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}><MaterialCommunityIcons name="alarm" size={26} color="#1DB954" /> Alarms</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={() => setShowCreate(true)}>
-          <MaterialCommunityIcons name="plus-circle" size={28} color="#1DB954" />
+      <View style={dynamicStyles.header}>
+        <Text style={dynamicStyles.title}><MaterialCommunityIcons name="alarm" size={26} color={accentColor} /> Alarms</Text>
+        <TouchableOpacity style={dynamicStyles.addBtn} onPress={() => setShowCreate(true)}>
+          <MaterialCommunityIcons name="plus-circle" size={28} color={accentColor} />
         </TouchableOpacity>
       </View>
 
       {/* Alarm list */}
       {loading ? (
-        <ActivityIndicator size="large" color="#1DB954" style={{ marginTop: 40 }} />
+        <ActivityIndicator size="large" color={accentColor} style={{ marginTop: 40 }} />
       ) : (
         <FlatList
           data={alarms}
           keyExtractor={item => item._id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={dynamicStyles.list}
           renderItem={({ item, index }) => {
             const { dateFormatted, timeFormatted, relative, isPast } = formatDate(item.triggerAt);
             const { color, bg } = getAlarmTheme(item, index);
             const isFirst = index === 0;
             return (
               <View style={[
-                styles.alarmCard, 
+                dynamicStyles.alarmCard, 
                 { backgroundColor: isFirst ? '#050D08' : bg }, // Dimmer Green Atmosphere
                 isFirst && { 
-                  borderColor: '#1DB95460', // Dimmer theme green border
-                  shadowColor: '#1DB954',   
+                  borderColor: accentColor + '60', // Dimmer theme green border
+                  shadowColor: accentColor,   
                   shadowOffset: { width: 0, height: 0 },
                   shadowOpacity: 0.25,      // Dimmer Glow
                   shadowRadius: 15,
@@ -280,59 +289,57 @@ export default function AlarmScreen() {
                 }
               ]}>
                 {/* Decorative High-Fidelity Accents - Subtler */}
-                <View style={[styles.gridBlob, { 
+                <View style={[dynamicStyles.gridBlob, { 
                   backgroundColor: color + '15',
-                  width: isFirst ? 130 : 100,
-                  height: isFirst ? 130 : 100,
                 }]} />
-                <View style={[styles.gridDot, { backgroundColor: color + '25' }]} />
+                <View style={[dynamicStyles.gridDot, { backgroundColor: color + '25' }]} />
                 
-                <View style={styles.alarmHeader}>
-                  <View style={[styles.alarmIndicator, { backgroundColor: color, height: isFirst ? 32 : 28 }]} />
+                <View style={dynamicStyles.alarmHeader}>
+                  <View style={[dynamicStyles.alarmIndicator, { backgroundColor: color, height: isFirst ? 32 : 28 }]} />
                   <TouchableOpacity style={{ flex: 1 }} onPress={() => openEdit(item)}>
-                    <Text style={[styles.alarmTitle, isFirst && { fontSize: 22 }]}>{item.title}</Text>
-                    <View style={styles.statusBadgeRow}>
+                    <Text style={[dynamicStyles.alarmTitle, isFirst && { fontSize: 22 }]}>{item.title}</Text>
+                    <View style={dynamicStyles.statusBadgeRow}>
                       <AlarmCountdown triggerAt={item.triggerAt} isPast={isPast} color={color} />
                     </View>
                   </TouchableOpacity>
                 </View>
 
                 {/* Bubble Action Buttons */}
-                <View style={styles.cardActions}>
-                  <TouchableOpacity onPress={() => deleteAlarm(item._id)} style={styles.deleteBubble}>
+                <View style={dynamicStyles.cardActions}>
+                  <TouchableOpacity onPress={() => deleteAlarm(item._id)} style={dynamicStyles.deleteBubble}>
                     <MaterialCommunityIcons name="close" size={18} color="#EF5350" />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => openEdit(item)} style={[styles.editBubble, { borderColor: color + '40' }]}>
+                  <TouchableOpacity onPress={() => openEdit(item)} style={[dynamicStyles.editBubble, { borderColor: color + '40' }]}>
                     <MaterialCommunityIcons name="pencil" size={16} color="#FFF" />
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.alarmTime}>
+                <View style={dynamicStyles.alarmTime}>
                   <MaterialCommunityIcons name="calendar-clock" size={16} color="#888" />
-                  <Text style={styles.alarmDateText}>{dateFormatted} at {timeFormatted}</Text>
+                  <Text style={dynamicStyles.alarmDateText}>{dateFormatted} at {timeFormatted}</Text>
                 </View>
 
                 {item.message ? (
-                  <View style={styles.alarmMessage}>
+                  <View style={dynamicStyles.alarmMessage}>
                     <MaterialCommunityIcons name="message-text" size={14} color="#666" />
-                    <Text style={styles.alarmMsgText}>{item.message}</Text>
+                    <Text style={dynamicStyles.alarmMsgText}>{item.message}</Text>
                   </View>
                 ) : null}
 
                 {item.toneUrl && (
-                  <View style={styles.tonePreview}>
-                    <MaterialCommunityIcons name="music-circle" size={14} color="#1DB95490" />
-                    <Text style={styles.tonePreviewText}>Custom Tone Link Active</Text>
+                  <View style={dynamicStyles.tonePreview}>
+                    <MaterialCommunityIcons name="music-circle" size={14} color={accentColor + '90'} />
+                    <Text style={dynamicStyles.tonePreviewText}>Custom Tone Link Active</Text>
                   </View>
                 )}
               </View>
             );
           }}
           ListEmptyComponent={
-            <View style={styles.empty}>
+            <View style={dynamicStyles.empty}>
               <MaterialCommunityIcons name="alarm-off" size={48} color="#333" />
-              <Text style={styles.emptyText}>No alarms set</Text>
-              <Text style={styles.emptySubtext}>Set alarms for days, months, or years ahead!</Text>
+              <Text style={dynamicStyles.emptyText}>No alarms set</Text>
+              <Text style={dynamicStyles.emptySubtext}>Set alarms for days, months, or years ahead!</Text>
             </View>
           }
           onRefresh={loadAlarms}
@@ -349,16 +356,16 @@ export default function AlarmScreen() {
         if (!nextAlarm) return null;
 
         return (
-          <View style={styles.nextAlarmToast}>
-            <View style={styles.toastGlow} />
-            <MaterialCommunityIcons name="clock-fast" size={18} color="#1DB954" style={styles.toastIcon} />
-            <Text style={styles.toastTitle} numberOfLines={1}>{nextAlarm.title}</Text>
-            <View style={styles.toastDivider} />
+          <View style={dynamicStyles.nextAlarmToast}>
+            <View style={dynamicStyles.toastGlow} />
+            <MaterialCommunityIcons name="clock-fast" size={18} color={accentColor} style={dynamicStyles.toastIcon} />
+            <Text style={dynamicStyles.toastTitle} numberOfLines={1}>{nextAlarm.title}</Text>
+            <View style={dynamicStyles.toastDivider} />
             <AlarmCountdown 
               triggerAt={nextAlarm.triggerAt} 
               isPast={false} 
-              color="#1DB954" 
-              style={styles.toastCountdown} 
+              color={accentColor} 
+              style={dynamicStyles.toastCountdown} 
             />
           </View>
         );
@@ -367,17 +374,17 @@ export default function AlarmScreen() {
       {/* Create Alarm Modal */}
       <Modal visible={showCreate} transparent animationType="slide">
         <TouchableWithoutFeedback onPress={() => { setShowCreate(false); resetForm(); Keyboard.dismiss(); }}>
-          <View style={styles.modalOverlay}>
+          <View style={dynamicStyles.modalOverlay}>
             <TouchableWithoutFeedback>
-              <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{editingId ? 'Edit Alarm' : 'Set Alarm'}</Text>
-            <Text style={styles.modalSubTitle}>Enter date and time details below</Text>
+              <View style={dynamicStyles.modalContent}>
+            <Text style={dynamicStyles.modalTitle}>{editingId ? 'Edit Alarm' : 'Set Alarm'}</Text>
+            <Text style={dynamicStyles.modalSubTitle}>Enter date and time details below</Text>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <View style={dynamicStyles.staticContent}>
               {/* Title */}
-              <Text style={styles.fieldLabel}>Title</Text>
+              <Text style={dynamicStyles.fieldLabel}>Title</Text>
               <TextInput
-                style={styles.modalInput}
+                style={dynamicStyles.modalInput}
                 value={title}
                 onChangeText={setTitle}
                 placeholder="e.g., Birthday Reminder"
@@ -386,28 +393,28 @@ export default function AlarmScreen() {
               />
 
               {/* Date and Time Pickers */}
-              <View style={styles.pickerContainer}>
-                <View style={styles.pickerSection}>
-                  <Text style={styles.fieldLabel}>Date</Text>
+              <View style={dynamicStyles.pickerContainer}>
+                <View style={dynamicStyles.pickerSection}>
+                  <Text style={dynamicStyles.fieldLabel}>Date</Text>
                   <TouchableOpacity 
-                    style={styles.pickerBtn} 
+                    style={dynamicStyles.pickerBtn} 
                     onPress={() => setShowDatePicker(true)}
                   >
-                    <MaterialCommunityIcons name="calendar" size={20} color="#1DB954" />
-                    <Text style={styles.pickerBtnText}>
+                    <MaterialCommunityIcons name="calendar" size={20} color={accentColor} />
+                    <Text style={dynamicStyles.pickerBtnText}>
                       {triggerDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </Text>
                   </TouchableOpacity>
                 </View>
 
-                <View style={styles.pickerSection}>
-                  <Text style={styles.fieldLabel}>Time</Text>
+                <View style={dynamicStyles.pickerSection}>
+                  <Text style={dynamicStyles.fieldLabel}>Time</Text>
                   <TouchableOpacity 
-                    style={styles.pickerBtn} 
+                    style={dynamicStyles.pickerBtn} 
                     onPress={() => setShowTimePicker(true)}
                   >
-                    <MaterialCommunityIcons name="clock-outline" size={20} color="#1DB954" />
-                    <Text style={styles.pickerBtnText}>
+                    <MaterialCommunityIcons name="clock-outline" size={20} color={accentColor} />
+                    <Text style={dynamicStyles.pickerBtnText}>
                       {triggerDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                   </TouchableOpacity>
@@ -434,9 +441,9 @@ export default function AlarmScreen() {
               )}
 
               {/* Message */}
-              <Text style={styles.fieldLabel}>Message</Text>
+              <Text style={dynamicStyles.fieldLabel}>Message</Text>
               <TextInput
-                style={[styles.modalInput, styles.msgInput]}
+                style={[dynamicStyles.modalInput, dynamicStyles.msgInput]}
                 value={message}
                 onChangeText={setMessage}
                 placeholder="Add a note or reminder text..."
@@ -446,21 +453,21 @@ export default function AlarmScreen() {
                 maxLength={200}
               />
 
-              <Text style={styles.fieldLabel}>Alarm Tone</Text>
-              <TouchableOpacity style={styles.toneBtn} onPress={pickTone}>
-                 <View style={styles.toneIconContainer}>
+              <Text style={dynamicStyles.fieldLabel}>Alarm Tone</Text>
+              <TouchableOpacity style={dynamicStyles.toneBtn} onPress={pickTone}>
+                 <View style={dynamicStyles.toneIconContainer}>
                    <MaterialCommunityIcons name="cloud-upload-outline" size={24} color={tone ? '#1DB954' : '#888'} />
                  </View>
-                 <View style={styles.toneTextContainer}>
-                   <Text style={[styles.toneMainText, tone && {color: '#fff'}]}>
+                 <View style={dynamicStyles.toneTextContainer}>
+                   <Text style={[dynamicStyles.toneMainText, tone && {color: '#fff'}]}>
                      {tone ? tone.name : 'Choose Alarm Tone'}
                    </Text>
-                   <Text style={styles.toneSubText}>
+                   <Text style={dynamicStyles.toneSubText}>
                      {tone ? 'File selected' : 'Tap to browse audio files'}
                    </Text>
                  </View>
                  {tone ? (
-                   <TouchableOpacity onPress={() => setTone(null)} style={styles.clearToneBtn}>
+                   <TouchableOpacity onPress={() => setTone(null)} style={dynamicStyles.clearToneBtn}>
                      <MaterialCommunityIcons name="close-circle" size={20} color="#FF5252" />
                    </TouchableOpacity>
                  ) : (
@@ -469,17 +476,17 @@ export default function AlarmScreen() {
               </TouchableOpacity>
 
               {/* Duration and Repetition */}
-              <View style={styles.optionsRow}>
-                <View style={styles.optionItem}>
-                  <Text style={styles.fieldLabel}>Duration</Text>
-                  <View style={styles.durationButtons}>
+              <View style={dynamicStyles.optionsRow}>
+                <View style={dynamicStyles.optionItem}>
+                  <Text style={dynamicStyles.fieldLabel}>Duration</Text>
+                  <View style={dynamicStyles.durationButtons}>
                     {[15, 30, 60, 300].map(val => (
                       <TouchableOpacity 
                         key={val} 
-                        style={[styles.smallBtn, duration === val && styles.activeSmallBtn]}
+                        style={[dynamicStyles.smallBtn, duration === val && dynamicStyles.activeSmallBtn]}
                         onPress={() => setDuration(val)}
                       >
-                        <Text style={[styles.smallBtnText, duration === val && styles.activeSmallBtnText]}>
+                        <Text style={[dynamicStyles.smallBtnText, duration === val && dynamicStyles.activeSmallBtnText]}>
                           {val < 60 ? `${val}s` : `${val/60}m`}
                         </Text>
                       </TouchableOpacity>
@@ -488,41 +495,41 @@ export default function AlarmScreen() {
                 </View>
               </View>
 
-              <View style={styles.repetitionContainer}>
-                <View style={styles.repetitionHeader}>
-                  <Text style={styles.fieldLabel}>Repeat Alarm</Text>
+              <View style={dynamicStyles.repetitionContainer}>
+                <View style={dynamicStyles.repetitionHeader}>
+                  <Text style={dynamicStyles.fieldLabel}>Repeat Alarm</Text>
                   <TouchableOpacity 
                     onPress={() => setRepetitionOn(!repetitionOn)}
-                    style={[styles.toggleBtn, repetitionOn && styles.toggleOn]}
+                    style={[dynamicStyles.toggleBtn, repetitionOn && dynamicStyles.toggleOn]}
                   >
-                    <View style={[styles.toggleCircle, repetitionOn && styles.toggleCircleOn]} />
+                    <View style={[dynamicStyles.toggleCircle, repetitionOn && dynamicStyles.toggleCircleOn]} />
                   </TouchableOpacity>
                 </View>
                 
                 {repetitionOn && (
-                  <View style={styles.repeatCountRow}>
-                    <Text style={styles.repeatLabel}>Repeat Count:</Text>
-                    <View style={styles.countActions}>
-                      <TouchableOpacity onPress={() => setRepeatCount(Math.max(0, repeatCount - 1))} style={styles.countBtn}>
+                  <View style={dynamicStyles.repeatCountRow}>
+                    <Text style={dynamicStyles.repeatLabel}>Repeat Count:</Text>
+                    <View style={dynamicStyles.countActions}>
+                      <TouchableOpacity onPress={() => setRepeatCount(Math.max(0, repeatCount - 1))} style={dynamicStyles.countBtn}>
                         <MaterialCommunityIcons name="minus" size={20} color="#fff" />
                       </TouchableOpacity>
-                      <Text style={styles.countValue}>{repeatCount}</Text>
-                      <TouchableOpacity onPress={() => setRepeatCount(Math.min(10, repeatCount + 1))} style={styles.countBtn}>
+                      <Text style={dynamicStyles.countValue}>{repeatCount}</Text>
+                      <TouchableOpacity onPress={() => setRepeatCount(Math.min(10, repeatCount + 1))} style={dynamicStyles.countBtn}>
                         <MaterialCommunityIcons name="plus" size={20} color="#fff" />
                       </TouchableOpacity>
                     </View>
                   </View>
                 )}
               </View>
-            </ScrollView>
+            </View>
 
             {/* Fixed Actions at Bottom */}
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => { setShowCreate(false); resetForm(); }}>
-                <Text style={styles.cancelText}>Cancel</Text>
+            <View style={dynamicStyles.modalActions}>
+              <TouchableOpacity style={dynamicStyles.cancelBtn} onPress={() => { setShowCreate(false); resetForm(); }}>
+                <Text style={dynamicStyles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmBtn} onPress={createAlarm} disabled={creating}>
-                {creating ? <ActivityIndicator color="#000" /> : <Text style={styles.confirmText}>{editingId ? 'Save Changes' : 'Set Alarm'}</Text>}
+              <TouchableOpacity style={dynamicStyles.confirmBtn} onPress={createAlarm} disabled={creating}>
+                {creating ? <ActivityIndicator color="#000" /> : <Text style={dynamicStyles.confirmText}>{editingId ? 'Save Changes' : 'Set Alarm'}</Text>}
               </TouchableOpacity>
             </View>
               </View>
@@ -533,27 +540,27 @@ export default function AlarmScreen() {
 
       {/* Delete Confirmation Modal */}
       <Modal visible={!!deleteId} transparent animationType="fade">
-        <View style={styles.confirmOverlay}>
-          <View style={styles.confirmContent}>
-            <View style={styles.confirmGlow} />
-            <View style={styles.dangerIconContainer}>
+        <View style={dynamicStyles.confirmOverlay}>
+          <View style={dynamicStyles.confirmContent}>
+            <View style={dynamicStyles.confirmGlow} />
+            <View style={dynamicStyles.dangerIconContainer}>
               <MaterialCommunityIcons name="alert-circle-outline" size={32} color="#EF5350" />
             </View>
-            <Text style={styles.confirmTitle}>Delete Alarm?</Text>
-            <Text style={styles.confirmSubTitle}>This action cannot be undone. Are you sure you want to remove this alarm?</Text>
+            <Text style={dynamicStyles.confirmTitle}>Delete Alarm?</Text>
+            <Text style={dynamicStyles.confirmSubTitle}>This action cannot be undone. Are you sure you want to remove this alarm?</Text>
             
-            <View style={styles.confirmActions}>
+            <View style={dynamicStyles.confirmActions}>
               <TouchableOpacity 
-                style={styles.cancelConfirmBtn} 
+                style={dynamicStyles.cancelConfirmBtn} 
                 onPress={() => setDeleteId(null)}
               >
-                <Text style={styles.cancelConfirmText}>Go Back</Text>
+                <Text style={dynamicStyles.cancelConfirmText}>Go Back</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={styles.deleteConfirmBtn} 
+                style={dynamicStyles.deleteConfirmBtn} 
                 onPress={confirmDelete}
               >
-                <Text style={styles.deleteConfirmText}>Delete</Text>
+                <Text style={dynamicStyles.deleteConfirmText}>Delete</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -564,22 +571,22 @@ export default function AlarmScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+const getStyles = (theme: any, accentColor: string, isDarkMode: boolean) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 25 },
-  title: { color: '#fff', fontSize: 26, fontWeight: '800' },
+  title: { color: theme.text, fontSize: 26, fontWeight: '800' },
   addBtn: { padding: 4 },
   list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 100 },
   // Alarm card
   alarmCard: { 
-    backgroundColor: '#111', 
+    backgroundColor: theme.surface, 
     borderRadius: 24, 
     padding: 20, 
     marginBottom: 16, 
     borderWidth: 1.5, 
-    borderColor: '#333',
+    borderColor: theme.border,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: theme.background,
     shadowOpacity: 0.5,
     shadowRadius: 10,
     elevation: 5
@@ -602,7 +609,7 @@ const styles = StyleSheet.create({
   },
   alarmHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   alarmIndicator: { width: 4, height: 28, borderRadius: 2, marginRight: 15 },
-  alarmTitle: { color: '#fff', fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
+  alarmTitle: { color: theme.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
   statusBadgeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   statusBadge: { fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   cardActions: { position: 'absolute', right: 16, top: 16, gap: 12, alignItems: 'center' },
@@ -610,7 +617,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#000',
+    backgroundColor: theme.background,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
@@ -624,12 +631,12 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: '#000',
+    backgroundColor: theme.background,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#1DB95440',
-    shadowColor: '#1DB954',
+    borderColor: accentColor + '40',
+    shadowColor: accentColor,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
@@ -641,98 +648,98 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     gap: 8, 
     marginTop: 12, 
-    backgroundColor: '#000', 
+    backgroundColor: theme.background, 
     padding: 12, 
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#333'
+    borderColor: theme.border
   },
-  alarmMsgText: { color: '#888', fontSize: 13, fontStyle: 'italic', flex: 1 },
+  alarmMsgText: { color: theme.textSecondary, fontSize: 13, fontStyle: 'italic', flex: 1 },
   tonePreview: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, opacity: 0.6 },
-  tonePreviewText: { color: '#1DB954', fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
+  tonePreviewText: { color: accentColor, fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
   // Empty
   empty: { alignItems: 'center', marginTop: 60 },
-  emptyText: { color: '#555', fontSize: 16, marginTop: 12 },
-  emptySubtext: { color: '#444', fontSize: 13, marginTop: 4 },
+  emptyText: { color: theme.textSecondary, fontSize: 16, marginTop: 12 },
+  emptySubtext: { color: theme.textSecondary, fontSize: 13, marginTop: 4 },
   // Modal
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'flex-end' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'flex-end', paddingBottom: 40, paddingHorizontal: 20 },
   modalScroll: { maxHeight: 400 },
   scrollContent: { paddingBottom: 10 },
+  staticContent: { paddingBottom: 10 },
   modalContent: { 
-    backgroundColor: '#0A0A0A', 
-    borderTopLeftRadius: 32, 
-    borderTopRightRadius: 32, 
+    backgroundColor: theme.surface, 
+    borderRadius: 32, 
     padding: 16, 
     paddingTop: 10,
     paddingBottom: 20,
     borderWidth: 1.5,
-    borderColor: '#1DB95420',
+    borderColor: accentColor + '20',
     maxHeight: '90%'
   },
-  modalTitle: { color: '#fff', fontSize: 22, fontWeight: '900', marginBottom: 2, textAlign: 'center', letterSpacing: -0.5 },
-  modalSubTitle: { color: '#555', fontSize: 12, textAlign: 'center', marginBottom: 8, fontWeight: '500' },
-  fieldLabel: { color: '#888', fontSize: 11, fontWeight: '800', marginBottom: 2, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.5 },
+  modalTitle: { color: theme.text, fontSize: 20, fontWeight: '900', marginBottom: 0, textAlign: 'center', letterSpacing: -0.5 },
+  modalSubTitle: { color: '#555', fontSize: 11, textAlign: 'center', marginBottom: 4, fontWeight: '500' },
+  fieldLabel: { color: theme.textSecondary, fontSize: 10, fontWeight: '800', marginBottom: 1, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
   modalInput: { 
-    backgroundColor: '#000', 
-    color: '#fff', 
+    backgroundColor: theme.background, 
+    color: theme.text, 
     paddingHorizontal: 16, 
     paddingVertical: 10, 
     borderRadius: 12, 
     fontSize: 15, 
     borderWidth: 1.5, 
-    borderColor: '#222', 
-    marginBottom: 4,
+    borderColor: theme.border, 
+    marginBottom: 2,
     fontWeight: '600'
   },
-  msgInput: { height: 70, textAlignVertical: 'top' },
+  msgInput: { height: 50, textAlignVertical: 'top' },
   // Pickers
-  pickerContainer: { flexDirection: 'row', gap: 12, marginBottom: 16 },
+  pickerContainer: { flexDirection: 'row', gap: 10, marginBottom: 8 },
   pickerSection: { flex: 1 },
   pickerBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    backgroundColor: '#0F0F0F', 
+    backgroundColor: isDarkMode ? '#0F0F0F' : theme.surface, 
     padding: 10, 
     borderRadius: 10, 
     borderWidth: 1.5, 
-    borderColor: '#333',
+    borderColor: theme.border,
     gap: 8,
     marginTop: 2
   },
-  pickerBtnText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  pickerBtnText: { color: theme.text, fontSize: 13, fontWeight: '600' },
   // Actions
   modalActions: { flexDirection: 'row', gap: 15, marginTop: 15 },
   cancelBtn: { 
     flex: 1, 
-    backgroundColor: '#111', 
+    backgroundColor: theme.surface, 
     paddingVertical: 10, 
     borderRadius: 18, 
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#222'
+    borderColor: theme.border
   },
   cancelText: { color: '#777', fontWeight: '700', fontSize: 15 },
   confirmBtn: { 
     flex: 2, 
-    backgroundColor: '#1DB954', 
+    backgroundColor: accentColor, 
     paddingVertical: 10, 
     borderRadius: 18, 
     alignItems: 'center',
-    shadowColor: '#1DB954',
+    shadowColor: accentColor,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 8
   },
-  confirmText: { color: '#000', fontWeight: '900', fontSize: 16, letterSpacing: -0.3 },
+  confirmText: { color: theme.background, fontWeight: '900', fontSize: 16, letterSpacing: -0.3 },
   toneBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0A0A0A',
-    padding: 12,
-    borderRadius: 14,
+    backgroundColor: theme.surface,
+    padding: 8,
+    borderRadius: 12,
     borderWidth: 1.5, 
-    borderColor: '#333',
+    borderColor: theme.border,
     borderStyle: 'dashed',
     gap: 12,
   },
@@ -740,47 +747,47 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: '#111',
+    backgroundColor: theme.surface,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#222'
+    borderColor: theme.border
   },
   toneTextContainer: { flex: 1 },
   toneMainText: { color: '#AAA', fontSize: 14, fontWeight: '700' },
   toneSubText: { color: '#555', fontSize: 11, marginTop: 2 },
   clearToneBtn: { padding: 4 },
-  toneText: { color: '#666', fontSize: 14, flex: 1 },
+  toneText: { color: theme.textSecondary, fontSize: 14, flex: 1 },
   // Custom Picker
   pickerModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
-  customPickerContent: { backgroundColor: '#141414', borderRadius: 24, padding: 24, width: '80%', borderWidth: 1.5, borderColor: '#333' },
-  customPickerTitle: { color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 20, textAlign: 'center' },
+  customPickerContent: { backgroundColor: theme.card, borderRadius: 24, padding: 24, width: '80%', borderWidth: 1.5, borderColor: theme.border },
+  customPickerTitle: { color: theme.text, fontSize: 18, fontWeight: '700', marginBottom: 20, textAlign: 'center' },
   wheelContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 200, marginBottom: 20 },
   wheelWrapper: { width: 60, height: 200 },
   wheelItem: { height: 40, justifyContent: 'center', alignItems: 'center' },
-  wheelItemText: { color: '#444', fontSize: 20, fontWeight: '600' },
-  wheelItemActive: { color: '#1DB954', fontSize: 24, fontWeight: '800' },
+  wheelItemText: { color: theme.textSecondary, fontSize: 20, fontWeight: '600' },
+  wheelItemActive: { color: accentColor, fontSize: 24, fontWeight: '800' },
   wheelDivider: { color: '#555', fontSize: 24, fontWeight: '700', marginHorizontal: 10 },
   pickerActions: { flexDirection: 'row', gap: 12 },
   pickerCancel: { flex: 1, paddingVertical: 12, alignItems: 'center' },
-  pickerCancelText: { color: '#888', fontWeight: '600' },
-  pickerConfirm: { flex: 2, backgroundColor: '#1DB954', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
-  pickerConfirmText: { color: '#000', fontWeight: '700' },
+  pickerCancelText: { color: theme.textSecondary, fontWeight: '600' },
+  pickerConfirm: { flex: 2, backgroundColor: accentColor, paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
+  pickerConfirmText: { color: theme.background, fontWeight: '700' },
   // Next Alarm Toastbar
   nextAlarmToast: {
     position: 'absolute',
     bottom: 30,
     left: '10%',
     right: '10%',
-    backgroundColor: '#121212',
+    backgroundColor: isDarkMode ? '#121212' : theme.surface,
     height: 48,
     borderRadius: 24,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     borderWidth: 1.5,
-    borderColor: '#1DB95440',
-    shadowColor: '#1DB954',
+    borderColor: accentColor + '40',
+    shadowColor: accentColor,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -789,7 +796,7 @@ const styles = StyleSheet.create({
   },
   toastGlow: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#1DB95405',
+    backgroundColor: accentColor + '05',
     borderRadius: 24,
   },
   toastIcon: {
@@ -805,13 +812,13 @@ const styles = StyleSheet.create({
   toastDivider: {
     width: 1,
     height: 16,
-    backgroundColor: '#333',
+    backgroundColor: theme.border,
     marginHorizontal: 12,
   },
   toastCountdown: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#1DB954',
+    color: accentColor,
   },
   // Confirm Modal
   confirmOverlay: {
@@ -822,7 +829,7 @@ const styles = StyleSheet.create({
     padding: 20
   },
   confirmContent: {
-    backgroundColor: '#0A0A0A',
+    backgroundColor: theme.surface,
     borderRadius: 32,
     padding: 30,
     width: '100%',
@@ -854,14 +861,14 @@ const styles = StyleSheet.create({
     borderColor: '#EF535030'
   },
   confirmTitle: {
-    color: '#FFF',
+    color: theme.text,
     fontSize: 22,
     fontWeight: '900',
     marginBottom: 12,
     letterSpacing: -0.5
   },
   confirmSubTitle: {
-    color: '#888',
+    color: theme.textSecondary,
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 20,
@@ -878,9 +885,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 16,
     alignItems: 'center',
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.surfaceDarker,
     borderWidth: 1,
-    borderColor: '#333'
+    borderColor: theme.border
   },
   cancelConfirmText: {
     color: '#AAA',
@@ -900,7 +907,7 @@ const styles = StyleSheet.create({
     elevation: 5
   },
   deleteConfirmText: {
-    color: '#FFF',
+    color: theme.text,
     fontWeight: '800',
     fontSize: 14
   },
@@ -912,30 +919,30 @@ const styles = StyleSheet.create({
     paddingVertical: 6, 
     borderRadius: 8, 
     borderWidth: 1, 
-    borderColor: '#333',
-    backgroundColor: '#000'
+    borderColor: theme.border,
+    backgroundColor: theme.background
   },
-  activeSmallBtn: { backgroundColor: '#1DB954', borderColor: '#1DB954' },
-  smallBtnText: { color: '#888', fontSize: 11, fontWeight: '700' },
-  activeSmallBtnText: { color: '#000' },
+  activeSmallBtn: { backgroundColor: accentColor, borderColor: accentColor },
+  smallBtnText: { color: theme.textSecondary, fontSize: 11, fontWeight: '700' },
+  activeSmallBtnText: { color: theme.background },
   repetitionContainer: { 
-    marginTop: 15, 
-    backgroundColor: '#0F0F0F', 
-    padding: 12, 
-    borderRadius: 14,
+    marginTop: 8, 
+    backgroundColor: isDarkMode ? '#0F0F0F' : theme.surface, 
+    padding: 8, 
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#222'
+    borderColor: theme.border
   },
   repetitionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  toggleBtn: { width: 44, height: 24, borderRadius: 12, backgroundColor: '#333', padding: 2 },
-  toggleOn: { backgroundColor: '#1DB954' },
-  toggleCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff' },
+  toggleBtn: { width: 44, height: 24, borderRadius: 12, backgroundColor: theme.border, padding: 2 },
+  toggleOn: { backgroundColor: accentColor },
+  toggleCircle: { width: 20, height: 20, borderRadius: 10, backgroundColor: theme.text },
   toggleCircleOn: { alignSelf: 'flex-end' },
-  repeatCountRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: '#222' },
+  repeatCountRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: theme.border },
   repeatLabel: { color: '#AAA', fontSize: 13, fontWeight: '600' },
   countActions: { flexDirection: 'row', alignItems: 'center', gap: 15 },
-  countBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#222', justifyContent: 'center', alignItems: 'center' },
-  countValue: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  countBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: theme.border, justifyContent: 'center', alignItems: 'center' },
+  countValue: { color: theme.text, fontSize: 18, fontWeight: '800' },
 });
 
 // Helper Types outside to prevent unnecessary re-creations

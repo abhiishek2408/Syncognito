@@ -17,6 +17,7 @@ import { AuthProvider } from './src/context/AuthContext';
 import { ToastProvider } from './src/context/ToastContext';
 import { PlayerProvider } from './src/context/PlayerContext';
 import { AlarmProvider } from './src/context/AlarmContext';
+import { ThemeProvider } from './src/context/ThemeContext';
 import AuthContext from './src/context/AuthContext';
 import { notificationService } from './src/utils/notifications';
 
@@ -78,6 +79,7 @@ function App() {
       <StatusBar barStyle="light-content" />
       <AuthProvider>
         <NotificationHandler />
+        <ThemeProvider>
         <ToastProvider>
           <PlayerProvider>
             <AlarmProvider>
@@ -87,6 +89,7 @@ function App() {
             </AlarmProvider>
           </PlayerProvider>
         </ToastProvider>
+        </ThemeProvider>
       </AuthProvider>
     </SafeAreaProvider>
     </GestureHandlerRootView>

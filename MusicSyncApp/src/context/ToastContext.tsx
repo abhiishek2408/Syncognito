@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import { View, Text, StyleSheet, Animated, Dimensions, Platform, TouchableOpacity } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -120,6 +121,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const accentColor = customColor || getDefaultColor();
   const lightAccent = accentColor + '20';
 
+  const { theme } = useTheme();
+  const styles = getStyles(theme, accentColor);
+
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
@@ -225,7 +229,7 @@ export const useToast = () => {
   return context;
 };
 
-const styles = StyleSheet.create({
+const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
   toastContainer: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 80 : 60,
@@ -235,7 +239,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toastContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.text,
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 24,
@@ -246,7 +250,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0,
     width: '100%',
     maxWidth: 500,
-    shadowColor: '#000',
+    shadowColor: theme.background,
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.12,
     shadowRadius: 20,
@@ -285,7 +289,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   toastText: {
-    color: '#1A1A1A',
+    color: theme.surfaceDarker,
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: -0.2,
@@ -320,7 +324,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   actionButtonText: {
-    color: '#000',
+    color: theme.background,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.5,

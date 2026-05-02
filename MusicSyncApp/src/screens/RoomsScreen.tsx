@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput,
   Modal, ActivityIndicator, ScrollView, Alert, Share, TouchableWithoutFeedback, Keyboard
@@ -14,6 +15,9 @@ import { usePlayer } from '../context/PlayerContext';
 type Props = { navigation: any };
 
 export default function RoomsScreen({ navigation }: Props) {
+  const { theme, accentColor } = useTheme();
+  const dynamicStyles = getStyles(theme, accentColor);
+
   const auth = useContext(AuthContext);
   const { showToast } = useToast();
   const { currentTrack, isPlaying, togglePlayback, activeRoomCode, leaveRoom } = usePlayer();
@@ -121,7 +125,7 @@ export default function RoomsScreen({ navigation }: Props) {
   const renderRoom = ({ item }: { item: any }) => {
     return (
       <TouchableOpacity
-        style={styles.roomCard}
+        style={dynamicStyles.roomCard}
         onPress={() => {
           const isHost = (item.host?._id === auth.user?._id || item.host === auth.user?._id);
           if (item.status === 'offline' && !isHost) {
@@ -132,27 +136,27 @@ export default function RoomsScreen({ navigation }: Props) {
         }}
         activeOpacity={0.7}
       >
-        <View style={styles.roomHeader}>
+        <View style={dynamicStyles.roomHeader}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.roomName} numberOfLines={1}>{item.name}</Text>
-            <View style={styles.roomStats}>
+            <Text style={dynamicStyles.roomName} numberOfLines={1}>{item.name}</Text>
+            <View style={dynamicStyles.roomStats}>
               <MaterialCommunityIcons name="account-group" size={12} color="#888" />
-              <Text style={styles.roomMeta}>{item.members?.length || 0} listening</Text>
+              <Text style={dynamicStyles.roomMeta}>{item.members?.length || 0} listening</Text>
               {item.isPublic ? (
-                <View style={[styles.liveIndicatorMini, { backgroundColor: '#1DB95415' }]}>
+                <View style={[dynamicStyles.liveIndicatorMini, { backgroundColor: '#1DB95415' }]}>
                   <MaterialCommunityIcons name="earth" size={10} color="#1DB954" />
-                  <Text style={[styles.liveTextMini, { color: '#1DB954' }]}>PUBLIC</Text>
+                  <Text style={[dynamicStyles.liveTextMini, { color: '#1DB954' }]}>PUBLIC</Text>
                 </View>
               ) : (
-                <View style={[styles.liveIndicatorMini, { backgroundColor: '#FFB74D15' }]}>
+                <View style={[dynamicStyles.liveIndicatorMini, { backgroundColor: '#FFB74D15' }]}>
                   <MaterialCommunityIcons name="lock" size={10} color="#FFB74D" />
-                  <Text style={[styles.liveTextMini, { color: '#FFB74D' }]}>PRIVATE</Text>
+                  <Text style={[dynamicStyles.liveTextMini, { color: '#FFB74D' }]}>PRIVATE</Text>
                 </View>
               )}
               {item.currentTrack?.isPlaying && (
-                <View style={styles.liveIndicatorMini}>
-                  <View style={styles.liveDotMini} />
-                  <Text style={styles.liveTextMini}>LIVE</Text>
+                <View style={dynamicStyles.liveIndicatorMini}>
+                  <View style={dynamicStyles.liveDotMini} />
+                  <Text style={dynamicStyles.liveTextMini}>LIVE</Text>
                 </View>
               )}
             </View>
@@ -160,7 +164,7 @@ export default function RoomsScreen({ navigation }: Props) {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             {activeRoomCode === item.roomCode && currentTrack.url && (
               <TouchableOpacity 
-                style={styles.cardPlayBtn} 
+                style={dynamicStyles.cardPlayBtn} 
                 onPress={(e) => { e.stopPropagation(); togglePlayback(); }}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
@@ -168,30 +172,30 @@ export default function RoomsScreen({ navigation }: Props) {
               </TouchableOpacity>
             )}
             <TouchableOpacity 
-              style={styles.roomCodeBadge}
+              style={dynamicStyles.roomCodeBadge}
               onPress={(e) => { e.stopPropagation(); shareRoomLink(item.roomCode); }}
             >
               <MaterialCommunityIcons name="export-variant" size={12} color="#1DB954" style={{ marginRight: 4 }} />
-              <Text style={styles.roomCodeText}>#{item.roomCode}</Text>
+              <Text style={dynamicStyles.roomCodeText}>#{item.roomCode}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {item.currentTrack?.title ? (
-          <View style={styles.trackContainer}>
+          <View style={dynamicStyles.trackContainer}>
             <MaterialCommunityIcons name="music-note" size={14} color="#1DB954" />
-            <Text style={styles.trackText} numberOfLines={1}>{item.currentTrack.title}</Text>
+            <Text style={dynamicStyles.trackText} numberOfLines={1}>{item.currentTrack.title}</Text>
           </View>
         ) : null}
 
-        <View style={styles.roomMetaRow}>
+        <View style={dynamicStyles.roomMetaRow}>
           <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={styles.hostNameText} numberOfLines={1}>
+            <Text style={dynamicStyles.hostNameText} numberOfLines={1}>
               Host: {item.host?.name || (item.host === auth.user?._id ? auth.user?.name : 'Unknown')}
             </Text>
             {(item.host?._id === auth.user?._id || item.host === auth.user?._id) && (
-              <View style={styles.youBadge}>
-                <Text style={styles.youBadgeText}>YOU</Text>
+              <View style={dynamicStyles.youBadge}>
+                <Text style={dynamicStyles.youBadgeText}>YOU</Text>
               </View>
             )}
           </View>
@@ -205,8 +209,8 @@ export default function RoomsScreen({ navigation }: Props) {
                 <MaterialCommunityIcons name="delete-outline" size={20} color="#EF5350" />
               </TouchableOpacity>
             )}
-            <View style={styles.joinAction}>
-              <Text style={styles.joinActionText}>Join</Text>
+            <View style={dynamicStyles.joinAction}>
+              <Text style={dynamicStyles.joinActionText}>Join</Text>
               <MaterialCommunityIcons name="chevron-right" size={16} color="#1DB954" />
             </View>
           </View>
@@ -216,19 +220,19 @@ export default function RoomsScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}><MaterialCommunityIcons name="music-note" size={26} color="#1DB954" /> Rooms</Text>
-        <TouchableOpacity style={styles.createBtn} onPress={() => setShowCreate(true)}>
+      <View style={dynamicStyles.header}>
+        <Text style={dynamicStyles.title}><MaterialCommunityIcons name="music-note" size={26} color="#1DB954" /> Rooms</Text>
+        <TouchableOpacity style={dynamicStyles.createBtn} onPress={() => setShowCreate(true)}>
           <MaterialCommunityIcons name="plus-circle" size={28} color="#1DB954" />
         </TouchableOpacity>
       </View>
 
       {/* Join by code */}
-      <View style={styles.joinRow}>
+      <View style={dynamicStyles.joinRow}>
         <TextInput
-          style={styles.joinInput}
+          style={dynamicStyles.joinInput}
           value={joinCode}
           onChangeText={setJoinCode}
           placeholder="Enter room code..."
@@ -236,11 +240,11 @@ export default function RoomsScreen({ navigation }: Props) {
           autoCapitalize="characters"
           maxLength={6}
         />
-        <TouchableOpacity style={styles.joinBtn} onPress={joinByCode}>
-          <Text style={styles.joinBtnText}>Join</Text>
+        <TouchableOpacity style={dynamicStyles.joinBtn} onPress={joinByCode}>
+          <Text style={dynamicStyles.joinBtnText}>Join</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.joinBtn, styles.anonBtn]}
+          style={[dynamicStyles.joinBtn, dynamicStyles.anonBtn]}
           onPress={() => {
             if (!joinCode.trim()) return showToast('Enter a room code first', 'warning');
             axios.get(`${API_URL}/api/rooms/code/${joinCode.trim().toUpperCase()}`, { headers })
@@ -262,18 +266,18 @@ export default function RoomsScreen({ navigation }: Props) {
       </View>
 
       {/* Tabs */}
-      <View style={styles.tabContainer}>
+      <View style={dynamicStyles.tabContainer}>
         <TouchableOpacity 
-          style={[styles.tabBtn, activeTab === 'active' && styles.tabBtnActive]} 
+          style={[dynamicStyles.tabBtn, activeTab === 'active' && dynamicStyles.tabBtnActive]} 
           onPress={() => setActiveTab('active')}
         >
-          <Text style={[styles.tabText, activeTab === 'active' && styles.tabTextActive]}>Active Rooms</Text>
+          <Text style={[dynamicStyles.tabText, activeTab === 'active' && dynamicStyles.tabTextActive]}>Active Rooms</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          style={[styles.tabBtn, activeTab === 'my_rooms' && styles.tabBtnActive]} 
+          style={[dynamicStyles.tabBtn, activeTab === 'my_rooms' && dynamicStyles.tabBtnActive]} 
           onPress={() => setActiveTab('my_rooms')}
         >
-          <Text style={[styles.tabText, activeTab === 'my_rooms' && styles.tabTextActive]}>My Rooms</Text>
+          <Text style={[dynamicStyles.tabText, activeTab === 'my_rooms' && dynamicStyles.tabTextActive]}>My Rooms</Text>
         </TouchableOpacity>
       </View>
 
@@ -288,12 +292,12 @@ export default function RoomsScreen({ navigation }: Props) {
           })}
           keyExtractor={item => item._id || item.roomCode}
           renderItem={renderRoom}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={dynamicStyles.list}
           ListEmptyComponent={
-            <View style={styles.empty}>
+            <View style={dynamicStyles.empty}>
               <MaterialCommunityIcons name="music-off" size={48} color="#333" />
-              <Text style={styles.emptyText}>No rooms found</Text>
-              <Text style={styles.emptySubtext}>Create one or join via room code!</Text>
+              <Text style={dynamicStyles.emptyText}>No rooms found</Text>
+              <Text style={dynamicStyles.emptySubtext}>Create one or join via room code!</Text>
             </View>
           }
           onRefresh={loadRooms}
@@ -304,13 +308,13 @@ export default function RoomsScreen({ navigation }: Props) {
       {/* Create Room Modal */}
       <Modal visible={showCreate} transparent animationType="slide">
         <TouchableWithoutFeedback onPress={() => { setShowCreate(false); Keyboard.dismiss(); }}>
-          <View style={styles.modalOverlay}>
+          <View style={dynamicStyles.modalOverlay}>
             <TouchableWithoutFeedback>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Create a Room</Text>
+              <View style={dynamicStyles.modalContent}>
+                <Text style={dynamicStyles.modalTitle}>Create a Room</Text>
 
             <TextInput
-              style={styles.modalInput}
+              style={dynamicStyles.modalInput}
               value={newRoomName}
               onChangeText={setNewRoomName}
               placeholder="Room name..."
@@ -319,30 +323,30 @@ export default function RoomsScreen({ navigation }: Props) {
             />
 
             {/* Public/Private toggle */}
-            <View style={styles.toggleRow}>
-              <Text style={styles.toggleLabel}>Visibility:</Text>
+            <View style={dynamicStyles.toggleRow}>
+              <Text style={dynamicStyles.toggleLabel}>Visibility:</Text>
               <TouchableOpacity
-                style={[styles.toggleBtn, newRoomPublic && styles.toggleActive]}
+                style={[dynamicStyles.toggleBtn, newRoomPublic && dynamicStyles.toggleActive]}
                 onPress={() => setNewRoomPublic(true)}
               >
                 <MaterialCommunityIcons name="earth" size={16} color={newRoomPublic ? '#fff' : '#888'} />
-                <Text style={[styles.toggleText, newRoomPublic && styles.toggleTextActive]}>Public</Text>
+                <Text style={[dynamicStyles.toggleText, newRoomPublic && dynamicStyles.toggleTextActive]}>Public</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.toggleBtn, !newRoomPublic && styles.toggleActive]}
+                style={[dynamicStyles.toggleBtn, !newRoomPublic && dynamicStyles.toggleActive]}
                 onPress={() => setNewRoomPublic(false)}
               >
                 <MaterialCommunityIcons name="lock" size={16} color={!newRoomPublic ? '#fff' : '#888'} />
-                <Text style={[styles.toggleText, !newRoomPublic && styles.toggleTextActive]}>Private</Text>
+                <Text style={[dynamicStyles.toggleText, !newRoomPublic && dynamicStyles.toggleTextActive]}>Private</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowCreate(false)}>
-                <Text style={styles.cancelText}>Cancel</Text>
+            <View style={dynamicStyles.modalActions}>
+              <TouchableOpacity style={dynamicStyles.cancelBtn} onPress={() => setShowCreate(false)}>
+                <Text style={dynamicStyles.cancelText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.confirmBtn} onPress={createRoom} disabled={creating}>
-                {creating ? <ActivityIndicator color="#000" /> : <Text style={styles.confirmText}>Create</Text>}
+              <TouchableOpacity style={dynamicStyles.confirmBtn} onPress={createRoom} disabled={creating}>
+                {creating ? <ActivityIndicator color="#000" /> : <Text style={dynamicStyles.confirmText}>Create</Text>}
               </TouchableOpacity>
             </View>
               </View>
@@ -353,31 +357,31 @@ export default function RoomsScreen({ navigation }: Props) {
 
       {/* Custom Delete Confirmation Modal */}
       <Modal visible={showDeleteConfirm} transparent animationType="fade">
-        <View style={[styles.modalOverlay, { justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.85)' }]}>
-          <View style={[styles.modalContent, styles.deleteModalContent]}>
-            <View style={styles.deleteIconContainer}>
+        <View style={[dynamicStyles.modalOverlay, { justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.85)' }]}>
+          <View style={[dynamicStyles.modalContent, dynamicStyles.deleteModalContent]}>
+            <View style={dynamicStyles.deleteIconContainer}>
               <MaterialCommunityIcons name="trash-can-outline" size={40} color="#EF5350" />
             </View>
-            <Text style={styles.modalTitle}>Delete Room?</Text>
-            <Text style={styles.deleteSubtext}>
+            <Text style={dynamicStyles.modalTitle}>Delete Room?</Text>
+            <Text style={dynamicStyles.deleteSubtext}>
               This will permanently remove the room and all its chat history. This action cannot be undone.
             </Text>
 
-            <View style={styles.modalActions}>
+            <View style={dynamicStyles.modalActions}>
               <TouchableOpacity 
-                style={styles.cancelBtn} 
+                style={dynamicStyles.cancelBtn} 
                 onPress={() => {
                   setShowDeleteConfirm(false);
                   setRoomToDelete(null);
                 }}
               >
-                <Text style={styles.cancelText}>Keep it</Text>
+                <Text style={dynamicStyles.cancelText}>Keep it</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.confirmBtn, { backgroundColor: '#EF5350' }]} 
+                style={[dynamicStyles.confirmBtn, { backgroundColor: '#EF5350' }]} 
                 onPress={confirmDelete}
               >
-                <Text style={[styles.confirmText, { color: '#fff' }]}>Yes, Delete</Text>
+                <Text style={[dynamicStyles.confirmText, { color: '#fff' }]}>Yes, Delete</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -389,85 +393,85 @@ export default function RoomsScreen({ navigation }: Props) {
 }
 
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8 },
-  title: { color: '#fff', fontSize: 26, fontWeight: '800' },
+  title: { color: theme.text, fontSize: 26, fontWeight: '800' },
   createBtn: { padding: 4 },
   joinRow: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 16, gap: 10, height: 40 },
-  joinInput: { flex: 1, backgroundColor: '#18181A', color: '#fff', paddingHorizontal: 16, borderRadius: 14, fontSize: 14, letterSpacing: 1.5, borderWidth: 1, borderColor: '#222' },
-  joinBtn: { backgroundColor: '#1DB954', paddingHorizontal: 20, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
-  joinBtnText: { color: '#000', fontWeight: '800', fontSize: 13 },
+  joinInput: { flex: 1, backgroundColor: '#18181A', color: theme.text, paddingHorizontal: 16, borderRadius: 14, fontSize: 14, letterSpacing: 1.5, borderWidth: 1, borderColor: theme.border },
+  joinBtn: { backgroundColor: accentColor, paddingHorizontal: 20, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  joinBtnText: { color: theme.background, fontWeight: '800', fontSize: 13 },
   anonBtn: { backgroundColor: '#7E57C2', width: 40, paddingHorizontal: 0, justifyContent: 'center', alignItems: 'center' },
   tabContainer: { flexDirection: 'row', paddingHorizontal: 16, marginBottom: 14, gap: 8 },
-  tabBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#333', backgroundColor: 'transparent' },
-  tabBtnActive: { backgroundColor: '#1DB954', borderColor: '#1DB954' },
-  tabText: { color: '#888', fontWeight: '700', fontSize: 12 },
-  tabTextActive: { color: '#000' },
+  tabBtn: { paddingVertical: 6, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: theme.border, backgroundColor: 'transparent' },
+  tabBtnActive: { backgroundColor: accentColor, borderColor: accentColor },
+  tabText: { color: theme.textSecondary, fontWeight: '700', fontSize: 12 },
+  tabTextActive: { color: theme.background },
   list: { paddingHorizontal: 16, paddingBottom: 100 },
   roomCard: { 
-    backgroundColor: '#0D0D0D', 
+    backgroundColor: theme.card, 
     borderRadius: 16, 
     padding: 14, 
     marginBottom: 12, 
     borderWidth: 1.5, 
-    borderColor: '#333',
+    borderColor: theme.border,
   },
   roomHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  roomName: { color: '#fff', fontSize: 16, fontWeight: '700', flex: 1 },
+  roomName: { color: theme.text, fontSize: 16, fontWeight: '700', flex: 1 },
   roomStats: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  roomMeta: { color: '#666', fontSize: 11, fontWeight: '500' },
+  roomMeta: { color: theme.textSecondary, fontSize: 11, fontWeight: '500' },
   liveIndicatorMini: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#1DB95410', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 },
-  liveDotMini: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#1DB954' },
-  liveTextMini: { color: '#1DB954', fontSize: 8, fontWeight: '900' },
-  roomCodeBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A1A1A', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: '#333' },
-  roomCodeText: { color: '#1DB954', fontSize: 9, fontWeight: '800' },
-  trackContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#000', padding: 8, borderRadius: 8, gap: 6, borderWidth: 1, borderColor: '#151515', marginTop: 8 },
-  trackText: { color: '#1DB954', fontSize: 12, fontWeight: '500', flex: 1 },
-  roomMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#1A1A1A' },
+  liveDotMini: { width: 4, height: 4, borderRadius: 2, backgroundColor: accentColor },
+  liveTextMini: { color: accentColor, fontSize: 8, fontWeight: '900' },
+  roomCodeBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surfaceDarker, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, borderWidth: 1, borderColor: theme.border },
+  roomCodeText: { color: accentColor, fontSize: 9, fontWeight: '800' },
+  trackContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.background, padding: 8, borderRadius: 8, gap: 6, borderWidth: 1, borderColor: theme.border, marginTop: 8 },
+  trackText: { color: accentColor, fontSize: 12, fontWeight: '500', flex: 1 },
+  roomMetaRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 10, borderTopWidth: 1, borderTopColor: theme.surfaceDarker },
   hostNameText: { color: '#555', fontSize: 11, fontWeight: '600' },
   youBadge: { backgroundColor: '#1DB95420', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  youBadgeText: { color: '#1DB954', fontSize: 9, fontWeight: '800' },
+  youBadgeText: { color: accentColor, fontSize: 9, fontWeight: '800' },
   joinAction: { flexDirection: 'row', alignItems: 'center', gap: 2 },
-  joinActionText: { color: '#1DB954', fontSize: 12, fontWeight: '800' },
+  joinActionText: { color: accentColor, fontSize: 12, fontWeight: '800' },
   cardPlayBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#1DB954',
+    backgroundColor: accentColor,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#1DB954',
+    shadowColor: accentColor,
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 3
   },
   empty: { alignItems: 'center', marginTop: 60 },
   emptyText: { color: '#555', fontSize: 16, marginTop: 12 },
-  emptySubtext: { color: '#444', fontSize: 13, marginTop: 4 },
+  emptySubtext: { color: theme.textSecondary, fontSize: 13, marginTop: 4 },
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#1A1A1A', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
-  modalTitle: { color: '#fff', fontSize: 22, fontWeight: '800', marginBottom: 20, textAlign: 'center' },
-  modalInput: { backgroundColor: '#0F0F0F', color: '#fff', paddingHorizontal: 16, paddingVertical: 14, borderRadius: 12, fontSize: 16, borderWidth: 1, borderColor: '#2A2A2A', marginBottom: 16 },
+  modalContent: { backgroundColor: theme.surfaceDarker, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
+  modalTitle: { color: theme.text, fontSize: 22, fontWeight: '800', marginBottom: 20, textAlign: 'center' },
+  modalInput: { backgroundColor: '#0F0F0F', color: theme.text, paddingHorizontal: 16, paddingVertical: 14, borderRadius: 12, fontSize: 16, borderWidth: 1, borderColor: '#2A2A2A', marginBottom: 16 },
   toggleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 8 },
   toggleLabel: { color: '#AAA', fontSize: 14, marginRight: 8, marginBottom: 8 },
-  toggleBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: '#333', gap: 6 },
-  toggleActive: { backgroundColor: '#1DB954', borderColor: '#1DB954' },
-  toggleText: { color: '#888', fontSize: 13 },
-  toggleTextActive: { color: '#fff' },
+  toggleBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: theme.border, gap: 6 },
+  toggleActive: { backgroundColor: accentColor, borderColor: accentColor },
+  toggleText: { color: theme.textSecondary, fontSize: 13 },
+  toggleTextActive: { color: theme.text },
   modalActions: { flexDirection: 'row', gap: 12 },
-  cancelBtn: { flex: 1, backgroundColor: '#333', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  cancelText: { color: '#fff', fontWeight: '600' },
-  confirmBtn: { flex: 1, backgroundColor: '#1DB954', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  confirmText: { color: '#000', fontWeight: '700', fontSize: 16 },
+  cancelBtn: { flex: 1, backgroundColor: theme.border, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  cancelText: { color: theme.text, fontWeight: '600' },
+  confirmBtn: { flex: 1, backgroundColor: accentColor, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  confirmText: { color: theme.background, fontWeight: '700', fontSize: 16 },
   // Delete Modal specific
   deleteModalContent: {
     marginHorizontal: 30,
     borderRadius: 32,
     borderWidth: 1,
     borderColor: 'rgba(239, 83, 80, 0.3)',
-    backgroundColor: '#0A0A0A',
+    backgroundColor: theme.surface,
     paddingVertical: 32,
   },
   deleteIconContainer: {
@@ -481,7 +485,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   deleteSubtext: {
-    color: '#888',
+    color: theme.textSecondary,
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 30,
@@ -494,18 +498,18 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 60,
-    backgroundColor: '#111',
+    backgroundColor: theme.surface,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     borderTopWidth: 1,
-    borderTopColor: '#222',
+    borderTopColor: theme.border,
     justifyContent: 'space-between'
   },
   miniInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  miniDisc: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
-  miniTitle: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  miniArtist: { color: '#666', fontSize: 11, marginTop: 2 },
+  miniDisc: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' },
+  miniTitle: { color: theme.text, fontSize: 13, fontWeight: '700' },
+  miniArtist: { color: theme.textSecondary, fontSize: 11, marginTop: 2 },
   miniPlayBtn: { padding: 4 },
-  miniLeaveBtn: { padding: 8, marginLeft: 4, borderLeftWidth: 1, borderLeftColor: '#222' },
+  miniLeaveBtn: { padding: 8, marginLeft: 4, borderLeftWidth: 1, borderLeftColor: theme.border },
 });

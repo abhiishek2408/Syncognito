@@ -11,16 +11,21 @@ import { usePlayer } from '../context/PlayerContext';
 import { AlarmCountdown } from '../components/AlarmCountdown';
 import { useAlarms } from '../context/AlarmContext';
 import { useToast } from '../context/ToastContext';
+import { useTheme } from '../context/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 
 
 export default function HomeScreen({ navigation }: { navigation: any }) {
+  const { theme, accentColor, isDarkMode } = useTheme();
+  const dynamicStyles = getStyles(theme, accentColor);
+
   const auth = useContext(AuthContext);
   const { currentTrack, isPlaying, togglePlayback, activeRoomCode, leaveRoom } = usePlayer();
   const { alarms, loadAlarms } = useAlarms();
   const { showToast } = useToast();
+  
   const [publicRooms, setPublicRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -45,8 +50,8 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   );
 
   const HomeSkeleton = () => (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
-      <View style={styles.welcomeSection}>
+    <ScrollView style={dynamicStyles.container} contentContainerStyle={{ paddingBottom: 100 }}>
+      <View style={dynamicStyles.welcomeSection}>
         <View>
           <SkeletonItem style={{ width: 150, height: 28, borderRadius: 8, marginBottom: 8 }} />
           <SkeletonItem style={{ width: 200, height: 14, borderRadius: 4 }} />
@@ -54,22 +59,22 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
         <SkeletonItem style={{ width: 44, height: 44, borderRadius: 22 }} />
       </View>
 
-      <View style={styles.quickCardRow}>
+      <View style={dynamicStyles.quickCardRow}>
         {[1, 2, 3].map(i => (
-          <SkeletonItem key={i} style={[styles.gridCard, { borderWidth: 0 }]} />
+          <SkeletonItem key={i} style={[dynamicStyles.gridCard, { borderWidth: 0 }]} />
         ))}
       </View>
 
-      <View style={styles.section}>
-        <SkeletonItem style={[styles.spotlightCard, { borderWidth: 0 }]} />
+      <View style={dynamicStyles.section}>
+        <SkeletonItem style={[dynamicStyles.spotlightCard, { borderWidth: 0 }]} />
       </View>
 
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
+      <View style={dynamicStyles.section}>
+        <View style={dynamicStyles.sectionHeader}>
           <SkeletonItem style={{ width: 120, height: 20, borderRadius: 6 }} />
         </View>
         {[1, 2].map(i => (
-          <SkeletonItem key={i} style={[styles.roomPreview, { height: 120, borderWidth: 0, marginBottom: 12 }]} />
+          <SkeletonItem key={i} style={[dynamicStyles.roomPreview, { height: 120, borderWidth: 0, marginBottom: 12 }]} />
         ))}
       </View>
     </ScrollView>
@@ -129,7 +134,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[dynamicStyles.container, { backgroundColor: theme.background }]}>
       {loading ? <HomeSkeleton /> : (
       <ScrollView 
         contentContainerStyle={{ paddingBottom: 100 }}
@@ -137,27 +142,27 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           <RefreshControl 
             refreshing={refreshing} 
             onRefresh={() => loadData(true)} 
-            tintColor="#1DB954"
-            colors={["#1DB954"]}
-            progressBackgroundColor="#1A1A1A"
+            tintColor={accentColor}
+            colors={[accentColor]}
+            progressBackgroundColor={theme.surface}
           />
         }
       >
       <Animated.View style={{ opacity: fadeAnim }}>
         {/* Welcome */}
-        <View style={styles.welcomeSection}>
+        <View style={dynamicStyles.welcomeSection}>
           <View>
-            <Text style={styles.greeting}>
+            <Text style={[dynamicStyles.greeting, { color: theme.text }]}>
               Hey, {auth.user?.name?.split(' ')[0] || 'there'}{' '}
               <MaterialCommunityIcons name="hand-wave" size={28} color="#FFB74D" />
             </Text>
-            <Text style={styles.subtitle}>Connect and listen with friends</Text>
+            <Text style={[dynamicStyles.subtitle, { color: theme.textSecondary }]}>Connect and listen with friends</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Profile', { screen: 'ProfileMain' })} style={styles.profileBtn}>
+          <TouchableOpacity onPress={() => navigation.navigate('Profile', { screen: 'ProfileMain' })} style={dynamicStyles.profileBtn}>
             {auth.user?.profile_pic || auth.user?.avatar ? (
-              <Image source={{ uri: auth.user.profile_pic || auth.user.avatar }} style={styles.headerAvatar} />
+              <Image source={{ uri: auth.user.profile_pic || auth.user.avatar }} style={dynamicStyles.headerAvatar} />
             ) : (
-              <View style={styles.headerAvatarPlaceholder}>
+              <View style={dynamicStyles.headerAvatarPlaceholder}>
                 <MaterialCommunityIcons name="account" size={24} color="#1DB954" />
               </View>
             )}
@@ -167,69 +172,69 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
 
         {/* Quick Actions Compact Row (No Scroll) */}
-        <View style={styles.quickCardRow}>
+        <View style={dynamicStyles.quickCardRow}>
           {/* Public Rooms */}
           <TouchableOpacity 
-            style={[styles.gridCard, { backgroundColor: '#1DB95410' }]} 
-            onPress={() => navigation.navigate('Rooms')} 
+            style={[dynamicStyles.gridCard, { backgroundColor: '#1DB95410' }]} 
+            onPress={() => showToast('Music Rooms coming soon!', 'info')} 
             activeOpacity={0.8}
           >
-            <View style={[styles.gridBlob, { backgroundColor: '#1DB95415' }]} />
-            <View style={styles.gridIconBubble}>
+            <View style={[dynamicStyles.gridBlob, { backgroundColor: '#1DB95415' }]} />
+            <View style={dynamicStyles.gridIconBubble}>
               <MaterialCommunityIcons name="broadcast" size={20} color="#1DB954" />
             </View>
-            <Text style={styles.gridTitle} numberOfLines={1}>Rooms</Text>
-            <View style={[styles.gridDot, { backgroundColor: '#1DB95440' }]} />
+            <Text style={dynamicStyles.gridTitle} numberOfLines={1}>Rooms</Text>
+            <View style={[dynamicStyles.gridDot, { backgroundColor: '#1DB95440' }]} />
           </TouchableOpacity>
 
           {/* NGL Anonymous Notes */}
           <TouchableOpacity 
-            style={[styles.gridCard, { backgroundColor: '#100E1D' }]} 
+            style={[dynamicStyles.gridCard, { backgroundColor: isDarkMode ? '#100E1D' : '#F4E8FF' }]} 
             onPress={() => navigation.navigate('Profile', { screen: 'Ngl' })} 
             activeOpacity={0.8}
           >
-            <View style={[styles.gridBlob, { backgroundColor: '#BB86FC15' }]} />
-            <View style={styles.gridIconBubble}>
+            <View style={[dynamicStyles.gridBlob, { backgroundColor: '#BB86FC15' }]} />
+            <View style={dynamicStyles.gridIconBubble}>
               <MaterialCommunityIcons name="incognito" size={20} color="#BB86FC" />
             </View>
-            <Text style={styles.gridTitle} numberOfLines={1}>Anonymous</Text>
-            <View style={[styles.gridDot, { backgroundColor: '#BB86FC40' }]} />
+            <Text style={dynamicStyles.gridTitle} numberOfLines={1}>Anonymous</Text>
+            <View style={[dynamicStyles.gridDot, { backgroundColor: '#BB86FC40' }]} />
           </TouchableOpacity>
 
           {/* Global Alarms */}
           <TouchableOpacity 
-            style={[styles.gridCard, { backgroundColor: '#1A1208' }]} 
+            style={[dynamicStyles.gridCard, { backgroundColor: isDarkMode ? '#1A1208' : '#FFF3E0' }]} 
             onPress={() => navigation.navigate('Alarms')} 
             activeOpacity={0.8}
           >
-            <View style={[styles.gridBlob, { backgroundColor: '#FFB74D15' }]} />
-            <View style={styles.gridIconBubble}>
+            <View style={[dynamicStyles.gridBlob, { backgroundColor: '#FFB74D15' }]} />
+            <View style={dynamicStyles.gridIconBubble}>
               <MaterialCommunityIcons name="alarm" size={20} color="#FFB74D" />
             </View>
-            <Text style={styles.gridTitle} numberOfLines={1}>Alarms</Text>
-            <View style={[styles.gridDot, { backgroundColor: '#FFB74D40' }]} />
+            <Text style={dynamicStyles.gridTitle} numberOfLines={1}>Alarms</Text>
+            <View style={[dynamicStyles.gridDot, { backgroundColor: '#FFB74D40' }]} />
           </TouchableOpacity>
         </View>
 
-        {/* Spotlight Card: Private Sync */}
-        <View style={styles.section}>
+        {/* Spotlight Card: Anonymous Messages */}
+        <View style={dynamicStyles.section}>
           <TouchableOpacity 
-            style={styles.spotlightCard} 
+            style={[dynamicStyles.spotlightCard, { borderColor: '#BB86FC30', shadowColor: '#BB86FC' }]} 
             activeOpacity={0.9}
-            onPress={() => navigation.navigate('Rooms')} 
+            onPress={() => navigation.navigate('Profile', { screen: 'Ngl' })} 
           >
-            <View style={styles.spotlightBlob} />
-            <View style={styles.spotlightContent}>
-              <View style={[styles.liveBadge, { borderColor: '#BB86FC40' }]}>
-                <View style={[styles.liveBeam, { backgroundColor: '#BB86FC' }]} />
-                <Text style={styles.liveBadgeText}>PRIVATE SYNC</Text>
+            <View style={[dynamicStyles.spotlightBlob, { backgroundColor: '#BB86FC' }]} />
+            <View style={dynamicStyles.spotlightContent}>
+              <View style={[dynamicStyles.liveBadge, { borderColor: '#BB86FC40' }]}>
+                <View style={[dynamicStyles.liveBeam, { backgroundColor: '#BB86FC' }]} />
+                <Text style={[dynamicStyles.liveBadgeText, { color: '#BB86FC' }]}>TRENDING NOW</Text>
               </View>
-              <Text style={styles.spotlightTitle}>Host Your Own {'\n'}Music Room</Text>
-              <Text style={styles.spotlightDesc}>Create a private space, invite your friends, and listen to your favorite tracks together in real-time.</Text>
-              <View style={styles.spotlightFooter}>
-                <View style={styles.avatarGroup}>
-                  <MaterialCommunityIcons name="account-multiple-plus" size={16} color="#666" />
-                  <Text style={styles.avatarGroupText}>Invite anyone via link</Text>
+              <Text style={dynamicStyles.spotlightTitle}>Get Anonymous {'\n'}Messages</Text>
+              <Text style={dynamicStyles.spotlightDesc}>Share your unique link and receive honest, anonymous messages from your friends.</Text>
+              <View style={dynamicStyles.spotlightFooter}>
+                <View style={dynamicStyles.avatarGroup}>
+                  <MaterialCommunityIcons name="incognito" size={16} color="#BB86FC" />
+                  <Text style={[dynamicStyles.avatarGroupText, { color: '#BB86FC' }]}>Start receiving notes</Text>
                 </View>
               </View>
             </View>
@@ -238,21 +243,22 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
 
         {/* Active Rooms */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}><MaterialCommunityIcons name="fire" size={20} color="#FF7043" /> Active Rooms</Text>
+        {/*
+        <View style={dynamicStyles.section}>
+          <View style={dynamicStyles.sectionHeader}>
+            <Text style={dynamicStyles.sectionTitle}><MaterialCommunityIcons name="fire" size={20} color="#FF7043" /> Active Rooms</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Rooms')}>
-              <Text style={styles.seeAll}>See all</Text>
+              <Text style={dynamicStyles.seeAll}>See all</Text>
             </TouchableOpacity>
           </View>
 
 
           {publicRooms.length === 0 ? (
-            <View style={styles.emptyCard}>
+            <View style={dynamicStyles.emptyCard}>
               <MaterialCommunityIcons name="music-off" size={32} color="#333" />
-              <Text style={styles.emptyText}>No active rooms</Text>
-              <TouchableOpacity style={styles.createRoomBtn} onPress={() => navigation.navigate('Rooms')}>
-                <Text style={styles.createRoomText}>Create one!</Text>
+              <Text style={dynamicStyles.emptyText}>No active rooms</Text>
+              <TouchableOpacity style={dynamicStyles.createRoomBtn} onPress={() => navigation.navigate('Rooms')}>
+                <Text style={dynamicStyles.createRoomText}>Create one!</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -261,58 +267,58 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               return (
               <View
                 key={room._id || i}
-                style={styles.roomPreview}
+                style={dynamicStyles.roomPreview}
               >
-                <View style={styles.roomPreviewHeader}>
+                <View style={dynamicStyles.roomPreviewHeader}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.roomPreviewName} numberOfLines={1}>{room.name}</Text>
-                    <View style={styles.roomPreviewStats}>
+                    <Text style={dynamicStyles.roomPreviewName} numberOfLines={1}>{room.name}</Text>
+                    <View style={dynamicStyles.roomPreviewStats}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                         <MaterialCommunityIcons name="account-group" size={12} color="#888" />
-                        <Text style={styles.roomPreviewMeta}>{room.members?.length || 0} listening</Text>
+                        <Text style={dynamicStyles.roomPreviewMeta}>{room.members?.length || 0} listening</Text>
                       </View>
 
                       {room.status === 'online' ? (
-                        <View style={[styles.liveIndicatorMini, { backgroundColor: '#1DB95415', borderColor: '#1DB95430', borderWidth: 1 }]}>
-                          <View style={[styles.liveDotMini, { backgroundColor: '#1DB954' }]} />
-                          <Text style={[styles.liveTextMini, { color: '#1DB954' }]}>ONLINE</Text>
+                        <View style={[dynamicStyles.liveIndicatorMini, { backgroundColor: '#1DB95415', borderColor: '#1DB95430', borderWidth: 1 }]}>
+                          <View style={[dynamicStyles.liveDotMini, { backgroundColor: '#1DB954' }]} />
+                          <Text style={[dynamicStyles.liveTextMini, { color: '#1DB954' }]}>ONLINE</Text>
                         </View>
                       ) : (
-                        <View style={[styles.liveIndicatorMini, { backgroundColor: '#44415', borderColor: '#44430', borderWidth: 1 }]}>
-                          <View style={[styles.liveDotMini, { backgroundColor: '#888' }]} />
-                          <Text style={[styles.liveTextMini, { color: '#888' }]}>OFFLINE</Text>
+                        <View style={[dynamicStyles.liveIndicatorMini, { backgroundColor: '#44415', borderColor: '#44430', borderWidth: 1 }]}>
+                          <View style={[dynamicStyles.liveDotMini, { backgroundColor: '#888' }]} />
+                          <Text style={[dynamicStyles.liveTextMini, { color: '#888' }]}>OFFLINE</Text>
                         </View>
                       )}
 
                       {room.isPublic ? (
-                        <View style={[styles.liveIndicatorMini, { backgroundColor: '#BB86FC15' }]}>
+                        <View style={[dynamicStyles.liveIndicatorMini, { backgroundColor: '#BB86FC15' }]}>
                           <MaterialCommunityIcons name="earth" size={10} color="#BB86FC" />
-                          <Text style={[styles.liveTextMini, { color: '#BB86FC' }]}>PUBLIC</Text>
+                          <Text style={[dynamicStyles.liveTextMini, { color: '#BB86FC' }]}>PUBLIC</Text>
                         </View>
                       ) : (
-                        <View style={[styles.liveIndicatorMini, { backgroundColor: '#FFB74D15' }]}>
+                        <View style={[dynamicStyles.liveIndicatorMini, { backgroundColor: '#FFB74D15' }]}>
                           <MaterialCommunityIcons name="lock" size={10} color="#FFB74D" />
-                          <Text style={[styles.liveTextMini, { color: '#FFB74D' }]}>PRIVATE</Text>
+                          <Text style={[dynamicStyles.liveTextMini, { color: '#FFB74D' }]}>PRIVATE</Text>
                         </View>
                       )}
                     </View>
                   </View>
-                  <View style={styles.roomPreviewCodeBadge}>
-                    <Text style={styles.roomPreviewCode}>#{room.roomCode}</Text>
+                  <View style={dynamicStyles.roomPreviewCodeBadge}>
+                    <Text style={dynamicStyles.roomPreviewCode}>#{room.roomCode}</Text>
                   </View>
                 </View>
                 
                 {room.currentTrack?.title ? (
-                  <View style={styles.roomPreviewTrackContainer}>
+                  <View style={dynamicStyles.roomPreviewTrackContainer}>
                     <MaterialCommunityIcons name="music-note" size={14} color="#1DB954" />
-                    <Text style={styles.roomPreviewTrack} numberOfLines={1}>{room.currentTrack.title}</Text>
+                    <Text style={dynamicStyles.roomPreviewTrack} numberOfLines={1}>{room.currentTrack.title}</Text>
                   </View>
                 ) : null}
 
-                <View style={styles.roomActionRow}>
+                <View style={dynamicStyles.roomActionRow}>
                   {isHost && room.status === 'offline' ? (
                     <TouchableOpacity 
-                      style={styles.startRoomCardBtn}
+                      style={dynamicStyles.startRoomCardBtn}
                       onPress={() => {
                         if (activeRoomCode && activeRoomCode !== room.roomCode) {
                           showToast('Please leave your current room first', 'warning');
@@ -331,7 +337,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                       ) : (
                         <>
                           <MaterialCommunityIcons name="play-circle" size={16} color="#000" />
-                          <Text style={styles.startRoomCardText}>START ROOM SESSION</Text>
+                          <Text style={dynamicStyles.startRoomCardText}>START ROOM SESSION</Text>
                         </>
                       )}
                     </TouchableOpacity>
@@ -340,14 +346,14 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                       {isHost ? (
                         <>
                           <TouchableOpacity 
-                            style={[styles.joinRoomCardBtn, { flex: 3 }]}
+                            style={[dynamicStyles.joinRoomCardBtn, { flex: 3 }]}
                             onPress={() => navigation.navigate('Room', { room, isAnonymous: false, isHost: true })}
                           >
                             <MaterialCommunityIcons name="arrow-right-box" size={16} color="#FFF" />
-                            <Text style={styles.joinRoomCardText}>ENTER ROOM</Text>
+                            <Text style={dynamicStyles.joinRoomCardText}>ENTER ROOM</Text>
                           </TouchableOpacity>
                           <TouchableOpacity 
-                            style={[styles.joinRoomCardBtn, { flex: 1, backgroundColor: '#FF525215', borderColor: '#FF525240' }]}
+                            style={[dynamicStyles.joinRoomCardBtn, { flex: 1, backgroundColor: '#FF525215', borderColor: '#FF525240' }]}
                             onPress={() => {
                               // Trigger leave logic which closes the room for host
                               leaveRoom(); 
@@ -360,14 +366,14 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                       ) : activeRoomCode === room.roomCode ? (
                         <>
                           <TouchableOpacity 
-                            style={[styles.joinRoomCardBtn, { flex: 3 }]}
+                            style={[dynamicStyles.joinRoomCardBtn, { flex: 3 }]}
                             onPress={() => navigation.navigate('Room', { room, isAnonymous: false, isHost: false })}
                           >
                             <MaterialCommunityIcons name="login-variant" size={16} color="#FFF" />
-                            <Text style={styles.joinRoomCardText}>ENTER ROOM</Text>
+                            <Text style={dynamicStyles.joinRoomCardText}>ENTER ROOM</Text>
                           </TouchableOpacity>
                           <TouchableOpacity 
-                            style={[styles.joinRoomCardBtn, { flex: 1, backgroundColor: '#FF525215', borderColor: '#FF525240' }]}
+                            style={[dynamicStyles.joinRoomCardBtn, { flex: 1, backgroundColor: '#FF525215', borderColor: '#FF525240' }]}
                             onPress={() => leaveRoom()}
                           >
                             <MaterialCommunityIcons name="logout" size={16} color="#FF5252" />
@@ -375,7 +381,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                         </>
                       ) : (
                         <TouchableOpacity 
-                          style={[styles.joinRoomCardBtn, { flex: 1 }]}
+                          style={[dynamicStyles.joinRoomCardBtn, { flex: 1 }]}
                           onPress={() => {
                             if (activeRoomCode && activeRoomCode !== room.roomCode) {
                               showToast('Please leave your current room first', 'warning');
@@ -385,14 +391,14 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                           }}
                         >
                           <MaterialCommunityIcons name="login-variant" size={16} color="#FFF" />
-                          <Text style={styles.joinRoomCardText}>JOIN SYNC</Text>
+                          <Text style={dynamicStyles.joinRoomCardText}>JOIN SYNC</Text>
                         </TouchableOpacity>
                       )}
                     </View>
                   ) : (
-                    <View style={styles.offlineStatusFull}>
+                    <View style={dynamicStyles.offlineStatusFull}>
                       <MaterialCommunityIcons name="clock-outline" size={14} color="#666" />
-                      <Text style={styles.offlineStatusText}>Waiting for host to start...</Text>
+                      <Text style={dynamicStyles.offlineStatusText}>Waiting for host to start...</Text>
                     </View>
                   )}
                 </View>
@@ -401,90 +407,92 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
             })
           )}
         </View>
+        */
+        }
 
         {/* Upcoming Alarms */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}><MaterialCommunityIcons name="alarm" size={20} color="#FFB74D" /> Upcoming Alarms</Text>
+        <View style={dynamicStyles.section}>
+          <View style={dynamicStyles.sectionHeader}>
+            <Text style={dynamicStyles.sectionTitle}><MaterialCommunityIcons name="alarm" size={20} color="#FFB74D" /> Upcoming Alarms</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Alarms')}>
-              <Text style={styles.seeAll}>See all</Text>
+              <Text style={dynamicStyles.seeAll}>See all</Text>
             </TouchableOpacity>
           </View>
           {upcomingAlarms.length > 0 ? (
             upcomingAlarms.map((alarm, i) => (
-              <View key={alarm._id || i} style={styles.alarmPreview}>
+              <View key={alarm._id || i} style={dynamicStyles.alarmPreview}>
                 <MaterialCommunityIcons name="alarm" size={20} color="#FFB74D" />
                 <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={styles.alarmPreviewTitle}>{alarm.title}</Text>
-                  {alarm.message ? <Text style={styles.alarmPreviewMsg} numberOfLines={1}>{alarm.message}</Text> : null}
+                  <Text style={dynamicStyles.alarmPreviewTitle}>{alarm.title}</Text>
+                  {alarm.message ? <Text style={dynamicStyles.alarmPreviewMsg} numberOfLines={1}>{alarm.message}</Text> : null}
                 </View>
                 <AlarmCountdown 
                   triggerAt={alarm.triggerAt} 
                   isPast={new Date(alarm.triggerAt) < new Date()} 
                   color="#FFB74D" 
-                  style={styles.alarmPreviewTime} 
+                  style={dynamicStyles.alarmPreviewTime} 
                 />
               </View>
             ))
           ) : (
-            <View style={[styles.emptyCard, { paddingVertical: 45, borderStyle: 'solid' }]}>
+            <View style={[dynamicStyles.emptyCard, { paddingVertical: 45, borderStyle: 'solid' }]}>
                <MaterialCommunityIcons name="alarm-off" size={24} color="#333" />
-               <Text style={[styles.emptyText, { fontSize: 12, marginTop: 12 }]}>No alarms scheduled. Start your day with music! 🎵</Text>
+               <Text style={[dynamicStyles.emptyText, { fontSize: 12, marginTop: 12 }]}>No alarms scheduled. Start your day with music! 🎵</Text>
             </View>
           )}
         </View>
 
         {/* Global Trending Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}><MaterialCommunityIcons name="trending-up" size={20} color="#BB86FC" /> Around the World</Text>
+        <View style={dynamicStyles.section}>
+          <View style={dynamicStyles.sectionHeader}>
+            <Text style={dynamicStyles.sectionTitle}><MaterialCommunityIcons name="trending-up" size={20} color="#BB86FC" /> Around the World</Text>
           </View>
-          <View style={styles.trendingRow}>
-            <View style={styles.trendingCard}>
-              <View style={[styles.trendingIcon, { backgroundColor: '#1DB95420' }]}>
+          <View style={dynamicStyles.trendingRow}>
+            <View style={dynamicStyles.trendingCard}>
+              <View style={[dynamicStyles.trendingIcon, { backgroundColor: '#1DB95420' }]}>
                 <MaterialCommunityIcons name="headphones" size={20} color="#1DB954" />
               </View>
-              <Text style={styles.trendingVal}>{globalStats.listeners > 1000 ? `${(globalStats.listeners / 1000).toFixed(1)}k` : globalStats.listeners}</Text>
-              <Text style={styles.trendingLabel} numberOfLines={1}>Listeners</Text>
+              <Text style={dynamicStyles.trendingVal}>{globalStats.listeners > 1000 ? `${(globalStats.listeners / 1000).toFixed(1)}k` : globalStats.listeners}</Text>
+              <Text style={dynamicStyles.trendingLabel} numberOfLines={1}>Listeners</Text>
             </View>
             
-            <View style={styles.trendingCard}>
-              <View style={[styles.trendingIcon, { backgroundColor: '#BB86FC20' }]}>
+            <View style={dynamicStyles.trendingCard}>
+              <View style={[dynamicStyles.trendingIcon, { backgroundColor: '#BB86FC20' }]}>
                 <MaterialCommunityIcons name="playlist-music" size={20} color="#BB86FC" />
               </View>
-              <Text style={styles.trendingVal}>{globalStats.activeRooms}</Text>
-              <Text style={styles.trendingLabel} numberOfLines={1}>Rooms</Text>
+              <Text style={dynamicStyles.trendingVal}>{globalStats.activeRooms}</Text>
+              <Text style={dynamicStyles.trendingLabel} numberOfLines={1}>Rooms</Text>
             </View>
 
-            <View style={styles.trendingCard}>
-              <View style={[styles.trendingIcon, { backgroundColor: '#64B5F620' }]}>
+            <View style={dynamicStyles.trendingCard}>
+              <View style={[dynamicStyles.trendingIcon, { backgroundColor: '#64B5F620' }]}>
                 <MaterialCommunityIcons name="account-group" size={20} color="#64B5F6" />
               </View>
-              <Text style={styles.trendingVal}>{globalStats.friends}</Text>
-              <Text style={styles.trendingLabel} numberOfLines={1}>{auth.token ? 'Friends' : 'Users'}</Text>
+              <Text style={dynamicStyles.trendingVal}>{globalStats.friends}</Text>
+              <Text style={dynamicStyles.trendingLabel} numberOfLines={1}>{auth.token ? 'Friends' : 'Users'}</Text>
             </View>
           </View>
         </View>
 
 
         {/* App Feature Spotlight (Showpiece) */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}><MaterialCommunityIcons name="star-face" size={20} color="#FFB74D" /> Featured In App</Text>
+        <View style={dynamicStyles.section}>
+          <View style={dynamicStyles.sectionHeader}>
+            <Text style={dynamicStyles.sectionTitle}><MaterialCommunityIcons name="star-face" size={20} color="#FFB74D" /> Featured In App</Text>
           </View>
-          <View style={styles.pulseGrid}>
+          <View style={dynamicStyles.pulseGrid}>
             {[
               { name: 'Sync Rooms', color: '#1DB954', icon: 'broadcast' },
               { name: 'AI Alarms', color: '#64B5F6', icon: 'alarm-panel' },
               { name: 'Anon Vibes', color: '#BB86FC', icon: 'incognito' },
               { name: 'Social Chat', color: '#FF7043', icon: 'chat-processing' }
             ].map((p, i) => (
-              <View key={i} style={[styles.pulseCard, { borderColor: p.color + '25' }]}>
-                <View style={[styles.pulseIconWrap, { backgroundColor: p.color + '10' }]}>
+              <View key={i} style={[dynamicStyles.pulseCard, { borderColor: p.color + '25' }]}>
+                <View style={[dynamicStyles.pulseIconWrap, { backgroundColor: p.color + '10' }]}>
                   <MaterialCommunityIcons name={p.icon as any} size={20} color={p.color} />
                 </View>
-                <Text style={[styles.pulseName, { color: p.color }]}>{p.name}</Text>
-                <View style={[styles.pulseDot, { backgroundColor: p.color }]} />
+                <Text style={[dynamicStyles.pulseName, { color: p.color }]}>{p.name}</Text>
+                <View style={[dynamicStyles.pulseDot, { backgroundColor: p.color }]} />
               </View>
             ))}
           </View>
@@ -500,23 +508,23 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 }
 
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   // Welcome
   welcomeSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8 },
-  greeting: { color: '#fff', fontSize: 28, fontWeight: '800' },
-  subtitle: { color: '#888', fontSize: 14, marginTop: 4 },
+  greeting: { color: theme.text, fontSize: 28, fontWeight: '800' },
+  subtitle: { color: theme.textSecondary, fontSize: 14, marginTop: 4 },
   profileBtn: { 
     width: 44, 
     height: 44, 
     borderRadius: 22, 
     overflow: 'hidden', 
     borderWidth: 1.5, 
-    borderColor: '#1DB954',
+    borderColor: accentColor,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
-    shadowColor: '#1DB954',
+    backgroundColor: theme.background,
+    shadowColor: accentColor,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 10,
@@ -541,9 +549,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#111',
+    backgroundColor: theme.surface,
     borderWidth: 1.5,
-    borderColor: '#333',
+    borderColor: theme.border,
   },
   gridBlob: {
     position: 'absolute',
@@ -564,13 +572,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.05)',
   },
   gridTitle: {
-    color: '#fff',
+    color: theme.text,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.2,
   },
   gridDesc: {
-    color: '#666',
+    color: theme.textSecondary,
     fontSize: 11,
     marginTop: 2,
     fontWeight: '600',
@@ -586,54 +594,54 @@ const styles = StyleSheet.create({
   // Section
   section: { paddingHorizontal: 16, marginTop: 24 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sectionTitle: { color: '#fff', fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
-  seeAll: { color: '#1DB954', fontSize: 13, fontWeight: '700' },
+  sectionTitle: { color: theme.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.5 },
+  seeAll: { color: accentColor, fontSize: 13, fontWeight: '700' },
   // Room preview
   roomPreview: { 
-    backgroundColor: '#0D0D0D', 
+    backgroundColor: theme.card, 
     borderRadius: 16, 
     padding: 18, 
     marginBottom: 12, 
     borderWidth: 1.5, 
-    borderColor: '#333',
+    borderColor: theme.border,
   },
   roomPreviewHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  roomPreviewName: { color: '#fff', fontSize: 16, fontWeight: '700', flex: 1 },
+  roomPreviewName: { color: theme.text, fontSize: 16, fontWeight: '700', flex: 1 },
   roomPreviewStats: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  roomPreviewMeta: { color: '#666', fontSize: 11, fontWeight: '500' },
+  roomPreviewMeta: { color: theme.textSecondary, fontSize: 11, fontWeight: '500' },
   liveIndicatorMini: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: '#1DB95410', paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 },
-  liveDotMini: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#1DB954' },
-  liveTextMini: { color: '#1DB954', fontSize: 8, fontWeight: '900' },
-  roomPreviewCodeBadge: { backgroundColor: '#1A1A1A', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
-  roomPreviewCode: { color: '#1DB954', fontSize: 9, fontWeight: '800' },
-  roomPreviewTrackContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#000', padding: 8, borderRadius: 8, gap: 6, borderWidth: 1, borderColor: '#151515' },
-  roomPreviewTrack: { color: '#1DB954', fontSize: 12, fontWeight: '500', flex: 1 },
+  liveDotMini: { width: 4, height: 4, borderRadius: 2, backgroundColor: accentColor },
+  liveTextMini: { color: accentColor, fontSize: 8, fontWeight: '900' },
+  roomPreviewCodeBadge: { backgroundColor: theme.surfaceDarker, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
+  roomPreviewCode: { color: accentColor, fontSize: 9, fontWeight: '800' },
+  roomPreviewTrackContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.background, padding: 8, borderRadius: 8, gap: 6, borderWidth: 1, borderColor: theme.border },
+  roomPreviewTrack: { color: accentColor, fontSize: 12, fontWeight: '500', flex: 1 },
   // Empty
   emptyCard: { 
     alignItems: 'center', 
     paddingVertical: 40, 
-    backgroundColor: '#080808', 
+    backgroundColor: theme.surfaceDarker, 
     borderRadius: 24, 
     borderWidth: 1.5, 
-    borderColor: '#333',
+    borderColor: theme.border,
     borderStyle: 'dashed'
   },
-  emptyText: { color: '#333', marginTop: 12, fontSize: 14 },
-  createRoomBtn: { backgroundColor: '#1DB954', paddingHorizontal: 28, paddingVertical: 12, borderRadius: 24, marginTop: 16 },
-  createRoomText: { color: '#000', fontWeight: '800', fontSize: 15 },
+  emptyText: { color: theme.border, marginTop: 12, fontSize: 14 },
+  createRoomBtn: { backgroundColor: accentColor, paddingHorizontal: 28, paddingVertical: 12, borderRadius: 24, marginTop: 16 },
+  createRoomText: { color: theme.background, fontWeight: '800', fontSize: 15 },
   // Alarm preview
-  alarmPreview: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#141414', borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1.5, borderColor: '#333' },
-  alarmPreviewTitle: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  alarmPreviewMsg: { color: '#888', fontSize: 12, marginTop: 2 },
+  alarmPreview: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.card, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1.5, borderColor: theme.border },
+  alarmPreviewTitle: { color: theme.text, fontSize: 14, fontWeight: '600' },
+  alarmPreviewMsg: { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
   alarmPreviewTime: { color: '#FFB74D', fontSize: 12, fontWeight: '600' },
   cardPlayBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#1DB954',
+    backgroundColor: accentColor,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#1DB954',
+    shadowColor: accentColor,
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 3
@@ -644,20 +652,20 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 60,
-    backgroundColor: '#111',
+    backgroundColor: theme.surface,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     borderTopWidth: 1.5,
-    borderTopColor: '#333',
+    borderTopColor: theme.border,
     justifyContent: 'space-between'
   },
   miniInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  miniDisc: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
-  miniTitle: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  miniArtist: { color: '#666', fontSize: 11, marginTop: 2 },
+  miniDisc: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' },
+  miniTitle: { color: theme.text, fontSize: 13, fontWeight: '700' },
+  miniArtist: { color: theme.textSecondary, fontSize: 11, marginTop: 2 },
   miniPlayBtn: { padding: 4 },
-  miniLeaveBtn: { padding: 8, marginLeft: 4, borderLeftWidth: 1, borderLeftColor: '#222' },
+  miniLeaveBtn: { padding: 8, marginLeft: 4, borderLeftWidth: 1, borderLeftColor: theme.border },
   // Trending
   trendingRow: {
     flexDirection: 'row',
@@ -666,11 +674,11 @@ const styles = StyleSheet.create({
   },
   trendingCard: { 
     flex: 1,
-    backgroundColor: '#0D0D0D', 
+    backgroundColor: theme.card, 
     borderRadius: 20, 
     padding: 12, 
     borderWidth: 1.5, 
-    borderColor: '#1E1E1E',
+    borderColor: theme.border,
     alignItems: 'center',
     gap: 6
   },
@@ -681,17 +689,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center', 
     alignItems: 'center' 
   },
-  trendingVal: { color: '#fff', fontSize: 16, fontWeight: '800' },
-  trendingLabel: { color: '#666', fontSize: 10, fontWeight: '600' },
+  trendingVal: { color: theme.text, fontSize: 16, fontWeight: '800' },
+  trendingLabel: { color: theme.textSecondary, fontSize: 10, fontWeight: '600' },
   // Spotlight
   spotlightCard: { 
     height: 180, 
     borderRadius: 32, 
-    backgroundColor: '#111', 
+    backgroundColor: theme.surface, 
     overflow: 'hidden', 
     borderWidth: 1, 
     borderColor: '#1DB95430',
-    shadowColor: '#1DB954',
+    shadowColor: accentColor,
     shadowOpacity: 0.2,
     shadowRadius: 20,
     elevation: 10
@@ -703,7 +711,7 @@ const styles = StyleSheet.create({
     width: 200, 
     height: 200, 
     borderRadius: 100, 
-    backgroundColor: '#1DB954', 
+    backgroundColor: accentColor, 
     opacity: 0.1 
   },
   spotlightContent: { flex: 1, padding: 20, justifyContent: 'space-between' },
@@ -718,21 +726,21 @@ const styles = StyleSheet.create({
     borderWidth: 1, 
     borderColor: 'rgba(255,255,255,0.08)' 
   },
-  liveBeam: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#1DB954' },
-  liveBadgeText: { color: '#fff', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
-  spotlightTitle: { color: '#fff', fontSize: 24, fontWeight: '900', lineHeight: 28 },
-  spotlightDesc: { color: '#888', fontSize: 12, lineHeight: 18 },
+  liveBeam: { width: 5, height: 5, borderRadius: 2.5, backgroundColor: accentColor },
+  liveBadgeText: { color: theme.text, fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
+  spotlightTitle: { color: theme.text, fontSize: 24, fontWeight: '900', lineHeight: 28 },
+  spotlightDesc: { color: theme.textSecondary, fontSize: 12, lineHeight: 18 },
   spotlightFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   avatarGroup: { flexDirection: 'row', alignItems: 'center' },
-  miniAvatar: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#333', borderWidth: 1.5 },
-  avatarGroupText: { color: '#666', fontSize: 10, marginLeft: 8, fontWeight: '600' },
-  joinSpotlightBtn: { backgroundColor: '#1DB954', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 },
-  joinSpotlightText: { color: '#000', fontSize: 13, fontWeight: '800' },
+  miniAvatar: { width: 18, height: 18, borderRadius: 9, backgroundColor: theme.border, borderWidth: 1.5 },
+  avatarGroupText: { color: theme.textSecondary, fontSize: 10, marginLeft: 8, fontWeight: '600' },
+  joinSpotlightBtn: { backgroundColor: accentColor, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 },
+  joinSpotlightText: { color: theme.background, fontSize: 13, fontWeight: '800' },
   // Pulse
   pulseGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 4 },
   pulseCard: { 
     width: (SCREEN_WIDTH - 42) / 2, 
-    backgroundColor: '#0A0A0A', 
+    backgroundColor: theme.surface, 
     height: 60, 
     borderRadius: 16, 
     flexDirection: 'row', 
@@ -749,16 +757,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#1DB954',
+    backgroundColor: accentColor,
     paddingVertical: 10,
     borderRadius: 12,
-    shadowColor: '#1DB954',
+    shadowColor: accentColor,
     shadowOpacity: 0.2,
     shadowRadius: 10,
     elevation: 5
   },
   startRoomCardText: {
-    color: '#000',
+    color: theme.background,
     fontSize: 11,
     fontWeight: '900',
     letterSpacing: 1
@@ -766,7 +774,7 @@ const styles = StyleSheet.create({
   roomActionRow: { 
     marginTop: 15, 
     borderTopWidth: 1, 
-    borderTopColor: '#1A1A1A', 
+    borderTopColor: theme.surfaceDarker, 
     paddingTop: 12,
   },
   joinRoomCardBtn: {
@@ -774,13 +782,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#1A1A1A',
+    backgroundColor: theme.surfaceDarker,
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#333'
+    borderColor: theme.border
   },
-  joinRoomCardText: { color: '#FFF', fontWeight: '800', fontSize: 11, letterSpacing: 1 },
+  joinRoomCardText: { color: theme.text, fontWeight: '800', fontSize: 11, letterSpacing: 1 },
   offlineStatusFull: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -788,5 +796,5 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 8,
   },
-  offlineStatusText: { color: '#444', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  offlineStatusText: { color: theme.textSecondary, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
 });

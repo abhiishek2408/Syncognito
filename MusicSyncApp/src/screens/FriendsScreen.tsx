@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList, Alert, TextInput, ActivityIndicator, ScrollView, Modal } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AuthContext from '../context/AuthContext';
@@ -7,50 +8,56 @@ import axios from 'axios';
 import API_URL from '../utils/api';
 
 const UserItem = ({ item, type, onAction }: { item: any, type: string, onAction: (id: string, action: string, extra?: string) => void }) => {
+  const { theme, accentColor } = useTheme();
+  const dynamicStyles = getStyles(theme, accentColor);
   const id = item._id || item.id;
   const name = item.name || 'User';
   const initial = name.charAt(0).toUpperCase();
   
   return (
-    <View style={styles.row}>
-      <View style={styles.userInfo}>
-        <View style={styles.avatarMini}>
-          <View style={styles.avatarGradient}>
-            <Text style={styles.avatarInitial}>{initial}</Text>
+    <View style={dynamicStyles.row}>
+      <TouchableOpacity 
+        style={dynamicStyles.userInfo} 
+        onPress={() => onAction(id, 'profile', name)}
+        activeOpacity={0.7}
+      >
+        <View style={dynamicStyles.avatarMini}>
+          <View style={dynamicStyles.avatarGradient}>
+            <Text style={dynamicStyles.avatarInitial}>{initial}</Text>
           </View>
         </View>
-        <View style={{ marginLeft: 4 }}>
-          <Text style={styles.nameText}>{name}</Text>
-          <Text style={styles.emailText} numberOfLines={1}>{item.email}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={dynamicStyles.nameText}>{name}</Text>
+          <Text style={dynamicStyles.emailText} numberOfLines={1}>{item.email}</Text>
         </View>
-      </View>
-      <View style={styles.actions}>
+      </TouchableOpacity>
+      <View style={dynamicStyles.actions}>
         {type === 'search' && (
-          <TouchableOpacity style={[styles.actionButton, styles.addBtn]} onPress={() => onAction(id, 'send')}>
+          <TouchableOpacity style={[dynamicStyles.actionButton, dynamicStyles.addBtn]} onPress={() => onAction(id, 'send')}>
             <MaterialCommunityIcons name="account-plus" size={18} color="#000" />
           </TouchableOpacity>
         )}
         {type === 'received' && (
           <>
-            <TouchableOpacity style={[styles.actionButton, styles.acceptBtn]} onPress={() => onAction(id, 'accept')}>
+            <TouchableOpacity style={[dynamicStyles.actionButton, dynamicStyles.acceptBtn]} onPress={() => onAction(id, 'accept')}>
               <MaterialCommunityIcons name="check" size={18} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionButton, styles.declineBtn]} onPress={() => onAction(id, 'decline')}>
+            <TouchableOpacity style={[dynamicStyles.actionButton, dynamicStyles.declineBtn]} onPress={() => onAction(id, 'decline')}>
               <MaterialCommunityIcons name="close" size={18} color="#fff" />
             </TouchableOpacity>
           </>
         )}
         {type === 'sent' && (
-          <TouchableOpacity style={[styles.actionButton, styles.declineBtn]} onPress={() => onAction(id, 'cancel')}>
+          <TouchableOpacity style={[dynamicStyles.actionButton, dynamicStyles.declineBtn]} onPress={() => onAction(id, 'cancel')}>
             <MaterialCommunityIcons name="account-cancel" size={18} color="#fff" />
           </TouchableOpacity>
         )}
         {type === 'friend' && (
           <>
-            <TouchableOpacity style={[styles.actionButton, styles.nglBtn]} onPress={() => onAction(id, 'ngl', name)}>
-              <MaterialCommunityIcons name="incognito" size={18} color="#BB86FC" />
+            <TouchableOpacity style={[dynamicStyles.actionButton, dynamicStyles.nglBtn]} onPress={() => onAction(id, 'ngl', name)}>
+              <MaterialCommunityIcons name="incognito" size={18} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionButton, styles.declineBtn]} onPress={() => onAction(id, 'unfriend', name)}>
+            <TouchableOpacity style={[dynamicStyles.actionButton, dynamicStyles.declineBtn]} onPress={() => onAction(id, 'unfriend', name)}>
               <MaterialCommunityIcons name="account-remove" size={18} color="#fff" />
             </TouchableOpacity>
           </>
@@ -60,7 +67,10 @@ const UserItem = ({ item, type, onAction }: { item: any, type: string, onAction:
   );
 };
 
-export default function FriendsScreen() {
+export default function FriendsScreen({ navigation }: any) {
+  const { theme, accentColor } = useTheme();
+  const dynamicStyles = getStyles(theme, accentColor);
+
   const auth = useContext(AuthContext);
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'friends' | 'received' | 'sent' | 'search'>('friends');
@@ -121,6 +131,9 @@ export default function FriendsScreen() {
           }}
         ]);
         return; 
+      } else if (action === 'profile') {
+        navigation.navigate('ProfileDetail', { userId: id, userName: extra });
+        return;
       } else if (action === 'ngl') {
         setNglTarget({ id, name: extra || 'Friend' });
         return;
@@ -161,18 +174,18 @@ export default function FriendsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       {/* NGL Send Modal */}
       <Modal visible={!!nglTarget} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.nglModal}>
-            <View style={styles.nglHeader}>
+        <View style={dynamicStyles.modalOverlay}>
+          <View style={dynamicStyles.nglModal}>
+            <View style={dynamicStyles.nglHeader}>
               <MaterialCommunityIcons name="incognito" size={24} color="#BB86FC" />
-              <Text style={styles.nglTitle}>Send to {nglTarget?.name.split(' ')[0]}</Text>
+              <Text style={dynamicStyles.nglTitle}>Send to {nglTarget?.name.split(' ')[0]}</Text>
             </View>
-            <Text style={styles.nglSub}>Your identity is strictly hidden</Text>
+            <Text style={dynamicStyles.nglSub}>Your identity is strictly hidden</Text>
             <TextInput
-              style={styles.nglInput}
+              style={dynamicStyles.nglInput}
               placeholder="What's on your mind?..."
               placeholderTextColor="#444"
               multiline
@@ -180,19 +193,19 @@ export default function FriendsScreen() {
               value={nglText}
               onChangeText={setNglText}
             />
-            <View style={styles.nglActions}>
-              <TouchableOpacity style={styles.nglCancel} onPress={() => setNglTarget(null)}>
-                <Text style={styles.nglCancelText}>CANCEL</Text>
+            <View style={dynamicStyles.nglActions}>
+              <TouchableOpacity style={dynamicStyles.nglCancel} onPress={() => setNglTarget(null)}>
+                <Text style={dynamicStyles.nglCancelText}>CANCEL</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.nglSend, !nglText.trim() && { opacity: 0.5 }]} 
+                style={[dynamicStyles.nglSend, !nglText.trim() && { opacity: 0.5 }]} 
                 onPress={submitNgl}
                 disabled={sendingNgl || !nglText.trim()}
               >
                 {sendingNgl ? (
                   <ActivityIndicator size="small" color="#000" />
                 ) : (
-                  <Text style={styles.nglSendText}>SEND ANONYMOUSLY</Text>
+                  <Text style={dynamicStyles.nglSendText}>SEND ANONYMOUSLY</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -200,13 +213,13 @@ export default function FriendsScreen() {
         </View>
       </Modal>
 
-      <View style={styles.header}>
-        <Text style={styles.title}>Social Hub</Text>
-        <Text style={styles.subtitle}>Connect and listen together</Text>
+      <View style={dynamicStyles.header}>
+        <Text style={dynamicStyles.title}>Social Hub</Text>
+        <Text style={dynamicStyles.subtitle}>Connect and listen together</Text>
       </View>
 
-      <View style={styles.tabWrapper}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabContainer}>
+      <View style={dynamicStyles.tabWrapper}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={dynamicStyles.tabContainer}>
           {[
             { id: 'friends', label: 'Friends' },
             { id: 'received', label: 'Received', badge: received.length },
@@ -215,12 +228,12 @@ export default function FriendsScreen() {
           ].map(tab => (
             <TouchableOpacity 
               key={tab.id} 
-              style={[styles.tabBtn, activeTab === tab.id && styles.activeTabBtn]} 
+              style={[dynamicStyles.tabBtn, activeTab === tab.id && dynamicStyles.activeTabBtn]} 
               onPress={() => setActiveTab(tab.id as any)}
             >
-              <Text style={[styles.tabText, activeTab === tab.id && styles.activeTabText]}>{tab.label}</Text>
+              <Text style={[dynamicStyles.tabText, activeTab === tab.id && dynamicStyles.activeTabText]}>{tab.label}</Text>
               {tab.badge ? (
-                <View style={styles.badge}><Text style={styles.badgeText}>{tab.badge}</Text></View>
+                <View style={dynamicStyles.badge}><Text style={dynamicStyles.badgeText}>{tab.badge}</Text></View>
               ) : null}
             </TouchableOpacity>
           ))}
@@ -230,15 +243,15 @@ export default function FriendsScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         {activeTab === 'search' && (
           <>
-            <View style={styles.searchContainer}>
-              <View style={styles.searchBar}>
+            <View style={dynamicStyles.searchContainer}>
+              <View style={dynamicStyles.searchBar}>
                 <MaterialCommunityIcons name="magnify" size={22} color="#444" />
                 <TextInput 
                   value={query} 
                   onChangeText={setQuery} 
                   placeholder="Find music buddies..." 
                   placeholderTextColor="#444" 
-                  style={styles.searchInput} 
+                  style={dynamicStyles.searchInput} 
                   onSubmitEditing={searchUsers} 
                 />
                 {searching && <ActivityIndicator size="small" color="#1DB954" />}
@@ -246,55 +259,55 @@ export default function FriendsScreen() {
             </View>
             
             {searchResults.length > 0 ? (
-              <View style={styles.listSection}>
-                <Text style={styles.sectionHeader}>People Found</Text>
+              <View style={dynamicStyles.listSection}>
+                <Text style={dynamicStyles.sectionHeader}>People Found</Text>
                 {searchResults.map(u => <UserItem key={u._id||u.id} item={u} type="search" onAction={handleAction} />)}
               </View>
             ) : query && !searching ? (
-              <View style={styles.emptyResults}>
+              <View style={dynamicStyles.emptyResults}>
                 <MaterialCommunityIcons name="account-search-outline" size={48} color="#222" />
-                <Text style={styles.emptyResultsText}>No one found with that name</Text>
+                <Text style={dynamicStyles.emptyResultsText}>No one found with that name</Text>
               </View>
             ) : (
-                <View style={styles.findPrompt}>
+                <View style={dynamicStyles.findPrompt}>
                   <MaterialCommunityIcons name="earth" size={80} color="#111" />
-                  <Text style={styles.findPromptText}>Type a name to discover listeners</Text>
+                  <Text style={dynamicStyles.findPromptText}>Type a name to discover listeners</Text>
                 </View>
             )}
           </>
         )}
 
         {activeTab === 'friends' && (
-          <View style={styles.listSection}>
-            <Text style={styles.sectionHeader}>Online Friends ({friends.length})</Text>
+          <View style={dynamicStyles.listSection}>
+            <Text style={dynamicStyles.sectionHeader}>Online Friends ({friends.length})</Text>
             {friends.length === 0 ? (
-              <View style={styles.emptyResults}>
+              <View style={dynamicStyles.emptyResults}>
                 <MaterialCommunityIcons name="account-multiple-outline" size={64} color="#1A1A1A" />
-                <Text style={styles.emptyResultsText}>Your friends list is empty</Text>
+                <Text style={dynamicStyles.emptyResultsText}>Your friends list is empty</Text>
               </View>
             ) : (friends.map(f => <UserItem key={f._id||f.id} item={f} type="friend" onAction={handleAction} />))}
           </View>
         )}
 
         {activeTab === 'received' && (
-          <View style={styles.listSection}>
-            <Text style={styles.sectionHeader}>New Friend Requests</Text>
+          <View style={dynamicStyles.listSection}>
+            <Text style={dynamicStyles.sectionHeader}>New Friend Requests</Text>
             {received.length === 0 ? (
-              <View style={styles.emptyResults}>
+              <View style={dynamicStyles.emptyResults}>
                 <MaterialCommunityIcons name="email-check-outline" size={64} color="#1A1A1A" />
-                <Text style={styles.emptyResultsText}>All caught up! No requests.</Text>
+                <Text style={dynamicStyles.emptyResultsText}>All caught up! No requests.</Text>
               </View>
             ) : (received.map(u => <UserItem key={u._id||u.id} item={u} type="received" onAction={handleAction} />))}
           </View>
         )}
 
         {activeTab === 'sent' && (
-          <View style={styles.listSection}>
-            <Text style={styles.sectionHeader}>Pending Sent Requests</Text>
+          <View style={dynamicStyles.listSection}>
+            <Text style={dynamicStyles.sectionHeader}>Pending Sent Requests</Text>
             {sent.length === 0 ? (
-              <View style={styles.emptyResults}>
+              <View style={dynamicStyles.emptyResults}>
                 <MaterialCommunityIcons name="send-outline" size={64} color="#1A1A1A" />
-                <Text style={styles.emptyResultsText}>No pending sent requests</Text>
+                <Text style={dynamicStyles.emptyResultsText}>No pending sent requests</Text>
               </View>
             ) : (sent.map(u => <UserItem key={u._id||u.id} item={u} type="sent" onAction={handleAction} />))}
           </View>
@@ -304,58 +317,58 @@ export default function FriendsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  header: { paddingHorizontal: 24, paddingTop: 10, paddingBottom: 20 },
-  title: { color: '#fff', fontSize: 32, fontWeight: '900', letterSpacing: -1 },
-  subtitle: { color: '#666', fontSize: 14, marginTop: 4 },
+const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
+  header: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 20 },
+  title: { color: theme.text, fontSize: 32, fontWeight: '900', letterSpacing: -1 },
+  subtitle: { color: theme.textSecondary, fontSize: 14, marginTop: 4 },
   
   tabWrapper: { marginBottom: 14 },
-  tabContainer: { flexDirection: 'row', paddingHorizontal: 24, gap: 8 },
-  tabBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: '#333', backgroundColor: 'transparent' },
-  activeTabBtn: { backgroundColor: '#1DB954', borderColor: '#1DB954' },
-  tabText: { color: '#888', fontWeight: '700', fontSize: 12 },
-  activeTabText: { color: '#000' },
+  tabContainer: { flexDirection: 'row', paddingHorizontal: 16, gap: 8 },
+  tabBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: theme.border, backgroundColor: 'transparent' },
+  activeTabBtn: { backgroundColor: accentColor, borderColor: accentColor },
+  tabText: { color: theme.textSecondary, fontWeight: '700', fontSize: 12 },
+  activeTabText: { color: theme.background },
   
   badge: { backgroundColor: '#EF5350', marginLeft: 6, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  badgeText: { color: '#fff', fontSize: 10, fontWeight: '900' },
+  badgeText: { color: theme.text, fontSize: 10, fontWeight: '900' },
   
-  searchContainer: { paddingHorizontal: 24, marginBottom: 20 },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0A0A0A', borderRadius: 14, paddingHorizontal: 14, height: 42, borderWidth: 1, borderColor: '#1A1A1A' },
-  searchInput: { flex: 1, color: '#fff', fontSize: 14, marginLeft: 8, fontWeight: '500' },
+  searchContainer: { paddingHorizontal: 16, marginBottom: 20 },
+  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 14, paddingHorizontal: 14, height: 42, borderWidth: 1, borderColor: theme.surfaceDarker },
+  searchInput: { flex: 1, color: theme.text, fontSize: 14, marginLeft: 8, fontWeight: '500' },
   
-  listSection: { paddingHorizontal: 24, marginTop: 10 },
-  sectionHeader: { color: '#333', fontSize: 11, fontWeight: '900', textTransform: 'uppercase', marginBottom: 16, letterSpacing: 1 },
+  listSection: { paddingHorizontal: 16, marginTop: 10 },
+  sectionHeader: { color: theme.border, fontSize: 11, fontWeight: '900', textTransform: 'uppercase', marginBottom: 16, letterSpacing: 1 },
   
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#080808', padding: 14, borderRadius: 24, marginBottom: 12, borderWidth: 1, borderColor: '#111' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: theme.card, padding: 14, borderRadius: 24, marginBottom: 12, borderWidth: 1, borderColor: theme.border },
   userInfo: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
-  avatarMini: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1DB954', padding: 2 },
-  avatarGradient: { flex: 1, borderRadius: 20, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' },
-  avatarInitial: { color: '#1DB954', fontSize: 18, fontWeight: '900' },
-  nameText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  emailText: { color: '#444', fontSize: 12, marginTop: 1 },
+  avatarMini: { width: 44, height: 44, borderRadius: 22, backgroundColor: accentColor, padding: 2 },
+  avatarGradient: { flex: 1, borderRadius: 20, backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' },
+  avatarInitial: { color: accentColor, fontSize: 18, fontWeight: '900' },
+  nameText: { color: theme.text, fontSize: 16, fontWeight: '700' },
+  emailText: { color: theme.textSecondary, fontSize: 12, marginTop: 1 },
   
   actions: { flexDirection: 'row', gap: 10 },
-  actionButton: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: '#111', borderWidth: 1, borderColor: '#222' },
-  nglBtn: { backgroundColor: '#BB86FC15', borderColor: '#BB86FC40' },
-  addBtn: { backgroundColor: '#1DB954' },
-  acceptBtn: { backgroundColor: '#1DB95420', borderColor: '#1DB95440' },
-  declineBtn: { backgroundColor: '#EF535020', borderColor: '#EF535040' },
+  actionButton: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
+  nglBtn: { backgroundColor: '#BB86FC', borderColor: '#BB86FC' },
+  addBtn: { backgroundColor: accentColor, borderColor: accentColor },
+  acceptBtn: { backgroundColor: '#1DB954', borderColor: '#1DB954' },
+  declineBtn: { backgroundColor: '#EF5350', borderColor: '#EF5350' },
   
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' },
-  nglModal: { width: '85%', backgroundColor: '#0A0A0A', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: '#1A1A1A' },
+  nglModal: { width: '85%', backgroundColor: theme.surface, borderRadius: 24, padding: 24, borderWidth: 1, borderColor: theme.surfaceDarker },
   nglHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  nglTitle: { color: '#FFF', fontSize: 18, fontWeight: '800' },
-  nglSub: { color: '#666', fontSize: 12, marginBottom: 16 },
-  nglInput: { backgroundColor: '#111', borderRadius: 16, padding: 16, color: '#FFF', fontSize: 15, textAlignVertical: 'top', height: 120, borderWidth: 1, borderColor: '#222', marginBottom: 20 },
+  nglTitle: { color: theme.text, fontSize: 18, fontWeight: '800' },
+  nglSub: { color: theme.textSecondary, fontSize: 12, marginBottom: 16 },
+  nglInput: { backgroundColor: theme.surface, borderRadius: 16, padding: 16, color: theme.text, fontSize: 15, textAlignVertical: 'top', height: 120, borderWidth: 1, borderColor: theme.border, marginBottom: 20 },
   nglActions: { flexDirection: 'row', gap: 10 },
-  nglCancel: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: '#1A1A1A' },
-  nglCancelText: { color: '#666', fontWeight: '800', fontSize: 12 },
+  nglCancel: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: theme.surfaceDarker },
+  nglCancelText: { color: theme.textSecondary, fontWeight: '800', fontSize: 12 },
   nglSend: { flex: 2, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: '#BB86FC' },
-  nglSendText: { color: '#000', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
+  nglSendText: { color: theme.background, fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
 
   emptyResults: { alignItems: 'center', marginTop: 80, paddingHorizontal: 40 },
-  emptyResultsText: { color: '#333', fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 16 },
+  emptyResultsText: { color: theme.border, fontSize: 14, fontWeight: '600', textAlign: 'center', marginTop: 16 },
   findPrompt: { alignItems: 'center', marginTop: 60 },
-  findPromptText: { color: '#222', fontSize: 14, fontWeight: '700', marginTop: 20 },
+  findPromptText: { color: theme.border, fontSize: 14, fontWeight: '700', marginTop: 20 },
 });

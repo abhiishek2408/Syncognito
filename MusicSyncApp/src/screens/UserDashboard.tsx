@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTheme } from '../context/ThemeContext';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AppNavigator from '../navigation/AppNavigator';
@@ -8,6 +9,9 @@ import AuthContext from '../context/AuthContext';
 type Props = { navigation: any };
 
 export default function UserDashboard({ navigation }: Props) {
+  const { theme, accentColor } = useTheme();
+  const dynamicStyles = getStyles(theme, accentColor);
+
   const { token, initializing } = React.useContext(AuthContext);
 
   React.useEffect(() => {
@@ -25,7 +29,7 @@ export default function UserDashboard({ navigation }: Props) {
   if (!token) return null;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={dynamicStyles.container} edges={["top"]}>
       <AppNavigator />
       <MiniPlayer />
     </SafeAreaView>
@@ -33,11 +37,11 @@ export default function UserDashboard({ navigation }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  header: { paddingTop: 16, paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: '#222' },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: '700' },
+const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
+  header: { paddingTop: 16, paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: theme.border },
+  headerTitle: { color: theme.text, fontSize: 20, fontWeight: '700' },
   userText: { color: '#AAA', marginTop: 6 },
   signOut: { position: 'absolute', right: 12, top: 12, padding: 6 },
-  signOutText: { color: '#1DB954', fontWeight: '700' },
+  signOutText: { color: accentColor, fontWeight: '700' },
 });

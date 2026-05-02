@@ -3,7 +3,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Image } from 'react-native';
+import { Image, Alert } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 import HomeScreen from '../screens/HomeScreen';
 import FriendsScreen from '../screens/FriendsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -15,6 +16,7 @@ import AlarmScreen from '../screens/AlarmScreen';
 import NglScreen from '../screens/NglScreen';
 import NglMessageDetailScreen from '../screens/NglMessageDetailScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
+import ProfileDetailScreen from '../screens/ProfileDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -48,26 +50,38 @@ function ProfileStack() {
       <Stack.Screen name="Help" component={HelpScreen} />
       <Stack.Screen name="Ngl" component={NglScreen} />
       <Stack.Screen name="NglMessageDetail" component={NglMessageDetailScreen} />
+      <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function FriendsStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="FriendsMain" component={FriendsScreen} />
+      <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
     </Stack.Navigator>
   );
 }
 
 export default function AppNavigator() {
+  const { theme, accentColor } = useTheme();
+
   return (
     <Tab.Navigator
       initialRouteName="Home"
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: '#1DB954',
-        tabBarInactiveTintColor: '#666',
+        tabBarActiveTintColor: accentColor,
+        tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: ((route) => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? "";
           if (routeName === 'Ngl' || routeName === 'NglMessageDetail') {
             return { display: 'none' };
           }
           return {
-            backgroundColor: '#000',
-            borderTopColor: '#1A1A1A',
+            backgroundColor: theme.background,
+            borderTopColor: theme.border,
             borderTopWidth: 1,
             height: 85,
             paddingBottom: 22,
@@ -96,10 +110,24 @@ export default function AppNavigator() {
       })}
     >
       <Tab.Screen name="Home" component={HomeStack} />
-      <Tab.Screen name="Rooms" component={RoomsStack} />
-      <Tab.Screen name="Friends" component={FriendsScreen} />
+      <Tab.Screen 
+        name="Rooms" 
+        component={RoomsStack} 
+        options={{ tabBarButton: () => null }}
+      />
+      <Tab.Screen name="Friends" component={FriendsStack} />
       <Tab.Screen name="Alarms" component={AlarmScreen} />
-      <Tab.Screen name="Profile" component={ProfileStack} />
+      <Tab.Screen 
+        name="Profile" 
+        component={ProfileStack} 
+        options={{ unmountOnBlur: true }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate('Profile', { screen: 'ProfileMain' });
+          },
+        })}
+      />
     </Tab.Navigator>
   );
 }

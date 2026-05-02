@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import Video from 'react-native-video';
 import { getSocket } from '../utils/socket';
 import AuthContext from './AuthContext';

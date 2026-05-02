@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Modal, Animated, Linking } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '../context/ThemeContext';
 
 export default function SettingsScreen({ navigation }: { navigation: any }) {
+  const { isDarkMode, theme, accentColor, toggleDarkMode, setAccentColor } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [highQuality, setHighQuality] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -43,45 +45,83 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-            <MaterialCommunityIcons name="chevron-left" size={28} color="#fff" />
+            <MaterialCommunityIcons name="chevron-left" size={28} color={theme.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>Settings</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Settings</Text>
+        </View>
+
+        {/* Section: Appearance */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: accentColor }]}>Appearance</Text>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={styles.row}>
+              <View style={styles.rowLeft}>
+                <View style={[styles.iconBox, { backgroundColor: accentColor + '15' }]}>
+                  <MaterialCommunityIcons name="theme-light-dark" size={20} color={accentColor} />
+                </View>
+                <Text style={[styles.rowLabel, { color: theme.text }]}>Dark Mode</Text>
+              </View>
+              <Switch 
+                value={isDarkMode} 
+                onValueChange={toggleDarkMode}
+                trackColor={{ false: '#ccc', true: accentColor }}
+                thumbColor="#fff"
+              />
+            </View>
+            <View style={[styles.separator, { backgroundColor: theme.border }]} />
+            <View style={[styles.row, { flexDirection: 'column', alignItems: 'flex-start', paddingBottom: 20 }]}>
+              <Text style={[styles.rowLabel, { color: theme.text, marginBottom: 15 }]}>Theme Color</Text>
+              <View style={{ flexDirection: 'row', gap: 15 }}>
+                {['#1DB954', '#BB86FC', '#FF4081', '#FFB74D', '#64B5F6'].map(color => (
+                  <TouchableOpacity
+                    key={color}
+                    style={{
+                      width: 32, height: 32, borderRadius: 16, backgroundColor: color,
+                      borderWidth: accentColor === color ? 3 : 0,
+                      borderColor: theme.text
+                    }}
+                    onPress={() => setAccentColor(color)}
+                  />
+                ))}
+              </View>
+            </View>
+          </View>
         </View>
 
         {/* Section: Preferences */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
-          <View style={styles.card}>
+          <Text style={[styles.sectionTitle, { color: accentColor }]}>Preferences</Text>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <View style={styles.row}>
               <View style={styles.rowLeft}>
-                <View style={[styles.iconBox, { backgroundColor: '#1DB95415' }]}>
-                  <MaterialCommunityIcons name="bell-outline" size={20} color="#1DB954" />
+                <View style={[styles.iconBox, { backgroundColor: accentColor + '15' }]}>
+                  <MaterialCommunityIcons name="bell-outline" size={20} color={accentColor} />
                 </View>
-                <Text style={styles.rowLabel}>Push Notifications</Text>
+                <Text style={[styles.rowLabel, { color: theme.text }]}>Push Notifications</Text>
               </View>
               <Switch 
                 value={notifications} 
                 onValueChange={handleToggleNotifications}
-                trackColor={{ false: '#333', true: '#1DB954' }}
+                trackColor={{ false: '#ccc', true: accentColor }}
                 thumbColor="#fff"
               />
             </View>
-            <View style={styles.separator} />
+            <View style={[styles.separator, { backgroundColor: theme.border }]} />
             <View style={styles.row}>
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: '#64B5F615' }]}>
                   <MaterialCommunityIcons name="high-definition" size={20} color="#64B5F6" />
                 </View>
-                <Text style={styles.rowLabel}>High Quality Audio</Text>
+                <Text style={[styles.rowLabel, { color: theme.text }]}>High Quality Audio</Text>
               </View>
               <Switch 
                 value={highQuality} 
                 onValueChange={handleToggleHighQuality}
-                trackColor={{ false: '#333', true: '#1DB954' }}
+                trackColor={{ false: '#ccc', true: accentColor }}
                 thumbColor="#fff"
               />
             </View>
@@ -90,43 +130,43 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
 
         {/* Section: Privacy */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Privacy & Security</Text>
-          <View style={styles.card}>
+          <Text style={[styles.sectionTitle, { color: accentColor }]}>Privacy & Security</Text>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <TouchableOpacity style={styles.row} onPress={() => openUrl('https://syncognito-nine.vercel.app/privacy')}>
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: '#FFB74D15' }]}>
                   <MaterialCommunityIcons name="lock-outline" size={20} color="#FFB74D" />
                 </View>
-                <Text style={styles.rowLabel}>Privacy Policy</Text>
+                <Text style={[styles.rowLabel, { color: theme.text }]}>Privacy Policy</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={20} color="#444" />
+              <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.row} onPress={() => openUrl('https://syncognito-nine.vercel.app/terms')}>
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: '#FF704315' }]}>
                   <MaterialCommunityIcons name="file-document-outline" size={20} color="#FF7043" />
                 </View>
-                <Text style={styles.rowLabel}>Terms of Service</Text>
+                <Text style={[styles.rowLabel, { color: theme.text }]}>Terms of Service</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={20} color="#444" />
+              <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
-            <View style={styles.separator} />
+            <View style={[styles.separator, { backgroundColor: theme.border }]} />
             <TouchableOpacity style={styles.row} onPress={() => openUrl('https://syncognito-nine.vercel.app/data-deletion')}>
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: '#BB86FC15' }]}>
                   <MaterialCommunityIcons name="database-remove-outline" size={20} color="#BB86FC" />
                 </View>
-                <Text style={styles.rowLabel}>Data Deletion Policy</Text>
+                <Text style={[styles.rowLabel, { color: theme.text }]}>Data Deletion Policy</Text>
               </View>
-              <MaterialCommunityIcons name="chevron-right" size={20} color="#444" />
+              <MaterialCommunityIcons name="chevron-right" size={20} color={theme.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Section: Danger */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          <View style={styles.card}>
+          <Text style={[styles.sectionTitle, { color: accentColor }]}>Account</Text>
+          <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
             <TouchableOpacity style={styles.row} onPress={() => setShowDeleteModal(true)}>
               <View style={styles.rowLeft}>
                 <View style={[styles.iconBox, { backgroundColor: '#EF535015' }]}>
@@ -138,18 +178,18 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
           </View>
         </View>
 
-        <Text style={styles.version}>Version 1.0.0 (Build 2026)</Text>
+        <Text style={[styles.version, { color: theme.textSecondary }]}>Version 1.0.0 (Build 2026)</Text>
       </ScrollView>
 
       {/* Beautiful Delete Modal */}
       <Modal visible={showDeleteModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
+          <View style={[styles.modalCard, { backgroundColor: theme.surface }]}>
             <View style={styles.dangerIconWrap}>
               <MaterialCommunityIcons name="alert-circle-outline" size={48} color="#EF5350" />
             </View>
-            <Text style={styles.modalTitle}>Delete Account</Text>
-            <Text style={styles.modalSub}>This action is permanent and cannot be undone. All your synced data will be lost.</Text>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Delete Account</Text>
+            <Text style={[styles.modalSub, { color: theme.textSecondary }]}>This action is permanent and cannot be undone. All your synced data will be lost.</Text>
             
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowDeleteModal(false)}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, TextInput,
   Alert, ScrollView, Animated, Dimensions, LogBox, Modal, ActivityIndicator, Share, Platform, PermissionsAndroid
@@ -59,6 +60,9 @@ const FloatingEmoji = ({ emoji, x }: { emoji: string, x: number }) => {
 };
 
 export default function RoomScreen({ navigation, route }: Props) {
+  const { theme, accentColor } = useTheme();
+  const dynamicStyles = getStyles(theme, accentColor);
+
   const params = route?.params || {};
   const { room: initialRoom = {}, isAnonymous = false, isHost: initialIsHost = false } = params;
   
@@ -111,11 +115,11 @@ export default function RoomScreen({ navigation, route }: Props) {
     crimson: { primary: '#DC143C', accent: '#DC143C08', bg: '#000', text: '#FFF' },
     bubblegum: { primary: '#FF69B4', accent: '#FF69B408', bg: '#000', text: '#FFF' },
   };
-  const theme = THEMES[currentTheme] || THEMES.default;
+  const roomTheme = THEMES[currentTheme] || THEMES.default;
 
   // Wrapper: auto-inject room theme color into all toasts
   const showToast = (msg: string, type?: any, duration?: number, action?: any) => {
-    _showToast(msg, type, duration, action, theme.primary);
+    _showToast(msg, type, duration, action, accentColor);
   };
 
   const isHost = (auth.user && initialRoom?.host?._id === auth.user?._id) || initialIsHost;
@@ -329,7 +333,7 @@ export default function RoomScreen({ navigation, route }: Props) {
 
   const bgColor = bgAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [theme.bg, theme.accent],
+    outputRange: [roomTheme.bg, accentColor],
   });
 
   const formatTime = (seconds: number) => {
@@ -525,7 +529,7 @@ export default function RoomScreen({ navigation, route }: Props) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={dynamicStyles.container}>
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         {reactions.map(r => (
           <FloatingEmoji key={r.id} emoji={r.emoji} x={r.x} />
@@ -534,10 +538,10 @@ export default function RoomScreen({ navigation, route }: Props) {
 
       {/* Guessing Modal */}
       <Modal visible={showGuessModal} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={[styles.nglModal, { paddingBottom: 20 }]}>
-            <Text style={styles.modalTitle}>Who added this?</Text>
-            <Text style={styles.modalSub}>{selectedSongForGuess?.title}</Text>
+        <View style={dynamicStyles.modalOverlay}>
+          <View style={[dynamicStyles.nglModal, { paddingBottom: 20 }]}>
+            <Text style={dynamicStyles.modalTitle}>Who added this?</Text>
+            <Text style={dynamicStyles.modalSub}>{selectedSongForGuess?.title}</Text>
             <ScrollView style={{ maxHeight: 300, width: '100%' }}>
               {members.map(m => (
                 <TouchableOpacity 
@@ -549,31 +553,31 @@ export default function RoomScreen({ navigation, route }: Props) {
                   }}
                 >
                    <Text style={{ color: '#FFF', fontSize: 16 }}>{m.displayName}</Text>
-                   <MaterialCommunityIcons name="chevron-right" size={20} color={theme.primary} />
+                   <MaterialCommunityIcons name="chevron-right" size={20} color={accentColor} />
                 </TouchableOpacity>
               ))}
             </ScrollView>
-            <TouchableOpacity style={[styles.cancelBtn, { marginTop: 20, width: '100%' }]} onPress={() => setShowGuessModal(false)}>
-              <Text style={styles.cancelText}>Cancel</Text>
+            <TouchableOpacity style={[dynamicStyles.cancelBtn, { marginTop: 20, width: '100%' }]} onPress={() => setShowGuessModal(false)}>
+              <Text style={dynamicStyles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
       {isWaitingApproval && (
-        <View style={styles.waitingOverlay}>
-          <MaterialCommunityIcons name="clock-outline" size={80} color={theme.primary} />
-          <Text style={styles.waitingTitle}>Waiting for Approval</Text>
-          <Text style={styles.waitingSub}>The host will let you in shortly...</Text>
-          <ActivityIndicator size="large" color={theme.primary} style={{ marginTop: 30 }} />
+        <View style={dynamicStyles.waitingOverlay}>
+          <MaterialCommunityIcons name="clock-outline" size={80} color={accentColor} />
+          <Text style={dynamicStyles.waitingTitle}>Waiting for Approval</Text>
+          <Text style={dynamicStyles.waitingSub}>The host will let you in shortly...</Text>
+          <ActivityIndicator size="large" color={accentColor} style={{ marginTop: 30 }} />
           <TouchableOpacity 
-            style={styles.cancelWaitBtn} 
+            style={dynamicStyles.cancelWaitBtn} 
             onPress={() => {
               socket.emit('leave-room');
               setIsWaitingApproval(false);
               navigation.goBack();
             }}
           >
-            <Text style={styles.cancelWaitText}>CANCEL REQUEST</Text>
+            <Text style={dynamicStyles.cancelWaitText}>CANCEL REQUEST</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -583,35 +587,35 @@ export default function RoomScreen({ navigation, route }: Props) {
         animationType="fade"
         onRequestClose={() => setShowExitModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.exitModalRoot}>
-            <View style={styles.exitIconCircle}>
-              <MaterialCommunityIcons name={isHost ? "power" : "logout"} size={24} color={isHost ? theme.primary : "#FFF"} />
+        <View style={dynamicStyles.modalOverlay}>
+          <View style={dynamicStyles.exitModalRoot}>
+            <View style={dynamicStyles.exitIconCircle}>
+              <MaterialCommunityIcons name={isHost ? "power" : "logout"} size={24} color={isHost ? accentColor : "#FFF"} />
             </View>
-            <Text style={styles.exitTitle}>{isHost ? "Close Room?" : "Leave Room?"}</Text>
-            <Text style={styles.exitSubtitle}>
+            <Text style={dynamicStyles.exitTitle}>{isHost ? "Close Room?" : "Leave Room?"}</Text>
+            <Text style={dynamicStyles.exitSubtitle}>
               {isHost 
                 ? "As the host, closing the room will end the session for all listeners."
                 : "You'll stop syncing with this room. You can rejoin anytime!"}
             </Text>
             
-            <View style={styles.exitActionRow}>
+            <View style={dynamicStyles.exitActionRow}>
               <TouchableOpacity 
-                style={styles.exitCancelBtn} 
+                style={dynamicStyles.exitCancelBtn} 
                 onPress={() => setShowExitModal(false)}
               >
-                <Text style={styles.exitCancelText}>CANCEL</Text>
+                <Text style={dynamicStyles.exitCancelText}>CANCEL</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
-                style={[styles.exitConfirmBtn, { backgroundColor: theme.primary }]} 
+                style={[dynamicStyles.exitConfirmBtn, { backgroundColor: accentColor }]} 
                 onPress={() => {
                   setShowExitModal(false);
                   leaveRoom();
                   navigation.goBack();
                 }}
               >
-                <Text style={styles.exitConfirmText}>{isHost ? "CLOSE ROOM" : "LEAVE"}</Text>
+                <Text style={dynamicStyles.exitConfirmText}>{isHost ? "CLOSE ROOM" : "LEAVE"}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -619,15 +623,15 @@ export default function RoomScreen({ navigation, route }: Props) {
       </Modal>
 
       <Modal visible={showNglModal} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.nglModal}>
-            <View style={styles.nglHeader}>
+        <View style={dynamicStyles.modalOverlay}>
+          <View style={dynamicStyles.nglModal}>
+            <View style={dynamicStyles.nglHeader}>
               <MaterialCommunityIcons name="incognito" size={24} color="#BB86FC" />
-              <Text style={styles.nglTitle}>Note to {initialRoom.host?.name?.split(' ')[0]}</Text>
+              <Text style={dynamicStyles.nglTitle}>Note to {initialRoom.host?.name?.split(' ')[0]}</Text>
             </View>
-            <Text style={styles.nglSub}>Your identity is strictly hidden</Text>
+            <Text style={dynamicStyles.nglSub}>Your identity is strictly hidden</Text>
             <TextInput
-              style={styles.nglInput}
+              style={dynamicStyles.nglInput}
               placeholder="Tell the host something anonymously..."
               placeholderTextColor="#444"
               multiline
@@ -635,19 +639,19 @@ export default function RoomScreen({ navigation, route }: Props) {
               value={nglText}
               onChangeText={setNglText}
             />
-            <View style={styles.nglActions}>
-              <TouchableOpacity style={styles.nglCancel} onPress={() => setShowNglModal(false)}>
-                <Text style={styles.nglCancelText}>CANCEL</Text>
+            <View style={dynamicStyles.nglActions}>
+              <TouchableOpacity style={dynamicStyles.nglCancel} onPress={() => setShowNglModal(false)}>
+                <Text style={dynamicStyles.nglCancelText}>CANCEL</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.nglSend, !nglText.trim() && { opacity: 0.5 }]} 
+                style={[dynamicStyles.nglSend, !nglText.trim() && { opacity: 0.5 }]} 
                 onPress={submitNgl}
                 disabled={sendingNgl || !nglText.trim()}
               >
                 {sendingNgl ? (
                   <ActivityIndicator size="small" color="#000" />
                 ) : (
-                  <Text style={styles.nglSendText}>SEND ANONYMOUSLY</Text>
+                  <Text style={dynamicStyles.nglSendText}>SEND ANONYMOUSLY</Text>
                 )}
               </TouchableOpacity>
             </View>
@@ -655,41 +659,41 @@ export default function RoomScreen({ navigation, route }: Props) {
         </View>
       </Modal>
 
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
+      <View style={dynamicStyles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={dynamicStyles.headerIcon}>
           <MaterialCommunityIcons name="chevron-left" size={28} color="#fff" />
         </TouchableOpacity>
         <View style={{ flex: 1, marginLeft: 10 }}>
-          <Text style={styles.headerTitle}>{initialRoom.name || 'Room'}</Text>
+          <Text style={dynamicStyles.headerTitle}>{initialRoom.name || 'Room'}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={styles.headerSubtitle}>#{initialRoom.roomCode}</Text>
+            <Text style={dynamicStyles.headerSubtitle}>#{initialRoom.roomCode}</Text>
           </View>
         </View>
         {isHost && (
           <TouchableOpacity 
             onPress={() => setShowThemeSelector(!showThemeSelector)} 
-            style={[styles.headerIcon, { borderColor: theme.primary + '40', borderWidth: 1, marginRight: 10 }]}
+            style={[dynamicStyles.headerIcon, { borderColor: accentColor + '40', borderWidth: 1, marginRight: 10 }]}
           >
-            <MaterialCommunityIcons name="palette" size={22} color={theme.primary} />
+            <MaterialCommunityIcons name="palette" size={22} color={accentColor} />
           </TouchableOpacity>
         )}
         <TouchableOpacity 
           onPress={shareRoomLink} 
-          style={[styles.headerIcon, { borderColor: theme.primary + '40', borderWidth: 1, marginRight: 10 }]}
+          style={[dynamicStyles.headerIcon, { borderColor: accentColor + '40', borderWidth: 1, marginRight: 10 }]}
         >
-          <MaterialCommunityIcons name="account-plus" size={22} color={theme.primary} />
+          <MaterialCommunityIcons name="account-plus" size={22} color={accentColor} />
         </TouchableOpacity>
         <TouchableOpacity 
           onPress={() => setShowExitModal(true)} 
-          style={[styles.leaveBtn, { borderColor: isHost ? '#FF525240' : theme.primary + '40' }]}
+          style={[dynamicStyles.leaveBtn, { borderColor: isHost ? '#FF525240' : accentColor + '40' }]}
         >
           <MaterialCommunityIcons name={isHost ? "power" : "logout"} size={16} color={isHost ? "#FF5252" : "#FFF"} />
-          <Text style={[styles.leaveText, { color: isHost ? "#FF5252" : "#FFF" }]}>{isHost ? "CLOSE" : "LEAVE"}</Text>
+          <Text style={[dynamicStyles.leaveText, { color: isHost ? "#FF5252" : "#FFF" }]}>{isHost ? "CLOSE" : "LEAVE"}</Text>
         </TouchableOpacity>
       </View>
 
       {isHost && activeTab === 'player' && showThemeSelector && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.themeBar} contentContainerStyle={{ gap: 8 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={dynamicStyles.themeBar} contentContainerStyle={{ gap: 8 }}>
           {Object.keys(THEMES).map(t => (
             <TouchableOpacity 
               key={t} 
@@ -698,7 +702,7 @@ export default function RoomScreen({ navigation, route }: Props) {
                 // Optional: hide after selection? Let's keep it for now as user didn't say.
               }}
               style={[
-                styles.themeDot, 
+                dynamicStyles.themeDot, 
                 { backgroundColor: THEMES[t].primary },
                 currentTheme === t && { borderWidth: 2, borderColor: '#FFF' }
               ]} 
@@ -707,16 +711,16 @@ export default function RoomScreen({ navigation, route }: Props) {
         </ScrollView>
       )}
 
-      <View style={styles.tabContainer}>
-        <TouchableOpacity onPress={() => setActiveTab('player')} style={[styles.tab, activeTab === 'player' && { borderBottomWidth: 3, borderBottomColor: theme.primary }]}><Text style={[styles.tabText, activeTab === 'player' && styles.activeTabText]}>PLAYER</Text></TouchableOpacity>
-        <TouchableOpacity onPress={() => setActiveTab('queue')} style={[styles.tab, activeTab === 'queue' && { borderBottomWidth: 3, borderBottomColor: theme.primary }]}><Text style={[styles.tabText, activeTab === 'queue' && styles.activeTabText]}>QUEUE</Text></TouchableOpacity>
-        <TouchableOpacity onPress={() => setActiveTab('chat')} style={[styles.tab, activeTab === 'chat' && { borderBottomWidth: 3, borderBottomColor: theme.primary }]}><Text style={[styles.tabText, activeTab === 'chat' && styles.activeTabText]}>CHAT</Text></TouchableOpacity>
-        <TouchableOpacity onPress={() => setActiveTab('members')} style={[styles.tab, activeTab === 'members' && { borderBottomWidth: 3, borderBottomColor: theme.primary }]}><Text style={[styles.tabText, activeTab === 'members' && styles.activeTabText]}>MEMBERS</Text></TouchableOpacity>
+      <View style={dynamicStyles.tabContainer}>
+        <TouchableOpacity onPress={() => setActiveTab('player')} style={[dynamicStyles.tab, activeTab === 'player' && { borderBottomWidth: 3, borderBottomColor: accentColor }]}><Text style={[dynamicStyles.tabText, activeTab === 'player' && dynamicStyles.activeTabText]}>PLAYER</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => setActiveTab('queue')} style={[dynamicStyles.tab, activeTab === 'queue' && { borderBottomWidth: 3, borderBottomColor: accentColor }]}><Text style={[dynamicStyles.tabText, activeTab === 'queue' && dynamicStyles.activeTabText]}>QUEUE</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => setActiveTab('chat')} style={[dynamicStyles.tab, activeTab === 'chat' && { borderBottomWidth: 3, borderBottomColor: accentColor }]}><Text style={[dynamicStyles.tabText, activeTab === 'chat' && dynamicStyles.activeTabText]}>CHAT</Text></TouchableOpacity>
+        <TouchableOpacity onPress={() => setActiveTab('members')} style={[dynamicStyles.tab, activeTab === 'members' && { borderBottomWidth: 3, borderBottomColor: accentColor }]}><Text style={[dynamicStyles.tabText, activeTab === 'members' && dynamicStyles.activeTabText]}>MEMBERS</Text></TouchableOpacity>
         {isHost && (
-          <TouchableOpacity onPress={() => setActiveTab('requests')} style={[styles.tab, activeTab === 'requests' && { borderBottomWidth: 3, borderBottomColor: theme.primary }]}>
+          <TouchableOpacity onPress={() => setActiveTab('requests')} style={[dynamicStyles.tab, activeTab === 'requests' && { borderBottomWidth: 3, borderBottomColor: accentColor }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={[styles.tabText, activeTab === 'requests' && styles.activeTabText]}>REQUESTS</Text>
-              {(pendingRequests.length > 0 || joinRequests.length > 0) && <View style={styles.notifBadge} />}
+              <Text style={[dynamicStyles.tabText, activeTab === 'requests' && dynamicStyles.activeTabText]}>REQUESTS</Text>
+              {(pendingRequests.length > 0 || joinRequests.length > 0) && <View style={dynamicStyles.notifBadge} />}
             </View>
           </TouchableOpacity>
         )}
@@ -726,17 +730,17 @@ export default function RoomScreen({ navigation, route }: Props) {
         {activeTab === 'player' ? (
         <Animated.View style={{ flex: 1, backgroundColor: bgColor }}>
         <ScrollView contentContainerStyle={{ alignItems: 'center', paddingTop: 10 }}>
-          <Animated.View style={[styles.disc, { transform: [{ scale: pulseAnim }] }]}>
-            <MaterialCommunityIcons name="music-circle" size={100} color={theme.primary} />
+          <Animated.View style={[dynamicStyles.disc, { transform: [{ scale: pulseAnim }] }]}>
+            <MaterialCommunityIcons name="music-circle" size={100} color={accentColor} />
           </Animated.View>
 
           {isPicking && (
-            <View style={styles.loaderContainer}>
+            <View style={dynamicStyles.loaderContainer}>
               <Animated.View 
                 style={[
-                  styles.loaderBar, 
+                  dynamicStyles.loaderBar, 
                   { 
-                    backgroundColor: theme.primary,
+                    backgroundColor: accentColor,
                     width: loadingProgress.interpolate({
                       inputRange: [0, 1],
                       outputRange: ['0%', '100%']
@@ -747,9 +751,9 @@ export default function RoomScreen({ navigation, route }: Props) {
             </View>
           )}
 
-          <View style={[styles.hostBadge, { backgroundColor: theme.accent }]}>
-            <View style={[styles.hostDot, { backgroundColor: theme.primary }]} />
-            <Text style={[styles.hostNameText, { color: theme.primary }]}>HOSTED BY {hostInfo.name.toUpperCase()}</Text>
+          <View style={[dynamicStyles.hostBadge, { backgroundColor: accentColor }]}>
+            <View style={[dynamicStyles.hostDot, { backgroundColor: accentColor }]} />
+            <Text style={[dynamicStyles.hostNameText, { color: accentColor }]}>HOSTED BY {hostInfo.name.toUpperCase()}</Text>
             {!isHost && (
               <TouchableOpacity onPress={() => setShowNglModal(true)} style={{ marginLeft: 10 }}>
                 <MaterialCommunityIcons name="incognito" size={16} color="#BB86FC" />
@@ -757,25 +761,25 @@ export default function RoomScreen({ navigation, route }: Props) {
             )}
           </View>
 
-          <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={1}>{currentTrack.title || 'No Track'}</Text>
+          <View style={dynamicStyles.titleRow}>
+            <Text style={dynamicStyles.title} numberOfLines={1}>{currentTrack.title || 'No Track'}</Text>
           </View>
-          <Text style={styles.artist}>{currentTrack.artist || 'Waiting for host...'}</Text>
+          <Text style={dynamicStyles.artist}>{currentTrack.artist || 'Waiting for host...'}</Text>
 
           {currentTrack.url && (isHost || hasPermission) && (
-            <TouchableOpacity onPress={unloadSong} style={styles.unloadAction} activeOpacity={0.7}>
+            <TouchableOpacity onPress={unloadSong} style={dynamicStyles.unloadAction} activeOpacity={0.7}>
               <MaterialCommunityIcons name="eject-outline" size={16} color="#FF5252" />
-              <Text style={styles.unloadActionText}>UNLOAD TRACK</Text>
+              <Text style={dynamicStyles.unloadActionText}>UNLOAD TRACK</Text>
             </TouchableOpacity>
           )}
           
           {currentTrack.url ? (
-            <View style={styles.timerContainer}>
-              <View style={styles.progressWrapper}>
-                <View style={styles.progressBg}>
-                  <View style={[styles.progressFill, { width: `${(position / (duration || 1)) * 100}%`, backgroundColor: theme.primary, shadowColor: theme.primary }]} />
+            <View style={dynamicStyles.timerContainer}>
+              <View style={dynamicStyles.progressWrapper}>
+                <View style={dynamicStyles.progressBg}>
+                  <View style={[dynamicStyles.progressFill, { width: `${(position / (duration || 1)) * 100}%`, backgroundColor: accentColor, shadowColor: accentColor }]} />
                   {/* Glow Knob */}
-                  <View style={[styles.progressKnob, { left: `${(position / (duration || 1)) * 100}%`, backgroundColor: theme.primary, shadowColor: theme.primary }]} />
+                  <View style={[dynamicStyles.progressKnob, { left: `${(position / (duration || 1)) * 100}%`, backgroundColor: accentColor, shadowColor: accentColor }]} />
                 </View>
                 <TouchableOpacity 
                    style={StyleSheet.absoluteFill} 
@@ -790,53 +794,53 @@ export default function RoomScreen({ navigation, route }: Props) {
                    }} 
                 />
               </View>
-              <View style={styles.timeRow}>
-                <Text style={styles.timeLabel}>{formatTime(position)}</Text>
-                <Text style={styles.timeLabel}>{formatTime(duration)}</Text>
+              <View style={dynamicStyles.timeRow}>
+                <Text style={dynamicStyles.timeLabel}>{formatTime(position)}</Text>
+                <Text style={dynamicStyles.timeLabel}>{formatTime(duration)}</Text>
               </View>
             </View>
           ) : null}
           
           {isHost && pendingRequests.length > 0 && (
-             <TouchableOpacity onPress={() => setActiveTab('requests')} style={[styles.requestBanner, { backgroundColor: theme.accent }]}>
-                <Text style={[styles.requestBannerText, { color: theme.primary }]}>{pendingRequests.length} pending control requests</Text>
-                <MaterialCommunityIcons name="chevron-right" size={16} color={theme.primary} />
+             <TouchableOpacity onPress={() => setActiveTab('requests')} style={[dynamicStyles.requestBanner, { backgroundColor: accentColor }]}>
+                <Text style={[dynamicStyles.requestBannerText, { color: accentColor }]}>{pendingRequests.length} pending control requests</Text>
+                <MaterialCommunityIcons name="chevron-right" size={16} color={accentColor} />
              </TouchableOpacity>
           )}
 
           {isHost && (
-            <TouchableOpacity onPress={togglePlayback} style={[styles.playBtn, { backgroundColor: theme.primary, shadowColor: theme.primary }]}>
+            <TouchableOpacity onPress={togglePlayback} style={[dynamicStyles.playBtn, { backgroundColor: accentColor, shadowColor: accentColor }]}>
               <MaterialCommunityIcons name={isPlaying ? 'pause' : 'play'} size={40} color="#000" />
             </TouchableOpacity>
           )}
 
           {(isHost || hasPermission) && !currentTrack.url && (
-            <TouchableOpacity onPress={pickSong} style={[styles.pickBtn, { borderColor: theme.primary + '40' }]} disabled={isPicking}>
-              <MaterialCommunityIcons name="folder-music-outline" size={20} color={theme.primary} />
-              <Text style={[styles.pickBtnText, { color: theme.primary }]}>{isPicking ? 'PICKING...' : 'SELECT FROM DEVICE'}</Text>
+            <TouchableOpacity onPress={pickSong} style={[dynamicStyles.pickBtn, { borderColor: accentColor + '40' }]} disabled={isPicking}>
+              <MaterialCommunityIcons name="folder-music-outline" size={20} color={accentColor} />
+              <Text style={[dynamicStyles.pickBtnText, { color: accentColor }]}>{isPicking ? 'PICKING...' : 'SELECT FROM DEVICE'}</Text>
             </TouchableOpacity>
           )}
 
           {!isHost && !hasPermission && allowDJAccess && (
             <TouchableOpacity 
               onPress={raiseHand} 
-              style={[styles.raiseHandBtn, requestStatus === 'pending' && { opacity: 0.5 }, { borderColor: theme.primary + '40' }]}
+              style={[dynamicStyles.raiseHandBtn, requestStatus === 'pending' && { opacity: 0.5 }, { borderColor: accentColor + '40' }]}
               disabled={requestStatus === 'pending'}
             >
-              <MaterialCommunityIcons name="hand-back-right" size={20} color={theme.primary} />
-              <Text style={[styles.raiseHandText, { color: theme.primary }]}>
+              <MaterialCommunityIcons name="hand-back-right" size={20} color={accentColor} />
+              <Text style={[dynamicStyles.raiseHandText, { color: accentColor }]}>
                 {requestStatus === 'pending' ? 'REQUEST SENT' : 'REQUEST TO PLAY MUSIC'}
               </Text>
             </TouchableOpacity>
           )}
         </ScrollView>
 
-        <View style={styles.reactionContainer}>
+        <View style={dynamicStyles.reactionContainer}>
           {['🔥', '❤️', '🙌', '💯', '✨', '⚡'].map((emoji) => (
             <TouchableOpacity 
               key={emoji} 
               onPress={() => sendReaction(emoji)} 
-              style={styles.emojiBtn}
+              style={dynamicStyles.emojiBtn}
             >
               <Text style={{ fontSize: 18 }}>{emoji}</Text>
             </TouchableOpacity>
@@ -846,34 +850,34 @@ export default function RoomScreen({ navigation, route }: Props) {
         </Animated.View>
       ) : activeTab === 'queue' ? (
         <View style={{ flex: 1, padding: 20 }}>
-          <View style={styles.queueHeader}>
-             <Text style={styles.queueTitle}>Up Next</Text>
-             <Text style={styles.queueCount}>{songQueue.length} songs</Text>
+          <View style={dynamicStyles.queueHeader}>
+             <Text style={dynamicStyles.queueTitle}>Up Next</Text>
+             <Text style={dynamicStyles.queueCount}>{songQueue.length} songs</Text>
           </View>
           <FlatList
             data={songQueue}
             keyExtractor={item => item._id}
             renderItem={({ item }) => (
-              <View style={styles.queueCard}>
+              <View style={dynamicStyles.queueCard}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.queueName}>{item.title}</Text>
-                  <Text style={styles.queueSub}>Added by {item.suggestedBy}</Text>
+                  <Text style={dynamicStyles.queueName}>{item.title}</Text>
+                  <Text style={dynamicStyles.queueSub}>Added by {item.suggestedBy}</Text>
                   
                   {gameMode === 'guess-who-added' && (
                     <TouchableOpacity onPress={() => {
                       setSelectedSongForGuess(item);
                       setShowGuessModal(true);
-                    }} style={styles.guessBtnSmall}>
-                      <Text style={styles.guessBtnText}>GUESS USER</Text>
+                    }} style={dynamicStyles.guessBtnSmall}>
+                      <Text style={dynamicStyles.guessBtnText}>GUESS USER</Text>
                     </TouchableOpacity>
                   )}
                 </View>
-                <View style={styles.voteControls}>
-                  <TouchableOpacity onPress={() => voteSong(item._id, 1)} style={styles.voteBtn}>
-                    <MaterialCommunityIcons name="chevron-up" size={24} color={theme.primary} />
+                <View style={dynamicStyles.voteControls}>
+                  <TouchableOpacity onPress={() => voteSong(item._id, 1)} style={dynamicStyles.voteBtn}>
+                    <MaterialCommunityIcons name="chevron-up" size={24} color={accentColor} />
                   </TouchableOpacity>
-                  <Text style={styles.voteCount}>{item.votes || 0}</Text>
-                  <TouchableOpacity onPress={() => voteSong(item._id, -1)} style={styles.voteBtn}>
+                  <Text style={dynamicStyles.voteCount}>{item.votes || 0}</Text>
+                  <TouchableOpacity onPress={() => voteSong(item._id, -1)} style={dynamicStyles.voteBtn}>
                     <MaterialCommunityIcons name="chevron-down" size={24} color="#FF5252" />
                   </TouchableOpacity>
                 </View>
@@ -890,10 +894,10 @@ export default function RoomScreen({ navigation, route }: Props) {
             renderItem={({ item }) => {
               const isMe = item.senderId === auth.user?._id;
               return (
-                <View style={[styles.messageRow, isMe ? styles.myMessage : styles.otherMessage]}>
-                  {!isMe && <Text style={styles.senderNameSmall}>{item.sender}</Text>}
-                  <View style={[styles.bubble, isMe ? styles.myBubble : styles.otherBubble]}>
-                    <Text style={[styles.messageText, isMe && styles.myMessageText]}>
+                <View style={[dynamicStyles.messageRow, isMe ? dynamicStyles.myMessage : dynamicStyles.otherMessage]}>
+                  {!isMe && <Text style={dynamicStyles.senderNameSmall}>{item.sender}</Text>}
+                  <View style={[dynamicStyles.bubble, isMe ? dynamicStyles.myBubble : dynamicStyles.otherBubble]}>
+                    <Text style={[dynamicStyles.messageText, isMe && dynamicStyles.myMessageText]}>
                       {item.text}
                     </Text>
                   </View>
@@ -901,16 +905,16 @@ export default function RoomScreen({ navigation, route }: Props) {
               );
             }} 
           />
-          <View style={styles.chatInputRow}>
+          <View style={dynamicStyles.chatInputRow}>
             <TextInput 
               value={chatText} 
               onChangeText={setChatText} 
-              style={styles.msgInput} 
+              style={dynamicStyles.msgInput} 
               placeholder="Type a message..." 
               placeholderTextColor="#666" 
               onSubmitEditing={sendChat} 
             />
-            <TouchableOpacity onPress={sendChat} style={styles.sendMsgBtn}>
+            <TouchableOpacity onPress={sendChat} style={dynamicStyles.sendMsgBtn}>
               <MaterialCommunityIcons name="send" size={20} color="#000" />
             </TouchableOpacity>
           </View>
@@ -919,18 +923,18 @@ export default function RoomScreen({ navigation, route }: Props) {
         <ScrollView style={{ flex: 1, padding: 20 }}>
           {joinRequests.length > 0 && (
             <View style={{ marginBottom: 30 }}>
-              <Text style={styles.requestTitle}>Join Room Requests</Text>
+              <Text style={dynamicStyles.requestTitle}>Join Room Requests</Text>
               {joinRequests.map((item) => (
-                <View key={item.socketId} style={styles.requestRow}>
+                <View key={item.socketId} style={dynamicStyles.requestRow}>
                   <View>
-                    <Text style={styles.requestName}>{item.displayName}</Text>
-                    <Text style={styles.requestSub}>Wants to join the room</Text>
+                    <Text style={dynamicStyles.requestName}>{item.displayName}</Text>
+                    <Text style={dynamicStyles.requestSub}>Wants to join the room</Text>
                   </View>
                   <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <TouchableOpacity onPress={() => rejectJoin(item.socketId)} style={styles.rejectBtn}>
+                    <TouchableOpacity onPress={() => rejectJoin(item.socketId)} style={dynamicStyles.rejectBtn}>
                       <MaterialCommunityIcons name="close" size={22} color="#FF5252" />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => approveJoin(item.socketId)} style={styles.approveBtn}>
+                    <TouchableOpacity onPress={() => approveJoin(item.socketId)} style={dynamicStyles.approveBtn}>
                       <MaterialCommunityIcons name="check-bold" size={22} color="#1DB954" />
                     </TouchableOpacity>
                   </View>
@@ -939,24 +943,24 @@ export default function RoomScreen({ navigation, route }: Props) {
             </View>
           )}
 
-          <Text style={styles.requestTitle}>Music Control Requests</Text>
+          <Text style={dynamicStyles.requestTitle}>Music Control Requests</Text>
           {pendingRequests.length === 0 ? (
-            <View style={styles.emptyRequests}>
+            <View style={dynamicStyles.emptyRequests}>
               <MaterialCommunityIcons name="hand-back-right-off" size={48} color="#222" />
-              <Text style={styles.emptyRequestsText}>No pending requests</Text>
+              <Text style={dynamicStyles.emptyRequestsText}>No pending requests</Text>
             </View>
           ) : (
             pendingRequests.map((item) => (
-              <View key={item.socketId} style={styles.requestRow}>
+              <View key={item.socketId} style={dynamicStyles.requestRow}>
                 <View>
-                  <Text style={styles.requestName}>{item.displayName}</Text>
-                  <Text style={styles.requestSub}>Wants to select music</Text>
+                  <Text style={dynamicStyles.requestName}>{item.displayName}</Text>
+                  <Text style={dynamicStyles.requestSub}>Wants to select music</Text>
                 </View>
                 <View style={{ flexDirection: 'row', gap: 12 }}>
-                  <TouchableOpacity onPress={() => rejectRequest(item.socketId)} style={styles.rejectBtn}>
+                  <TouchableOpacity onPress={() => rejectRequest(item.socketId)} style={dynamicStyles.rejectBtn}>
                     <MaterialCommunityIcons name="close" size={22} color="#FF5252" />
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => approveRequest(item.socketId)} style={styles.approveBtn}>
+                  <TouchableOpacity onPress={() => approveRequest(item.socketId)} style={dynamicStyles.approveBtn}>
                     <MaterialCommunityIcons name="check-bold" size={22} color="#1DB954" />
                   </TouchableOpacity>
                 </View>
@@ -967,7 +971,7 @@ export default function RoomScreen({ navigation, route }: Props) {
       ) : (
         <View style={{ flex: 1, padding: 20 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <Text style={styles.requestTitle}>Active Listeners ({members.length})</Text>
+            <Text style={dynamicStyles.requestTitle}>Active Listeners ({members.length})</Text>
             {isHost && (
               <TouchableOpacity
                 onPress={() => {
@@ -975,20 +979,20 @@ export default function RoomScreen({ navigation, route }: Props) {
                   setAllowDJAccess(next);
                   socket.emit('toggle-dj-access', { allow: next });
                 }}
-                style={[styles.djAccessToggle, allowDJAccess && { backgroundColor: theme.primary + '20', borderColor: theme.primary + '40' }]}
+                style={[dynamicStyles.djAccessToggle, allowDJAccess && { backgroundColor: accentColor + '20', borderColor: accentColor + '40' }]}
                 activeOpacity={0.7}
               >
-                <MaterialCommunityIcons name="music-note" size={14} color={allowDJAccess ? theme.primary : '#666'} />
-                <Text style={[styles.djAccessText, allowDJAccess && { color: theme.primary }]}>
+                <MaterialCommunityIcons name="music-note" size={14} color={allowDJAccess ? accentColor : '#666'} />
+                <Text style={[dynamicStyles.djAccessText, allowDJAccess && { color: accentColor }]}>
                   {allowDJAccess ? 'DJ ON' : 'DJ OFF'}
                 </Text>
               </TouchableOpacity>
             )}
           </View>
           {members.length === 0 ? (
-            <View style={styles.emptyRequests}>
+            <View style={dynamicStyles.emptyRequests}>
               <MaterialCommunityIcons name="account-group-outline" size={48} color="#222" />
-              <Text style={styles.emptyRequestsText}>Nobody else is here</Text>
+              <Text style={dynamicStyles.emptyRequestsText}>Nobody else is here</Text>
             </View>
           ) : (
             <FlatList
@@ -1001,42 +1005,42 @@ export default function RoomScreen({ navigation, route }: Props) {
               })}
               keyExtractor={(item, index) => item.socketId || index.toString()}
               renderItem={({ item }) => (
-                <View style={styles.memberRow}>
-                  <View style={[styles.memberAvatar, item.hasPermission && { backgroundColor: theme.primary }]}>
-                    <Text style={styles.memberInitial}>{(item.displayName || 'U').charAt(0).toUpperCase()}</Text>
+                <View style={dynamicStyles.memberRow}>
+                  <View style={[dynamicStyles.memberAvatar, item.hasPermission && { backgroundColor: accentColor }]}>
+                    <Text style={dynamicStyles.memberInitial}>{(item.displayName || 'U').charAt(0).toUpperCase()}</Text>
                   </View>
                   <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={styles.memberName}>{item.displayName || 'Unknown User'}</Text>
+                      <Text style={dynamicStyles.memberName}>{item.displayName || 'Unknown User'}</Text>
                       {item.userId === initialRoom.host?._id && (
-                        <View style={[styles.roleBadge, { backgroundColor: '#FFD70020' }]}>
+                        <View style={[dynamicStyles.roleBadge, { backgroundColor: '#FFD70020' }]}>
                           <MaterialCommunityIcons name="crown" size={12} color="#FFD700" />
-                          <Text style={[styles.roleBadgeText, { color: '#FFD700' }]}>HOST</Text>
+                          <Text style={[dynamicStyles.roleBadgeText, { color: '#FFD700' }]}>HOST</Text>
                         </View>
                       )}
                       {item.hasPermission && (
-                        <View style={[styles.roleBadge, { backgroundColor: theme.primary + '20' }]}>
-                          <MaterialCommunityIcons name="music" size={12} color={theme.primary} />
-                          <Text style={[styles.roleBadgeText, { color: theme.primary }]}>DJ</Text>
+                        <View style={[dynamicStyles.roleBadge, { backgroundColor: accentColor + '20' }]}>
+                          <MaterialCommunityIcons name="music" size={12} color={accentColor} />
+                          <Text style={[dynamicStyles.roleBadgeText, { color: accentColor }]}>DJ</Text>
                         </View>
                       )}
                       {item.userId === auth.user?._id && (
                         <Text style={{ color: '#666', fontSize: 10 }}>(You)</Text>
                       )}
                     </View>
-                    <Text style={styles.memberSub}>{item.isAnonymous ? 'Listening Anonymously' : 'Active Listener'}</Text>
+                    <Text style={dynamicStyles.memberSub}>{item.isAnonymous ? 'Listening Anonymously' : 'Active Listener'}</Text>
                   </View>
                   {/* Permission toggle — host only, not on host's own card, only when DJ access enabled */}
                   {isHost && item.userId !== initialRoom.host?._id && allowDJAccess ? (
                     <TouchableOpacity
                       onPress={() => togglePermission(item.socketId, !!item.hasPermission)}
-                      style={[styles.permToggle, item.hasPermission && { backgroundColor: theme.primary }]}
+                      style={[dynamicStyles.permToggle, item.hasPermission && { backgroundColor: accentColor }]}
                       activeOpacity={0.7}
                     >
-                      <View style={[styles.permToggleKnob, item.hasPermission && styles.permToggleKnobOn]} />
+                      <View style={[dynamicStyles.permToggleKnob, item.hasPermission && dynamicStyles.permToggleKnobOn]} />
                     </TouchableOpacity>
                   ) : (
-                    <View style={styles.onlineDot} />
+                    <View style={dynamicStyles.onlineDot} />
                   )}
                 </View>
               )}
@@ -1051,10 +1055,10 @@ export default function RoomScreen({ navigation, route }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 30 },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  headerTitle: { color: theme.text, fontSize: 18, fontWeight: '800' },
   hostBadge: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -1066,15 +1070,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#1DB95430'
   },
-  hostDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#1DB954', marginRight: 8 },
-  hostNameText: { color: '#1DB954', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
-  tabContainer: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#1A1A1A', justifyContent: 'center', gap: 5 },
+  hostDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: accentColor, marginRight: 8 },
+  hostNameText: { color: accentColor, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  tabContainer: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: theme.surfaceDarker, justifyContent: 'center', gap: 5 },
   tab: { paddingVertical: 12, paddingHorizontal: 12, alignItems: 'center' },
-  activeTab: { borderBottomWidth: 3, borderBottomColor: '#1DB954' },
-  tabText: { color: '#666', fontWeight: '700', fontSize: 11, letterSpacing: 0.5 },
-  activeTabText: { color: '#FFF' },
-  headerIcon: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111', borderRadius: 20 },
-  headerSubtitle: { color: '#666', fontSize: 12, fontWeight: '600' },
+  activeTab: { borderBottomWidth: 3, borderBottomColor: accentColor },
+  tabText: { color: theme.textSecondary, fontWeight: '700', fontSize: 11, letterSpacing: 0.5 },
+  activeTabText: { color: theme.text },
+  headerIcon: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 20 },
+  headerSubtitle: { color: theme.textSecondary, fontSize: 12, fontWeight: '600' },
   leaveBtn: { 
     flexDirection: 'row',
     alignItems: 'center',
@@ -1090,60 +1094,60 @@ const styles = StyleSheet.create({
   leaveText: { fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
   notifBadge: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#FF5252', marginLeft: 4, marginTop: -8 },
   requestBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1DB95410', padding: 12, borderRadius: 12, marginBottom: 20, borderWidth: 1, borderColor: '#1DB95430', width: '85%', justifyContent: 'space-between' },
-  requestBannerText: { color: '#1DB954', fontWeight: '700', fontSize: 12 },
+  requestBannerText: { color: accentColor, fontWeight: '700', fontSize: 12 },
   emptyRequests: { flex: 1, justifyContent: 'center', alignItems: 'center', opacity: 0.5 },
-  emptyRequestsText: { color: '#444', marginTop: 10, fontSize: 14, fontWeight: '600' },
-  requestSub: { color: '#666', fontSize: 10, marginTop: 2 },
-  disc: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#111', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
-  title: { color: '#fff', fontSize: 22, fontWeight: '800' },
-  artist: { color: '#666', fontSize: 13, marginBottom: 10 },
-  requestContainer: { backgroundColor: '#111', width: '90%', padding: 12, borderRadius: 16, marginBottom: 15, borderWidth: 1, borderColor: '#333' },
-  requestTitle: { color: '#888', fontSize: 12, fontWeight: '700', marginBottom: 8, textTransform: 'uppercase' },
-  requestRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#1A1A1A', padding: 10, borderRadius: 12, marginBottom: 6 },
-  requestName: { color: '#fff', fontWeight: '600' },
+  emptyRequestsText: { color: theme.textSecondary, marginTop: 10, fontSize: 14, fontWeight: '600' },
+  requestSub: { color: theme.textSecondary, fontSize: 10, marginTop: 2 },
+  disc: { width: 120, height: 120, borderRadius: 60, backgroundColor: theme.surface, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  title: { color: theme.text, fontSize: 22, fontWeight: '800' },
+  artist: { color: theme.textSecondary, fontSize: 13, marginBottom: 10 },
+  requestContainer: { backgroundColor: theme.surface, width: '90%', padding: 12, borderRadius: 16, marginBottom: 15, borderWidth: 1, borderColor: theme.border },
+  requestTitle: { color: theme.textSecondary, fontSize: 12, fontWeight: '700', marginBottom: 8, textTransform: 'uppercase' },
+  requestRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: theme.surfaceDarker, padding: 10, borderRadius: 12, marginBottom: 6 },
+  requestName: { color: theme.text, fontWeight: '600' },
   approveBtn: { backgroundColor: '#1DB95420', padding: 4, borderRadius: 10 },
   rejectBtn: { backgroundColor: '#FF525220', padding: 4, borderRadius: 10 },
-  raiseHandBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#1A1A1A', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 30, borderWidth: 1, borderColor: '#333', marginTop: 15 },
-  raiseHandText: { color: '#1DB954', fontWeight: '800', fontSize: 13 },
-  playBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#1DB954', justifyContent: 'center', alignItems: 'center', marginBottom: 12, shadowColor: '#1DB954', shadowOpacity: 0.4, shadowRadius: 15, elevation: 10 },
+  raiseHandBtn: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: theme.surfaceDarker, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 30, borderWidth: 1, borderColor: theme.border, marginTop: 15 },
+  raiseHandText: { color: accentColor, fontWeight: '800', fontSize: 13 },
+  playBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: accentColor, justifyContent: 'center', alignItems: 'center', marginBottom: 12, shadowColor: accentColor, shadowOpacity: 0.4, shadowRadius: 15, elevation: 10 },
   pickBtn: { 
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#0A0A0A', 
+    backgroundColor: theme.surface, 
     paddingHorizontal: 20, 
     paddingVertical: 8, 
     borderRadius: 30,
     borderWidth: 1.5,
     borderColor: '#1DB95490',
     borderStyle: 'dashed',
-    shadowColor: '#1DB954',
+    shadowColor: accentColor,
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 5
   },
-  pickBtnText: { color: '#fff', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
+  pickBtnText: { color: theme.text, fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   messageRow: { marginBottom: 12, maxWidth: '85%' },
   myMessage: { alignSelf: 'flex-end' },
   otherMessage: { alignSelf: 'flex-start' },
   bubble: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 18 },
-  myBubble: { backgroundColor: '#1DB954', borderBottomRightRadius: 4 },
-  otherBubble: { backgroundColor: '#1A1A1A', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#333' },
-  senderNameSmall: { color: '#666', fontSize: 10, fontWeight: '700', marginBottom: 4, marginLeft: 12 },
-  messageText: { color: '#FFF', fontSize: 14, lineHeight: 18 },
-  myMessageText: { color: '#000', fontWeight: '600' },
-  chatInputRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderTopWidth: 1, borderTopColor: '#1A1A1A', backgroundColor: '#000' },
-  msgInput: { flex: 1, backgroundColor: '#111', color: '#FFF', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 25, fontSize: 14, borderWidth: 1, borderColor: '#333' },
-  sendMsgBtn: { marginLeft: 10, width: 44, height: 44, borderRadius: 22, backgroundColor: '#1DB954', justifyContent: 'center', alignItems: 'center', shadowColor: '#1DB954', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
-  loaderContainer: { width: '80%', height: 4, backgroundColor: '#111', borderRadius: 2, marginBottom: 20, overflow: 'hidden' },
-  loaderBar: { height: '100%', backgroundColor: '#1DB954', shadowColor: '#1DB954', shadowOpacity: 0.8, shadowRadius: 10 },
+  myBubble: { backgroundColor: accentColor, borderBottomRightRadius: 4 },
+  otherBubble: { backgroundColor: theme.surfaceDarker, borderBottomLeftRadius: 4, borderWidth: 1, borderColor: theme.border },
+  senderNameSmall: { color: theme.textSecondary, fontSize: 10, fontWeight: '700', marginBottom: 4, marginLeft: 12 },
+  messageText: { color: theme.text, fontSize: 14, lineHeight: 18 },
+  myMessageText: { color: theme.background, fontWeight: '600' },
+  chatInputRow: { flexDirection: 'row', alignItems: 'center', padding: 12, borderTopWidth: 1, borderTopColor: theme.surfaceDarker, backgroundColor: theme.background },
+  msgInput: { flex: 1, backgroundColor: theme.surface, color: theme.text, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 25, fontSize: 14, borderWidth: 1, borderColor: theme.border },
+  sendMsgBtn: { marginLeft: 10, width: 44, height: 44, borderRadius: 22, backgroundColor: accentColor, justifyContent: 'center', alignItems: 'center', shadowColor: accentColor, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  loaderContainer: { width: '80%', height: 4, backgroundColor: theme.surface, borderRadius: 2, marginBottom: 20, overflow: 'hidden' },
+  loaderBar: { height: '100%', backgroundColor: accentColor, shadowColor: accentColor, shadowOpacity: 0.8, shadowRadius: 10 },
   timerContainer: { width: '85%', marginTop: 0, marginBottom: 12 },
   progressWrapper: { height: 24, justifyContent: 'center' },
-  progressBg: { height: 3, backgroundColor: '#1A1A1A', borderRadius: 2, width: '100%', overflow: 'visible' },
-  progressFill: { height: '100%', backgroundColor: '#1DB954', borderRadius: 2, shadowOpacity: 0.6, shadowRadius: 8, elevation: 5 },
+  progressBg: { height: 3, backgroundColor: theme.surfaceDarker, borderRadius: 2, width: '100%', overflow: 'visible' },
+  progressFill: { height: '100%', backgroundColor: accentColor, borderRadius: 2, shadowOpacity: 0.6, shadowRadius: 8, elevation: 5 },
   progressKnob: { position: 'absolute', width: 10, height: 10, borderRadius: 5, top: -3.5, marginLeft: -5, shadowOpacity: 0.8, shadowRadius: 10, elevation: 8 },
   timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 },
-  timeLabel: { color: '#FFF', fontSize: 13, fontWeight: '800', fontVariant: ['tabular-nums'], opacity: 0.9, letterSpacing: 0.5 },
+  timeLabel: { color: theme.text, fontSize: 13, fontWeight: '800', fontVariant: ['tabular-nums'], opacity: 0.9, letterSpacing: 0.5 },
   unloadAction: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1159,56 +1163,56 @@ const styles = StyleSheet.create({
   },
   unloadActionText: { color: '#FF5252', fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, width: '85%' },
-  memberRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#0A0A0A', padding: 12, borderRadius: 16, marginBottom: 10, borderWidth: 1, borderColor: '#1A1A1A' },
-  memberAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#1DB954', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  memberInitial: { color: '#000', fontWeight: '900', fontSize: 16 },
-  memberName: { color: '#FFF', fontWeight: '700', fontSize: 14 },
-  memberSub: { color: '#666', fontSize: 11, marginTop: 2 },
-  onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#1DB954', shadowColor: '#1DB954', shadowOpacity: 0.5, shadowRadius: 5 },
-  permToggle: { width: 40, height: 22, borderRadius: 11, backgroundColor: '#333', justifyContent: 'center', paddingHorizontal: 2 },
-  permToggleKnob: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#FFF', shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 3, elevation: 3 },
+  memberRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, padding: 12, borderRadius: 16, marginBottom: 10, borderWidth: 1, borderColor: theme.surfaceDarker },
+  memberAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: accentColor, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  memberInitial: { color: theme.background, fontWeight: '900', fontSize: 16 },
+  memberName: { color: theme.text, fontWeight: '700', fontSize: 14 },
+  memberSub: { color: theme.textSecondary, fontSize: 11, marginTop: 2 },
+  onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: accentColor, shadowColor: accentColor, shadowOpacity: 0.5, shadowRadius: 5 },
+  permToggle: { width: 40, height: 22, borderRadius: 11, backgroundColor: theme.border, justifyContent: 'center', paddingHorizontal: 2 },
+  permToggleKnob: { width: 18, height: 18, borderRadius: 9, backgroundColor: theme.text, shadowColor: theme.background, shadowOpacity: 0.3, shadowRadius: 3, elevation: 3 },
   permToggleKnobOn: { alignSelf: 'flex-end' },
-  djAccessToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#333' },
-  djAccessText: { color: '#666', fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
+  djAccessToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: theme.surfaceDarker, borderWidth: 1, borderColor: theme.border },
+  djAccessText: { color: theme.textSecondary, fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
   hostBadgeSmall: { backgroundColor: '#1DB95420', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginLeft: 6 },
-  hostBadgeTextSmall: { color: '#1DB954', fontSize: 8, fontWeight: '900' },
+  hostBadgeTextSmall: { color: accentColor, fontSize: 8, fontWeight: '900' },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center' },
-  exitModalRoot: { width: '75%', backgroundColor: '#000000', borderRadius: 20, padding: 18, alignItems: 'center', borderWidth: 1, borderColor: '#222' },
-  exitIconCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#1A1A1A', justifyContent: 'center', alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: '#333' },
-  exitTitle: { color: '#FFF', fontSize: 17, fontWeight: '800', marginBottom: 6 },
-  exitSubtitle: { color: '#888', fontSize: 11, textAlign: 'center', lineHeight: 16, marginBottom: 20, paddingHorizontal: 5 },
+  exitModalRoot: { width: '75%', backgroundColor: theme.background, borderRadius: 20, padding: 18, alignItems: 'center', borderWidth: 1, borderColor: theme.border },
+  exitIconCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: theme.surfaceDarker, justifyContent: 'center', alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: theme.border },
+  exitTitle: { color: theme.text, fontSize: 17, fontWeight: '800', marginBottom: 6 },
+  exitSubtitle: { color: theme.textSecondary, fontSize: 11, textAlign: 'center', lineHeight: 16, marginBottom: 20, paddingHorizontal: 5 },
   exitActionRow: { flexDirection: 'row', gap: 10, width: '100%' },
-  exitCancelBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center', backgroundColor: '#222' },
-  exitCancelText: { color: '#888', fontWeight: '800', fontSize: 11, letterSpacing: 1 },
+  exitCancelBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center', backgroundColor: theme.border },
+  exitCancelText: { color: theme.textSecondary, fontWeight: '800', fontSize: 11, letterSpacing: 1 },
   exitConfirmBtn: { flex: 1, paddingVertical: 10, borderRadius: 12, alignItems: 'center' },
-  exitConfirmText: { color: '#000', fontWeight: '800', fontSize: 11, letterSpacing: 1 },
+  exitConfirmText: { color: theme.background, fontWeight: '800', fontSize: 11, letterSpacing: 1 },
 
-  nglModal: { width: '85%', backgroundColor: '#0A0A0A', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: '#1A1A1A' },
+  nglModal: { width: '85%', backgroundColor: theme.surface, borderRadius: 24, padding: 24, borderWidth: 1, borderColor: theme.surfaceDarker },
   nglHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 },
-  modalTitle: { color: '#FFF', fontSize: 20, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
-  nglTitle: { color: '#FFF', fontSize: 18, fontWeight: '800' },
-  nglSub: { color: '#666', fontSize: 12, marginBottom: 16 },
-  nglInput: { backgroundColor: '#111', borderRadius: 16, padding: 16, color: '#FFF', fontSize: 15, textAlignVertical: 'top', height: 120, borderWidth: 1, borderColor: '#222', marginBottom: 20 },
+  modalTitle: { color: theme.text, fontSize: 20, fontWeight: '800', marginBottom: 10, textAlign: 'center' },
+  nglTitle: { color: theme.text, fontSize: 18, fontWeight: '800' },
+  nglSub: { color: theme.textSecondary, fontSize: 12, marginBottom: 16 },
+  nglInput: { backgroundColor: theme.surface, borderRadius: 16, padding: 16, color: theme.text, fontSize: 15, textAlignVertical: 'top', height: 120, borderWidth: 1, borderColor: theme.border, marginBottom: 20 },
   nglActions: { flexDirection: 'row', gap: 10 },
-  nglCancel: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: '#1A1A1A' },
-  nglCancelText: { color: '#666', fontWeight: '800', fontSize: 12 },
-  cancelBtn: { backgroundColor: '#333', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  cancelText: { color: '#fff', fontWeight: '600' },
+  nglCancel: { flex: 1, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: theme.surfaceDarker },
+  nglCancelText: { color: theme.textSecondary, fontWeight: '800', fontSize: 12 },
+  cancelBtn: { backgroundColor: theme.border, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+  cancelText: { color: theme.text, fontWeight: '600' },
   nglSend: { flex: 2, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: '#BB86FC' },
-  nglSendText: { color: '#000', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
+  nglSendText: { color: theme.background, fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
   
   waitingOverlay: { 
     ...StyleSheet.absoluteFillObject, 
-    backgroundColor: '#000', 
+    backgroundColor: theme.background, 
     zIndex: 9999, 
     justifyContent: 'center', 
     alignItems: 'center', 
     padding: 40 
   },
-  waitingTitle: { color: '#FFF', fontSize: 24, fontWeight: '800', marginTop: 20 },
-  waitingSub: { color: '#666', fontSize: 14, textAlign: 'center', marginTop: 10 },
-  cancelWaitBtn: { marginTop: 60, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 30, borderWidth: 1, borderColor: '#333' },
-  cancelWaitText: { color: '#666', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
+  waitingTitle: { color: theme.text, fontSize: 24, fontWeight: '800', marginTop: 20 },
+  waitingSub: { color: theme.textSecondary, fontSize: 14, textAlign: 'center', marginTop: 10 },
+  cancelWaitBtn: { marginTop: 60, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 30, borderWidth: 1, borderColor: theme.border },
+  cancelWaitText: { color: theme.textSecondary, fontWeight: '800', fontSize: 12, letterSpacing: 1 },
   themeBar: { maxHeight: 30, marginTop: 0, marginBottom: 5, paddingHorizontal: 20 },
   themeDot: { width: 20, height: 20, borderRadius: 10, marginRight: 10 },
   reactionContainer: { 
@@ -1224,15 +1228,15 @@ const styles = StyleSheet.create({
   roleBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
   roleBadgeText: { fontSize: 9, fontWeight: '900' },
   queueHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  queueTitle: { color: '#FFF', fontSize: 18, fontWeight: '800' },
-  queueCount: { color: '#666', fontSize: 12 },
+  queueTitle: { color: theme.text, fontSize: 18, fontWeight: '800' },
+  queueCount: { color: theme.textSecondary, fontSize: 12 },
   queueCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', padding: 16, borderRadius: 20, marginBottom: 12 },
-  queueName: { color: '#FFF', fontSize: 15, fontWeight: '700' },
-  queueSub: { color: '#888', fontSize: 11, marginTop: 4 },
+  queueName: { color: theme.text, fontSize: 15, fontWeight: '700' },
+  queueSub: { color: theme.textSecondary, fontSize: 11, marginTop: 4 },
   voteControls: { alignItems: 'center', gap: 4, marginLeft: 10 },
   voteBtn: { padding: 4 },
-  voteCount: { color: '#FFF', fontSize: 14, fontWeight: '800' },
+  voteCount: { color: theme.text, fontSize: 14, fontWeight: '800' },
   guessBtnSmall: { backgroundColor: '#BB86FC20', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, marginTop: 8, alignSelf: 'flex-start' },
   guessBtnText: { color: '#BB86FC', fontSize: 9, fontWeight: '900' },
-  modalSub: { color: '#888', fontSize: 12, textAlign: 'center', marginBottom: 20 },
+  modalSub: { color: theme.textSecondary, fontSize: 12, textAlign: 'center', marginBottom: 20 },
 });

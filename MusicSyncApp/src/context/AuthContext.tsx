@@ -1,4 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react';
+import { useTheme } from '../context/ThemeContext';
 import { Alert, Platform } from 'react-native';
 import axios from 'axios';
 import { getToken, setToken as persistToken, removeToken } from '../utils/auth';
