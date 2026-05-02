@@ -35,10 +35,11 @@ router.get('/me', authenticateToken, async (req, res) => {
 
 // Update user profile
 router.put('/me', authenticateToken, async (req, res) => {
-  const { displayName, anonSlug } = req.body;
+  const { displayName, anonSlug, bio } = req.body;
   const updates = {};
   
   if (displayName) updates.name = displayName;
+  if (bio !== undefined) updates.bio = bio;
   
   if (anonSlug) {
     const slug = anonSlug.toLowerCase().trim();

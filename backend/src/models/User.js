@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema({
   pushToken: String,
   anonSlug: { type: String, unique: true, sparse: true },
   timezone: { type: String, default: 'UTC' },
+  bio: { type: String, default: '' },
 });
 
 export default mongoose.model('User', userSchema);
