@@ -21,6 +21,7 @@ export default function EditProfileScreen({ navigation }: any) {
 
   const [name, setName] = useState(user?.name || '');
   const [slug, setSlug] = useState(user?.anonSlug || '');
+  const [bio, setBio] = useState((user as any)?.bio || '');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -35,7 +36,8 @@ export default function EditProfileScreen({ navigation }: any) {
       const resp = await axios.put(`${API_URL}/api/users/me`, 
         { 
           displayName: name.trim(),
-          anonSlug: slug.trim() || undefined
+          anonSlug: slug.trim() || undefined,
+          bio: bio.trim()
         },
         { headers: { Authorization: `Bearer ${auth.token}` } }
       );
@@ -172,6 +174,19 @@ export default function EditProfileScreen({ navigation }: any) {
                   autoCapitalize="none"
                 />
               </View>
+           </View>
+
+           <View style={dynamicStyles.inputGroup}>
+              <Text style={dynamicStyles.label}>About</Text>
+              <TextInput
+                style={[dynamicStyles.input, { minHeight: 100, textAlignVertical: 'top' }]}
+                value={bio}
+                onChangeText={setBio}
+                placeholder="Write something about yourself..."
+                placeholderTextColor="#555"
+                multiline
+                numberOfLines={4}
+              />
            </View>
         </View>
       </ScrollView>

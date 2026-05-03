@@ -68,6 +68,11 @@ export default function NglScreen({ navigation }: any) {
   const [updatingSlug, setUpdatingSlug] = useState(false);
   const [shareTheme, setShareTheme] = useState<string | string[]>(SHARE_THEMES[0]);
   
+  const [showAnalyticsModal, setShowAnalyticsModal] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const isPremium = auth.user?.isPremium || false;
+  
   // Gradient Builder States
   const [showGradientModal, setShowGradientModal] = useState(false);
   const [gradColor1, setGradColor1] = useState('#8A2BE2');
@@ -304,6 +309,25 @@ export default function NglScreen({ navigation }: any) {
     }
   };
 
+  const fetchAnalytics = async () => {
+    if (!isPremium) {
+      showToast('Analytics is a Premium feature! 📊', 'info');
+      return;
+    }
+    setLoadingAnalytics(true);
+    try {
+      const resp = await axios.get(`${API_URL}/api/ngl/analytics`, {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+      setAnalyticsData(resp.data);
+      setShowAnalyticsModal(true);
+    } catch (err) {
+      showToast('Failed to load insights', 'error');
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
   // Swipe action renderers
   const renderLeftActions = (item: any) => (
     <View style={dynamicStyles.swipeActionLeft}>
@@ -436,6 +460,11 @@ export default function NglScreen({ navigation }: any) {
                 <TouchableOpacity onPress={shareNglLink} style={dynamicStyles.shareIconBtn}>
                   <MaterialCommunityIcons name="share-variant" size={22} color={accentColor} />
                 </TouchableOpacity>
+                {isPremium && (
+                  <TouchableOpacity onPress={fetchAnalytics} style={[dynamicStyles.shareIconBtn, { backgroundColor: 'rgba(138, 43, 226, 0.1)' }]}>
+                    <MaterialCommunityIcons name="chart-box" size={22} color="#8A2BE2" />
+                  </TouchableOpacity>
+                )}
               </View>
               <View style={dynamicStyles.tabWrapper}>
                 <View style={dynamicStyles.tabContainer}>
@@ -825,6 +854,58 @@ export default function NglScreen({ navigation }: any) {
         </TouchableOpacity>
       </Modal>
 
+      {/* Analytics Modal */}
+      <Modal visible={showAnalyticsModal} transparent animationType="slide" onRequestClose={() => setShowAnalyticsModal(false)}>
+        <View style={dynamicStyles.modalOverlay}>
+          <View style={[dynamicStyles.slugModal, { maxHeight: '80%', paddingBottom: 20 }]}>
+             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                <Text style={dynamicStyles.slugModalTitle}>Link Insights</Text>
+                <TouchableOpacity onPress={() => setShowAnalyticsModal(false)}>
+                   <MaterialCommunityIcons name="close" size={24} color={theme.text} />
+                </TouchableOpacity>
+             </View>
+             
+             <View style={dynamicStyles.statsRow}>
+                <View style={[dynamicStyles.statCard, { backgroundColor: 'rgba(138,43,226,0.1)', borderColor: 'rgba(138,43,226,0.3)' }]}>
+                   <Text style={[dynamicStyles.statNumber, { color: '#8A2BE2' }]}>{analyticsData?.totalViews || 0}</Text>
+                   <Text style={dynamicStyles.statLabel}>TOTAL VIEWS</Text>
+                </View>
+                <View style={dynamicStyles.statCard}>
+                   <Text style={dynamicStyles.statNumber}>{messages.length}</Text>
+                   <Text style={dynamicStyles.statLabel}>MESSAGES</Text>
+                </View>
+             </View>
+
+             <Text style={[dynamicStyles.promptLabel, { marginTop: 20, marginBottom: 10 }]}>Recent Visitors</Text>
+             <ScrollView style={{ flexGrow: 0 }}>
+                {analyticsData?.views?.length > 0 ? (
+                  analyticsData.views.map((v: any, idx: number) => (
+                    <View key={idx} style={dynamicStyles.viewItem}>
+                       <View style={dynamicStyles.viewIcon}>
+                          <MaterialCommunityIcons 
+                            name={v.userAgent?.includes('Android') ? 'android' : v.userAgent?.includes('iPhone') ? 'apple' : 'web'} 
+                            size={16} color={theme.textSecondary} 
+                          />
+                       </View>
+                       <View style={{ flex: 1 }}>
+                          <Text style={dynamicStyles.viewTitle}>{v.viewerIp === '::1' ? 'Local System' : 'Secret Visitor'}</Text>
+                          <Text style={dynamicStyles.viewSub}>{new Date(v.createdAt).toLocaleString()}</Text>
+                       </View>
+                       {v.referrer && (
+                         <View style={dynamicStyles.refBadge}>
+                            <Text style={dynamicStyles.refText}>{v.referrer.includes('instagram') ? 'INSTAGRAM' : 'DIRECT'}</Text>
+                         </View>
+                       )}
+                    </View>
+                  ))
+                ) : (
+                  <Text style={{ color: theme.textSecondary, textAlign: 'center', marginTop: 20 }}>No views recorded yet.</Text>
+                )}
+             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       {/* Gradient Builder Modal */}
       <Modal visible={showGradientModal} transparent animationType="slide" onRequestClose={() => setShowGradientModal(false)}>
         <TouchableOpacity 
@@ -1007,7 +1088,7 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
   mainShareBtn: { backgroundColor: accentColor, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, flex: 1, alignItems: 'center' },
   mainShareBtnText: { color: theme.background, fontWeight: '800', fontSize: 10, marginTop: 4, letterSpacing: 1.5 },
   emptyActionRow: { flexDirection: 'row', gap: 12, width: '100%', marginTop: 10 },
-  mainCopyBtn: { backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', flex: 1, alignItems: 'center' },
+  mainCopyBtn: { backgroundColor: theme.surface, paddingHorizontal: 24, paddingVertical: 14, borderRadius: 30, borderWidth: 1, borderColor: theme.border, flex: 1, alignItems: 'center' },
   mainCopyBtnText: { color: theme.text, fontWeight: '800', fontSize: 10, marginTop: 4, letterSpacing: 1.5 },
 
   avatarPic: { width: 48, height: 48, borderRadius: 24, borderWidth: 1, borderColor: accentColor },
@@ -1035,7 +1116,7 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
   brandingHandle: { color: 'rgba(0,0,0,0.5)', fontSize: 10, fontWeight: '800' },
   
   replyInputArea: { marginTop: 30 },
-  replyInput: { backgroundColor: '#0B0B0B', borderRadius: 16, paddingHorizontal: 20, paddingVertical: 14, color: theme.text, fontSize: 15, textAlignVertical: 'top', minHeight: 56, marginBottom: 20, borderWidth: 1, borderColor: 'rgba(29, 185, 84, 0.4)' },
+  replyInput: { backgroundColor: theme.background, borderRadius: 16, paddingHorizontal: 20, paddingVertical: 14, color: theme.text, fontSize: 15, textAlignVertical: 'top', minHeight: 56, marginBottom: 20, borderWidth: 1, borderColor: theme.border },
   shareActionRow: { flexDirection: 'row', gap: 16 },
   shareCancel: { flex: 1, paddingVertical: 12, alignItems: 'center', borderRadius: 14, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
   shareCancelText: { color: theme.textSecondary, fontWeight: '800', letterSpacing: 1 },
@@ -1089,12 +1170,12 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
   statsRow: { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 12 },
   statCard: { flex: 1, backgroundColor: theme.card, borderRadius: 16, paddingVertical: 14, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
   statNumber: { color: theme.text, fontSize: 22, fontWeight: '900' },
-  statLabel: { color: '#555', fontSize: 9, fontWeight: '800', letterSpacing: 1.5, marginTop: 4 },
+  statLabel: { color: theme.textSecondary, fontSize: 9, fontWeight: '800', letterSpacing: 1.5, marginTop: 4 },
 
   // Question of the Day
   qotdCard: { marginHorizontal: 16, backgroundColor: theme.card, borderRadius: 16, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(255, 215, 0, 0.15)' },
   qotdLabel: { color: '#FFD700', fontSize: 10, fontWeight: '900', letterSpacing: 1.5 },
-  qotdText: { color: '#CCC', fontSize: 14, fontWeight: '600', lineHeight: 20 },
+  qotdText: { color: theme.text, fontSize: 14, fontWeight: '600', lineHeight: 20 },
 
   // Swipe Actions
   swipeActionLeft: { backgroundColor: '#FFD700', borderRadius: 20, justifyContent: 'center', alignItems: 'center', width: 80, marginBottom: 10, marginRight: 4 },
@@ -1136,5 +1217,13 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
     elevation: 10
   },
   shareLinkStickerText: { color: accentColor, fontSize: 22, fontWeight: '900', letterSpacing: 2 },
+
+  // Analytics Styles
+  viewItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.border },
+  viewIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: theme.surface, justifyContent: 'center', alignItems: 'center' },
+  viewTitle: { color: theme.text, fontSize: 13, fontWeight: '800' },
+  viewSub: { color: theme.textSecondary, fontSize: 10, marginTop: 2 },
+  refBadge: { backgroundColor: 'rgba(29,185,84,0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  refText: { color: accentColor, fontSize: 8, fontWeight: '900' },
 });
 

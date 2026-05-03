@@ -82,7 +82,6 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
 
       <View style={styles.circle1} />
       <View style={styles.circle2} />

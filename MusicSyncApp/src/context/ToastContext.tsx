@@ -239,7 +239,7 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
     alignItems: 'center',
   },
   toastContent: {
-    backgroundColor: theme.text,
+    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 24,
@@ -250,9 +250,9 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
     borderBottomRightRadius: 0,
     width: '100%',
     maxWidth: 500,
-    shadowColor: theme.background,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.15,
     shadowRadius: 20,
     elevation: 12,
     overflow: 'visible',
@@ -289,7 +289,7 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
     justifyContent: 'center',
   },
   toastText: {
-    color: theme.surfaceDarker,
+    color: '#121212',
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: -0.2,
@@ -301,7 +301,7 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
     left: 0,
     right: 0,
     height: 3,
-    backgroundColor: 'rgba(0,0,0,0.06)',
+    backgroundColor: 'rgba(0,0,0,0.08)',
     borderBottomLeftRadius: 16,
   },
   progressBarContainer: {

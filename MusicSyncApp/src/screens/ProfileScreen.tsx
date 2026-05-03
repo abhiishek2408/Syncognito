@@ -59,6 +59,19 @@ export default function ProfileScreen({ navigation }: any) {
 
   const user = auth.user;
   const status = user?.profile_status || 'active';
+  const isPremium = user?.isPremium || false;
+
+  const togglePremium = async () => {
+    if (!auth.token) return;
+    try {
+      const resp = await axios.post(`${API_URL}/api/ngl/premium-toggle`, {}, {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+      if (auth.refreshProfile) await auth.refreshProfile();
+    } catch (err) {
+      console.warn('Failed to toggle premium:', err);
+    }
+  };
 
   return (
     <ScrollView style={dynamicStyles.container} contentContainerStyle={dynamicStyles.content}>
@@ -71,7 +84,7 @@ export default function ProfileScreen({ navigation }: any) {
 
           {/* Avatar */}
           <View style={dynamicStyles.avatarContainer}>
-            <View style={dynamicStyles.avatarRing}>
+            <View style={[dynamicStyles.avatarRing, isPremium && dynamicStyles.premiumRing]}>
               {(user?.avatar) ? (
                 <Image
                   source={{ uri: user.avatar }}
@@ -79,15 +92,24 @@ export default function ProfileScreen({ navigation }: any) {
                 />
               ) : (
                 <View style={[dynamicStyles.avatar, dynamicStyles.avatarPlaceholder]}>
-                  <MaterialCommunityIcons name="account" size={60} color="#1DB954" />
+                  <MaterialCommunityIcons name="account" size={60} color={isPremium ? '#8A2BE2' : "#1DB954"} />
                 </View>
               )}
             </View>
             <View style={[dynamicStyles.statusDot, { backgroundColor: statusColor(status) }]} />
+            {isPremium && (
+              <View style={dynamicStyles.premiumBadge}>
+                <MaterialCommunityIcons name="star" size={10} color="#000" />
+                <Text style={dynamicStyles.premiumBadgeText}>PRO</Text>
+              </View>
+            )}
           </View>
 
           <Text style={dynamicStyles.name}>{user?.name || 'Guest User'}</Text>
           <Text style={dynamicStyles.email}>{user?.email || 'Not signed in'}</Text>
+          {(user as any)?.bio ? (
+            <Text style={dynamicStyles.bioText} numberOfLines={3}>{(user as any).bio}</Text>
+          ) : null}
         </View>
 
         {user ? (
@@ -159,6 +181,16 @@ export default function ProfileScreen({ navigation }: any) {
                 <MaterialCommunityIcons name="logout" size={22} color="#EF5350" />
                 <Text style={[dynamicStyles.actionText, { color: '#EF5350' }]}>Sign Out</Text>
               </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[dynamicStyles.actionCard, { marginTop: 12, width: '100%', borderColor: isPremium ? '#8A2BE240' : theme.border, backgroundColor: isPremium ? 'rgba(138,43,226,0.05)' : theme.surface }]}
+                onPress={togglePremium}
+              >
+                <MaterialCommunityIcons name={isPremium ? "star" : "star-outline"} size={22} color={isPremium ? "#8A2BE2" : "#888"} />
+                <Text style={[dynamicStyles.actionText, isPremium && { color: '#8A2BE2' }]}>
+                  {isPremium ? 'Sync Pro Active' : 'Upgrade to Pro'}
+                </Text>
+              </TouchableOpacity>
             </View>
           </>
 
@@ -200,11 +232,12 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
   editProfileText: { color: accentColor, fontSize: 13, fontWeight: '800' },
   name: { color: theme.text, fontSize: 22, fontWeight: '900', textAlign: 'center' },
   email: { color: theme.textSecondary, fontSize: 11, marginTop: 2, textAlign: 'center' },
+  bioText: { color: theme.textSecondary, fontSize: 13, marginTop: 12, textAlign: 'center', paddingHorizontal: 40, fontStyle: 'italic', lineHeight: 18 },
   statsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 16, marginTop: 12, backgroundColor: theme.surface, borderRadius: 20, paddingVertical: 14, paddingHorizontal: 10, borderWidth: 1, borderColor: theme.border },
   statItem: { flex: 1, alignItems: 'center', gap: 2 },
   statValue: { color: theme.text, fontSize: 18, fontWeight: '800' },
   statLabel: { color: theme.textSecondary, fontSize: 11 },
-  statDivider: { width: 1, height: 30, backgroundColor: '#2A2A2A' },
+  statDivider: { width: 1, height: 30, backgroundColor: theme.border },
   cardSection: { marginHorizontal: 16, marginTop: 20 },
   sectionTitle: { color: theme.text, fontSize: 16, fontWeight: '700', marginBottom: 8 },
   infoCard: { backgroundColor: theme.surfaceDarker, borderRadius: 24, paddingVertical: 8, paddingHorizontal: 4, borderWidth: 1, borderColor: theme.surface },
@@ -213,11 +246,15 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
   infoContent: { flex: 1 },
   infoLabel: { color: theme.textSecondary, fontSize: 9, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   infoValue: { color: theme.text, fontSize: 13, fontWeight: '700', marginTop: 1 },
+  aboutText: { color: theme.textSecondary, fontSize: 14, lineHeight: 20 },
   infoSeparator: { display: 'none' },
   statusIndicator: { width: 8, height: 8, borderRadius: 4 },
   actionsGrid: { flexDirection: 'row', gap: 20, justifyContent: 'center' },
   actionCard: { width: 85, backgroundColor: theme.surface, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 4, alignItems: 'center', borderWidth: 1, borderColor: theme.border, gap: 6 },
   actionIcon: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  actionText: { color: '#AAA', fontSize: 11, fontWeight: '600' },
+  actionText: { color: theme.textSecondary, fontSize: 11, fontWeight: '600' },
   logoutCard: { flexDirection: 'row', marginTop: 12, width: '100%', justifyContent: 'center', borderColor: '#EF535030' },
+  premiumRing: { borderColor: '#8A2BE2', borderWidth: 3, shadowColor: '#8A2BE2', shadowOpacity: 0.8, shadowRadius: 15, elevation: 20 },
+  premiumBadge: { position: 'absolute', top: -5, right: -5, backgroundColor: '#FFD700', paddingHorizontal: 6, paddingVertical: 4, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 2, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 4, elevation: 5 },
+  premiumBadgeText: { color: '#000', fontSize: 8, fontWeight: '900' },
 });

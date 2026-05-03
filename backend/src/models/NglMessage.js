@@ -9,6 +9,9 @@ const nglMessageSchema = new mongoose.Schema({
   isPinned: { type: Boolean, default: false },
   isSpam: { type: Boolean, default: false },
   deviceHint: { type: String, default: null }, // e.g. "Android", "iOS", "Web" — subtle hint about sender
+  locationHint: { type: String, default: null }, // e.g. "London, UK"
+  deviceFull: { type: String, default: null }, // e.g. "iPhone 15 Pro"
+  senderUserHint: { type: String, default: null }, // e.g. "A***" (first letter of sender's name if logged in)
 });
 
 export default mongoose.model('NglMessage', nglMessageSchema);

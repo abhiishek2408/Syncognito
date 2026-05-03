@@ -17,7 +17,7 @@ import { AuthProvider } from './src/context/AuthContext';
 import { ToastProvider } from './src/context/ToastContext';
 import { PlayerProvider } from './src/context/PlayerContext';
 import { AlarmProvider } from './src/context/AlarmContext';
-import { ThemeProvider } from './src/context/ThemeContext';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import AuthContext from './src/context/AuthContext';
 import { notificationService } from './src/utils/notifications';
 
@@ -70,13 +70,23 @@ const RootNavigator = () => {
   );
 };
 
+const ThemedStatusBar = () => {
+  const { isDarkMode, theme } = useTheme();
+  return (
+    <StatusBar 
+      barStyle={isDarkMode ? 'light-content' : 'dark-content'} 
+      backgroundColor={theme.background}
+      translucent={false}
+    />
+  );
+};
+
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-      <StatusBar barStyle="light-content" />
       <AuthProvider>
         <NotificationHandler />
         <ThemeProvider>
@@ -84,6 +94,7 @@ function App() {
           <PlayerProvider>
             <AlarmProvider>
               <NavigationContainer>
+                <ThemedStatusBar />
                 <RootNavigator />
               </NavigationContainer>
             </AlarmProvider>

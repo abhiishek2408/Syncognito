@@ -18,6 +18,8 @@ const userSchema = new mongoose.Schema({
   anonSlug: { type: String, unique: true, sparse: true },
   timezone: { type: String, default: 'UTC' },
   bio: { type: String, default: '' },
+  isPremium: { type: Boolean, default: false },
+  premiumUntil: { type: Date, default: null },
 });
 
 export default mongoose.model('User', userSchema);

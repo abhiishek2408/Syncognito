@@ -2,6 +2,7 @@ import express from 'express';
 import { body, param, validationResult } from 'express-validator';
 import NglMessage from '../models/NglMessage.js';
 import User from '../models/User.js';
+import NglLinkView from '../models/NglLinkView.js';
 import dotenv from 'dotenv';
 import { authenticateToken } from '../middleware/auth.js';
 
@@ -24,6 +25,23 @@ router.get('/recipient/:identifier', async (req, res) => {
     }
     
     if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Premium Analytics: Track view
+    try {
+      const viewerIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+      const userAgent = req.headers['user-agent'];
+      const referrer = req.headers['referer'] || req.headers['referrer'];
+
+      await NglLinkView.create({
+        recipientId: user._id,
+        viewerIp,
+        userAgent,
+        referrer
+      });
+    } catch (vErr) {
+      console.warn('[NGL] View tracking error:', vErr.message);
+    }
+
     res.json(user);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -103,11 +121,34 @@ router.post('/send',
     // Detect device from User-Agent
     const ua = req.headers['user-agent'] || '';
     let deviceHint = 'Unknown';
-    if (ua.includes('Android')) deviceHint = 'Android';
-    else if (ua.includes('iPhone') || ua.includes('iPad')) deviceHint = 'iOS';
-    else if (ua.includes('Mozilla') || ua.includes('Chrome')) deviceHint = 'Web';
+    let deviceFull = 'Unknown Device';
+    if (ua.includes('Android')) {
+      deviceHint = 'Android';
+      const match = ua.match(/Android\s([^\s;]+)/);
+      deviceFull = match ? `Android ${match[1]}` : 'Android Device';
+    } else if (ua.includes('iPhone') || ua.includes('iPad')) {
+      deviceHint = 'iOS';
+      deviceFull = ua.includes('iPhone') ? 'iPhone' : 'iPad';
+    } else if (ua.includes('Mozilla') || ua.includes('Chrome')) {
+      deviceHint = 'Web';
+      deviceFull = 'Web Browser';
+    }
 
-    const newMessage = new NglMessage({ recipientId: targetId, text, isSpam, deviceHint });
+    // Mock Location Hint (In real app, use a GeoIP library)
+    const locationHint = "New York, US"; // Placeholder for demo
+
+    // Sender Hint (if they provide a name or are logged in)
+    const senderUserHint = req.body.senderName ? `${req.body.senderName[0]}***` : null;
+
+    const newMessage = new NglMessage({ 
+      recipientId: targetId, 
+      text, 
+      isSpam, 
+      deviceHint,
+      deviceFull,
+      locationHint,
+      senderUserHint
+    });
     await newMessage.save();
     res.status(201).json({ message: 'Sent anonymously!' });
   } catch (err) {
@@ -192,6 +233,75 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     await NglMessage.findOneAndDelete({ _id: req.params.id, recipientId: req.user.id });
     res.json({ message: 'Deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Premium: Get Analytics
+router.get('/analytics', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user.isPremium) return res.status(403).json({ message: 'Premium required' });
+
+    const views = await NglLinkView.find({ recipientId: req.user.id }).sort({ createdAt: -1 });
+    const totalViews = views.length;
+    
+    // Group by day (last 7 days)
+    const chartData = {};
+    const now = new Date();
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      chartData[d.toDateString()] = 0;
+    }
+
+    views.forEach(v => {
+      const dStr = new Date(v.createdAt).toDateString();
+      if (chartData[dStr] !== undefined) chartData[dStr]++;
+    });
+
+    res.json({
+      totalViews,
+      views: views.slice(0, 50), // last 50 detailed views
+      chartData: Object.entries(chartData).map(([name, value]) => ({ name, value })).reverse()
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Premium: Ghost AI Reply Draft
+router.post('/ghost-ai', authenticateToken, async (req, res) => {
+  const { messageText } = req.body;
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user.isPremium) return res.status(403).json({ message: 'Premium required' });
+
+    // Mock AI Generation Logic
+    const prompts = [
+      `I'm actually quite mysterious if you get to know me... 😉`,
+      `That's for me to know and you to find out!`,
+      `I have a feeling I know who this is. Maybe.`,
+      `Thanks for the note! You have good taste.`,
+      `Vibe check passed. Next question?`,
+      `I was literally just thinking about this!`,
+    ];
+    const suggestion = prompts[Math.floor(Math.random() * prompts.length)];
+
+    res.json({ suggestion });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Premium: Toggle for Demo Purposes
+router.post('/premium-toggle', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    user.isPremium = !user.isPremium;
+    await user.save();
+    res.json({ isPremium: user.isPremium });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

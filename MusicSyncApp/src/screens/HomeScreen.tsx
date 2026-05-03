@@ -46,7 +46,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   }, [loading, pulseAnim]);
 
   const SkeletonItem = ({ style }: { style: any }) => (
-    <Animated.View style={[style, { opacity: pulseAnim, backgroundColor: '#1A1A1A' }]} />
+    <Animated.View style={[style, { opacity: pulseAnim, backgroundColor: theme.surfaceDarker }]} />
   );
 
   const HomeSkeleton = () => (
@@ -626,14 +626,14 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
     borderColor: theme.border,
     borderStyle: 'dashed'
   },
-  emptyText: { color: theme.border, marginTop: 12, fontSize: 14 },
+  emptyText: { color: theme.textSecondary, marginTop: 12, fontSize: 14 },
   createRoomBtn: { backgroundColor: accentColor, paddingHorizontal: 28, paddingVertical: 12, borderRadius: 24, marginTop: 16 },
   createRoomText: { color: theme.background, fontWeight: '800', fontSize: 15 },
   // Alarm preview
   alarmPreview: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.card, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1.5, borderColor: theme.border },
   alarmPreviewTitle: { color: theme.text, fontSize: 14, fontWeight: '600' },
   alarmPreviewMsg: { color: theme.textSecondary, fontSize: 12, marginTop: 2 },
-  alarmPreviewTime: { color: '#FFB74D', fontSize: 12, fontWeight: '600' },
+  alarmPreviewTime: { color: '#FFB74D', fontSize: 12, fontWeight: '800' },
   cardPlayBtn: {
     width: 32,
     height: 32,

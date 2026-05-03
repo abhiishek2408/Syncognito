@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext';
 
 export default function SettingsScreen({ navigation }: { navigation: any }) {
   const { isDarkMode, theme, accentColor, toggleDarkMode, setAccentColor } = useTheme();
+  const styles = getStyles(theme);
   const [notifications, setNotifications] = useState(true);
   const [highQuality, setHighQuality] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -207,8 +208,8 @@ export default function SettingsScreen({ navigation }: { navigation: any }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000000' },
+const getStyles = (theme: any) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.background },
   header: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -216,20 +217,20 @@ const styles = StyleSheet.create({
     marginBottom: 20
   },
   backBtn: { marginRight: 15 },
-  title: { color: '#fff', fontSize: 22, fontWeight: '800' },
+  title: { color: theme.text, fontSize: 22, fontWeight: '800' },
   content: { padding: 20, paddingBottom: 60 },
   section: { marginBottom: 25 },
   sectionTitle: { color: '#1DB954', fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 12, marginLeft: 4 },
-  card: { backgroundColor: '#050505', borderRadius: 20, borderWidth: 1, borderColor: '#111', overflow: 'hidden' },
+  card: { backgroundColor: theme.surface, borderRadius: 20, borderWidth: 1, borderColor: theme.border, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
   rowLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   iconBox: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  rowLabel: { color: '#fff', fontSize: 15, fontWeight: '500' },
-  separator: { height: 1, backgroundColor: '#1E1E1E' },
+  rowLabel: { color: theme.text, fontSize: 15, fontWeight: '500' },
+  separator: { height: 1, backgroundColor: theme.border },
   version: { color: '#444', fontSize: 12, textAlign: 'center', marginTop: 10 },
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  modalCard: { width: '100%', backgroundColor: '#050505', borderRadius: 28, padding: 28, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(239, 83, 80, 0.2)', shadowColor: '#EF5350', shadowOpacity: 0.2, shadowRadius: 30, elevation: 15 },
+  modalCard: { width: '100%', backgroundColor: theme.surface, borderRadius: 28, padding: 28, alignItems: 'center', borderWidth: 1, borderColor: theme.border, shadowColor: '#EF5350', shadowOpacity: 0.2, shadowRadius: 30, elevation: 15 },
   dangerIconWrap: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(239, 83, 80, 0.1)', justifyContent: 'center', alignItems: 'center', marginBottom: 20, borderWidth: 1, borderColor: 'rgba(239, 83, 80, 0.3)' },
   infoIconWrap: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', marginBottom: 20, borderWidth: 1 },
   modalTitle: { color: '#FFF', fontSize: 22, fontWeight: '800', marginBottom: 10 },
