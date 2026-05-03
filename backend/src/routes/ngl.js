@@ -137,6 +137,7 @@ router.post('/send',
 
     // Real Location Hint (GeoIP with API Fallback)
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+    console.log(`[NGL] Message from IP: ${ip}`);
     let locationHint = "Global Web User";
     
     try {
@@ -156,6 +157,10 @@ router.post('/send',
       }
     } catch (err) {
       console.warn('[NGL] GeoIP Error:', err.message);
+    }
+
+    if (locationHint === "Global Web User") {
+      locationHint = `Web User (IP: ${ip.substring(0, 7)}...)`;
     }
 
     // Sender Hint (if they provide a name or are logged in)
