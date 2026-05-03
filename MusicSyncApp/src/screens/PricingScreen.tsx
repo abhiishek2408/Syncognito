@@ -137,66 +137,45 @@ export default function PricingScreen({ navigation }: any) {
       </View>
 
       <View style={dynamicStyles.plansContainer}>
-        {plans.map((plan) => {
-          const isCurrentPlan = auth.user?.premiumPlan === plan.id;
-          const isElite = auth.user?.premiumPlan === 'elite';
-          const canUpgrade = auth.user?.premiumPlan === 'plus' && plan.id === 'elite';
-          const isDisabled = (isCurrentPlan || isElite) && !canUpgrade;
+        {plans.map((plan) => (
+          <View key={plan.id} style={[dynamicStyles.planCard, plan.id === 'elite' && dynamicStyles.eliteCard]}>
+            {plan.id === 'elite' && (
+              <View style={dynamicStyles.popularBadge}>
+                <Text style={dynamicStyles.popularText}>MOST POPULAR</Text>
+              </View>
+            )}
+            
+            <View style={dynamicStyles.planHeader}>
+              <Text style={dynamicStyles.planName}>{plan.name}</Text>
+              <View style={dynamicStyles.priceRow}>
+                <Text style={dynamicStyles.currency}>$</Text>
+                <Text style={dynamicStyles.price}>{plan.price}</Text>
+                <Text style={dynamicStyles.duration}>/month</Text>
+              </View>
+            </View>
 
-          return (
-            <TouchableOpacity
-              key={plan.id}
-              style={[
-                dynamicStyles.planCard,
-                isCurrentPlan && { borderColor: accentColor, borderWidth: 2 }
-              ]}
-              onPress={() => !isDisabled && handlePurchase(plan.id)}
-              disabled={isDisabled || processing !== null}
+            <View style={dynamicStyles.featuresList}>
+              {plan.features.map((feature: string, idx: number) => (
+                <View key={idx} style={dynamicStyles.featureItem}>
+                  <MaterialCommunityIcons name="check-circle" size={18} color={accentColor} />
+                  <Text style={dynamicStyles.featureText}>{feature}</Text>
+                </View>
+              ))}
+            </View>
+
+            <TouchableOpacity 
+              style={[dynamicStyles.buyBtn, plan.id === 'elite' && { backgroundColor: '#8A2BE2' }]} 
+              onPress={() => handlePurchase(plan.id)}
+              disabled={!!processing}
             >
-              {isCurrentPlan && (
-                <View style={[dynamicStyles.currentBadge, { backgroundColor: accentColor }]}>
-                  <Text style={dynamicStyles.currentBadgeText}>CURRENT PLAN</Text>
-                </View>
+              {processing === plan.id ? (
+                <ActivityIndicator color="#FFF" />
+              ) : (
+                <Text style={dynamicStyles.buyBtnText}>UPGRADE NOW</Text>
               )}
-              
-              <View style={dynamicStyles.planHeader}>
-                <View>
-                  <Text style={dynamicStyles.planName}>{plan.name}</Text>
-                  <Text style={dynamicStyles.planPrice}>{plan.priceLabel}</Text>
-                </View>
-                <MaterialCommunityIcons 
-                  name={plan.id === 'elite' ? 'crown' : 'star'} 
-                  size={32} 
-                  color={plan.id === 'elite' ? '#FFD700' : accentColor} 
-                />
-              </View>
-
-              <View style={dynamicStyles.featuresList}>
-                {plan.features.map((feature: string, idx: number) => (
-                  <View key={idx} style={dynamicStyles.featureItem}>
-                    <MaterialCommunityIcons name="check-circle" size={18} color={accentColor} />
-                    <Text style={dynamicStyles.featureText}>{feature}</Text>
-                  </View>
-                ))}
-              </View>
-
-              <View 
-                style={[
-                  dynamicStyles.purchaseBtn, 
-                  { backgroundColor: isDisabled ? theme.card + '80' : accentColor }
-                ]}
-              >
-                {processing === plan.id ? (
-                  <ActivityIndicator color="#FFF" />
-                ) : (
-                  <Text style={dynamicStyles.purchaseBtnText}>
-                    {isCurrentPlan ? 'ACTIVE' : canUpgrade ? 'UPGRADE NOW' : isDisabled ? 'LOCKED' : 'CHOOSE PLAN'}
-                  </Text>
-                )}
-              </View>
             </TouchableOpacity>
-          );
-        })}
+          </View>
+        ))}
       </View>
 
       <View style={dynamicStyles.footer}>
