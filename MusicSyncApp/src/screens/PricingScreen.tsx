@@ -164,14 +164,20 @@ export default function PricingScreen({ navigation }: any) {
             </View>
 
             <TouchableOpacity 
-              style={[dynamicStyles.buyBtn, plan.id === 'elite' && { backgroundColor: '#8A2BE2' }]} 
+              style={[
+                dynamicStyles.buyBtn, 
+                plan.id === 'elite' && { backgroundColor: '#8A2BE2' },
+                auth.user?.premiumPlan === plan.id && { opacity: 0.5 }
+              ]} 
               onPress={() => handlePurchase(plan.id)}
-              disabled={!!processing}
+              disabled={!!processing || auth.user?.premiumPlan === plan.id}
             >
               {processing === plan.id ? (
                 <ActivityIndicator color="#FFF" />
               ) : (
-                <Text style={dynamicStyles.buyBtnText}>UPGRADE NOW</Text>
+                <Text style={dynamicStyles.buyBtnText}>
+                  {auth.user?.premiumPlan === plan.id ? 'CURRENT PLAN' : 'UPGRADE NOW'}
+                </Text>
               )}
             </TouchableOpacity>
           </View>

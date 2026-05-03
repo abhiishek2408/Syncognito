@@ -5,7 +5,7 @@ import axios from 'axios';
 import { getToken, setToken as persistToken, removeToken } from '../utils/auth';
 import API_URL from '../utils/api';
 
-export type User = { _id?: string; name?: string; email?: string; anonSlug?: string; avatar?: string; profile_pic?: string; role?: string; profile_status?: string; isPremium?: boolean } | null;
+export type User = { _id?: string; name?: string; email?: string; anonSlug?: string; avatar?: string; profile_pic?: string; role?: string; profile_status?: string; isPremium?: boolean; premiumPlan?: string | null } | null;
 
 export type AuthContextType = {
   user: User;

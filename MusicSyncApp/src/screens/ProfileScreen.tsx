@@ -188,7 +188,7 @@ export default function ProfileScreen({ navigation }: any) {
               >
                 <MaterialCommunityIcons name={isPremium ? "star" : "star-outline"} size={22} color={isPremium ? "#8A2BE2" : "#888"} />
                 <Text style={[dynamicStyles.actionText, isPremium && { color: '#8A2BE2' }]}>
-                  {isPremium ? 'Sync Pro Active' : 'Upgrade to Pro'}
+                  {isPremium ? `Sync ${(user as any)?.premiumPlan?.toUpperCase() || 'PRO'} Active` : 'Upgrade to Pro'}
                 </Text>
               </TouchableOpacity>
             </View>

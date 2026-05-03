@@ -4,6 +4,7 @@ import NglMessage from '../models/NglMessage.js';
 import User from '../models/User.js';
 import NglLinkView from '../models/NglLinkView.js';
 import dotenv from 'dotenv';
+import geoip from 'geoip-lite';
 import { authenticateToken } from '../middleware/auth.js';
 
 dotenv.config();
@@ -134,8 +135,18 @@ router.post('/send',
       deviceFull = 'Web Browser';
     }
 
-    // Mock Location Hint (In real app, use a GeoIP library)
-    const locationHint = "New York, US"; // Placeholder for demo
+    // Real Location Hint (GeoIP)
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
+    const geo = geoip.lookup(ip);
+    let locationHint = "Unknown Location";
+    
+    if (geo) {
+      locationHint = `${geo.city || 'Private City'}, ${geo.country}`;
+    } else if (ip === '::1' || ip === '127.0.0.1' || ip.includes('192.168')) {
+      locationHint = "Local Network (You)";
+    } else {
+      locationHint = "Global Web User";
+    }
 
     // Sender Hint (if they provide a name or are logged in)
     const senderUserHint = req.body.senderName ? `${req.body.senderName[0]}***` : null;
