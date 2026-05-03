@@ -135,17 +135,27 @@ router.post('/send',
       deviceFull = 'Web Browser';
     }
 
-    // Real Location Hint (GeoIP)
+    // Real Location Hint (GeoIP with API Fallback)
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress;
-    const geo = geoip.lookup(ip);
-    let locationHint = "Unknown Location";
+    let locationHint = "Global Web User";
     
-    if (geo) {
-      locationHint = `${geo.city || 'Private City'}, ${geo.country}`;
-    } else if (ip === '::1' || ip === '127.0.0.1' || ip.includes('192.168')) {
-      locationHint = "Local Network (You)";
-    } else {
-      locationHint = "Global Web User";
+    try {
+      const geo = geoip.lookup(ip);
+      if (geo && geo.city) {
+        locationHint = `${geo.city}, ${geo.country}`;
+      } else if (ip === '::1' || ip === '127.0.0.1' || ip.includes('192.168')) {
+        locationHint = "Local Network (You)";
+      } else {
+        // Fallback to real-time API for more accuracy
+        const apiResp = await axios.get(`http://ip-api.com/json/${ip}?fields=status,city,countryCode`);
+        if (apiResp.data && apiResp.data.status === 'success') {
+           locationHint = `${apiResp.data.city}, ${apiResp.data.countryCode}`;
+        } else if (geo) {
+           locationHint = `Region: ${geo.country}`;
+        }
+      }
+    } catch (err) {
+      console.warn('[NGL] GeoIP Error:', err.message);
     }
 
     // Sender Hint (if they provide a name or are logged in)
