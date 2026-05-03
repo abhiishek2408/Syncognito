@@ -302,7 +302,7 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
           </View>
           
           {!isPremium && (
-            <TouchableOpacity style={dynamicStyles.unlockBtn} onPress={togglePremium}>
+            <TouchableOpacity style={dynamicStyles.unlockBtn} onPress={() => navigation.navigate('Pricing')}>
                <Text style={dynamicStyles.unlockBtnText}>UNLOCK ALL HINTS</Text>
             </TouchableOpacity>
           )}

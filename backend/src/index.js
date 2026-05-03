@@ -21,6 +21,7 @@ import userRoutes from './routes/user.js';
 import roomRoutes from './routes/room.js';
 import alarmRoutes from './routes/alarm.js';
 import nglRoutes from './routes/ngl.js';
+import paymentRoutes from './routes/payment.js';
 import User from './models/User.js';
 import Room from './models/Room.js';
 
@@ -74,6 +75,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/alarms', alarmRoutes);
 app.use('/api/ngl', nglRoutes);
+app.use('/api/payments', paymentRoutes);
 
 app.get('/', (req, res) => {
   res.send('Syncognito Backend Running');

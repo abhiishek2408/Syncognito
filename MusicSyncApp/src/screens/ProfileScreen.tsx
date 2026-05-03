@@ -184,7 +184,7 @@ export default function ProfileScreen({ navigation }: any) {
               
               <TouchableOpacity
                 style={[dynamicStyles.actionCard, { marginTop: 12, width: '100%', borderColor: isPremium ? '#8A2BE240' : theme.border, backgroundColor: isPremium ? 'rgba(138,43,226,0.05)' : theme.surface }]}
-                onPress={togglePremium}
+                onPress={() => navigation.navigate('Pricing')}
               >
                 <MaterialCommunityIcons name={isPremium ? "star" : "star-outline"} size={22} color={isPremium ? "#8A2BE2" : "#888"} />
                 <Text style={[dynamicStyles.actionText, isPremium && { color: '#8A2BE2' }]}>

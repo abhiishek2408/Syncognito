@@ -17,6 +17,7 @@ import NglScreen from '../screens/NglScreen';
 import NglMessageDetailScreen from '../screens/NglMessageDetailScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import ProfileDetailScreen from '../screens/ProfileDetailScreen';
+import PricingScreen from '../screens/PricingScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -51,6 +52,7 @@ function ProfileStack() {
       <Stack.Screen name="Ngl" component={NglScreen} />
       <Stack.Screen name="NglMessageDetail" component={NglMessageDetailScreen} />
       <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
+      <Stack.Screen name="Pricing" component={PricingScreen} />
     </Stack.Navigator>
   );
 }
