@@ -6,6 +6,7 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
+import RazorpayCheckout from 'react-native-razorpay';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
 import API_URL from '../utils/api';
@@ -70,30 +71,22 @@ export default function PricingScreen({ navigation }: any) {
         prefill: {
           email: auth.user?.email || '',
           name: auth.user?.name || '',
-          contact: ''
+          contact: '9876543210'
         },
         theme: { color: accentColor }
       };
 
-      // Mocking the RazorpayCheckout call for the browser environment
-      // In real app, use: RazorpayCheckout.open(options).then(data => ...).catch(error => ...)
-      
+      // 3. Open Razorpay Checkout
       showToast('Opening Razorpay Gateway...', 'info');
       
-      // Simulate Razorpay Callback
-      setTimeout(async () => {
-        const mockResponse = {
-          razorpay_payment_id: 'pay_mock_' + Math.random().toString(36).substring(7),
-          razorpay_order_id: orderId,
-          razorpay_signature: 'mock_signature' // This will be verified on backend
-        };
-
+      RazorpayCheckout.open(options).then(async (data: any) => {
         try {
-          // 3. Verify Signature on Backend
+          // 4. Verify Signature on Backend
           const verifyResp = await axios.post(`${API_URL}/api/payments/verify-signature`, {
-            ...mockResponse,
-            planId,
-            razorpay_signature: 'mock_signature' // In reality, signature is valid
+            razorpay_payment_id: data.razorpay_payment_id,
+            razorpay_order_id: data.razorpay_order_id,
+            razorpay_signature: data.razorpay_signature,
+            planId
           }, { headers: { Authorization: `Bearer ${auth.token}` } });
 
           if (verifyResp.data.success) {
@@ -103,11 +96,14 @@ export default function PricingScreen({ navigation }: any) {
             navigation.goBack();
           }
         } catch (err) {
-          showToast('Signature verification failed', 'error');
+          showToast('Payment verification failed', 'error');
         } finally {
           setProcessing(null);
         }
-      }, 2000);
+      }).catch((error: any) => {
+        showToast(error.description || 'Payment cancelled', 'error');
+        setProcessing(null);
+      });
 
     } catch (err) {
       showToast('Failed to initialize Razorpay', 'error');
@@ -141,53 +137,74 @@ export default function PricingScreen({ navigation }: any) {
       </View>
 
       <View style={dynamicStyles.plansContainer}>
-        {plans.map((plan) => (
-          <View key={plan.id} style={[dynamicStyles.planCard, plan.id === 'elite' && dynamicStyles.eliteCard]}>
-            {plan.id === 'elite' && (
-              <View style={dynamicStyles.popularBadge}>
-                <Text style={dynamicStyles.popularText}>MOST POPULAR</Text>
-              </View>
-            )}
-            
-            <View style={dynamicStyles.planHeader}>
-              <Text style={dynamicStyles.planName}>{plan.name}</Text>
-              <View style={dynamicStyles.priceRow}>
-                <Text style={dynamicStyles.currency}>$</Text>
-                <Text style={dynamicStyles.price}>{plan.price}</Text>
-                <Text style={dynamicStyles.duration}>/month</Text>
-              </View>
-            </View>
+        {plans.map((plan) => {
+          const isCurrentPlan = auth.user?.premiumPlan === plan.id;
+          const isElite = auth.user?.premiumPlan === 'elite';
+          const canUpgrade = auth.user?.premiumPlan === 'plus' && plan.id === 'elite';
+          const isDisabled = (isCurrentPlan || isElite) && !canUpgrade;
 
-            <View style={dynamicStyles.featuresList}>
-              {plan.features.map((feature: string, idx: number) => (
-                <View key={idx} style={dynamicStyles.featureItem}>
-                  <MaterialCommunityIcons name="check-circle" size={18} color={accentColor} />
-                  <Text style={dynamicStyles.featureText}>{feature}</Text>
-                </View>
-              ))}
-            </View>
-
-            <TouchableOpacity 
-              style={[dynamicStyles.buyBtn, plan.id === 'elite' && { backgroundColor: '#8A2BE2' }]} 
-              onPress={() => handlePurchase(plan.id)}
-              disabled={!!processing}
+          return (
+            <TouchableOpacity
+              key={plan.id}
+              style={[
+                dynamicStyles.planCard,
+                isCurrentPlan && { borderColor: accentColor, borderWidth: 2 }
+              ]}
+              onPress={() => !isDisabled && handlePurchase(plan.id)}
+              disabled={isDisabled || processing !== null}
             >
-              {processing === plan.id ? (
-                <ActivityIndicator color="#FFF" />
-              ) : (
-                <Text style={dynamicStyles.buyBtnText}>UPGRADE NOW</Text>
+              {isCurrentPlan && (
+                <View style={[dynamicStyles.currentBadge, { backgroundColor: accentColor }]}>
+                  <Text style={dynamicStyles.currentBadgeText}>CURRENT PLAN</Text>
+                </View>
               )}
+              
+              <View style={dynamicStyles.planHeader}>
+                <View>
+                  <Text style={dynamicStyles.planName}>{plan.name}</Text>
+                  <Text style={dynamicStyles.planPrice}>{plan.priceLabel}</Text>
+                </View>
+                <MaterialCommunityIcons 
+                  name={plan.id === 'elite' ? 'crown' : 'star'} 
+                  size={32} 
+                  color={plan.id === 'elite' ? '#FFD700' : accentColor} 
+                />
+              </View>
+
+              <View style={dynamicStyles.featuresList}>
+                {plan.features.map((feature: string, idx: number) => (
+                  <View key={idx} style={dynamicStyles.featureItem}>
+                    <MaterialCommunityIcons name="check-circle" size={18} color={accentColor} />
+                    <Text style={dynamicStyles.featureText}>{feature}</Text>
+                  </View>
+                ))}
+              </View>
+
+              <View 
+                style={[
+                  dynamicStyles.purchaseBtn, 
+                  { backgroundColor: isDisabled ? theme.card + '80' : accentColor }
+                ]}
+              >
+                {processing === plan.id ? (
+                  <ActivityIndicator color="#FFF" />
+                ) : (
+                  <Text style={dynamicStyles.purchaseBtnText}>
+                    {isCurrentPlan ? 'ACTIVE' : canUpgrade ? 'UPGRADE NOW' : isDisabled ? 'LOCKED' : 'CHOOSE PLAN'}
+                  </Text>
+                )}
+              </View>
             </TouchableOpacity>
-          </View>
-        ))}
+          );
+        })}
       </View>
 
       <View style={dynamicStyles.footer}>
          <Text style={dynamicStyles.footerText}>Secure payment processing. Cancel anytime.</Text>
          <View style={dynamicStyles.paymentIcons}>
             <MaterialCommunityIcons name="credit-card-outline" size={20} color={theme.textSecondary} />
-            <MaterialCommunityIcons name="google-pay" size={30} color={theme.textSecondary} />
-            <MaterialCommunityIcons name="apple-pay" size={30} color={theme.textSecondary} />
+            <MaterialCommunityIcons name="google" size={25} color={theme.textSecondary} />
+            <MaterialCommunityIcons name="apple" size={25} color={theme.textSecondary} />
          </View>
       </View>
     </ScrollView>

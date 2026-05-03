@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
 
-
-
 const userSchema = new mongoose.Schema({
   name: String,
   email: { type: String, unique: true },
@@ -19,6 +17,7 @@ const userSchema = new mongoose.Schema({
   timezone: { type: String, default: 'UTC' },
   bio: { type: String, default: '' },
   isPremium: { type: Boolean, default: false },
+  premiumPlan: { type: String, enum: ['plus', 'elite', null], default: null },
   premiumUntil: { type: Date, default: null },
 });
 

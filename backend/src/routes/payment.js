@@ -104,6 +104,7 @@ router.post('/verify-signature', authenticateToken, async (req, res) => {
       expiry.setDate(expiry.getDate() + (plan?.durationDays || 30));
 
       user.isPremium = true;
+      user.premiumPlan = planId;
       user.premiumUntil = expiry;
       await user.save();
 
