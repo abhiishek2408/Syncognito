@@ -425,6 +425,9 @@ router.get('/poll/me', authenticateToken, async (req, res) => {
 // Get poll by ID (public)
 router.get('/poll/:id', async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid Poll ID' });
+    }
     const poll = await NglPoll.findById(req.params.id);
     if (!poll) return res.status(404).json({ message: 'Poll not found' });
     res.json(poll);
