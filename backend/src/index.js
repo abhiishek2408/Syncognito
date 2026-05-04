@@ -31,6 +31,12 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
+// --- Request Logging ---
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
 // --- Security Middlewares ---
 app.use(helmet()); // Set security HTTP headers
 const limiter = rateLimit({

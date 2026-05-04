@@ -285,12 +285,15 @@ export default function NglScreen({ navigation }: any) {
         axios.get(`${API_URL}/api/ngl/me`, { headers: { Authorization: `Bearer ${auth.token}` } }),
         axios.get(`${API_URL}/api/ngl/poll/me`, { headers: { Authorization: `Bearer ${auth.token}` } })
       ]);
-      setMessages(msgResp.data || []);
-      setPolls(pollResp.data || []);
-      setPinnedMessages(msgResp.data.filter((m: any) => m.isPinned).map((m: any) => m._id));
-      setRevealedMessages(msgResp.data.filter((m: any) => m.isRead).map((m: any) => m._id));
-    } catch (err) {
-      console.warn('NGL fetch error:', err);
+      const messagesData = Array.isArray(msgResp.data) ? msgResp.data : [];
+      const pollsData = Array.isArray(pollResp.data) ? pollResp.data : [];
+      
+      setMessages(messagesData);
+      setPolls(pollsData);
+      setPinnedMessages(messagesData.filter((m: any) => m.isPinned).map((m: any) => m._id));
+      setRevealedMessages(messagesData.filter((m: any) => m.isRead).map((m: any) => m._id));
+    } catch (err: any) {
+      console.warn('NGL fetch error details:', err?.response?.data || err.message);
       showToast('Failed to load data', 'error');
     } finally {
       setLoading(false);
