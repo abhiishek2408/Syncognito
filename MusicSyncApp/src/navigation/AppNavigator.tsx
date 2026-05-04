@@ -76,7 +76,7 @@ export default function AppNavigator() {
         tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: ((route) => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-          if (routeName === 'AnonymousMain' || routeName === 'NglMessageDetail') {
+          if (routeName === 'AnonymousMain' || routeName === 'NglMessageDetail' || routeName === 'Pricing' || (route.name === 'Anonymous' && routeName === '')) {
             return { display: 'none' };
           }
           return {

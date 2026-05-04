@@ -410,6 +410,18 @@ router.post('/poll/create', authenticateToken, async (req, res) => {
   }
 });
 
+// Get my polls
+router.get('/poll/me', authenticateToken, async (req, res) => {
+  console.log('[NGL] GET /poll/me hit by user:', req.user.id);
+  try {
+    const polls = await NglPoll.find({ creatorId: req.user.id }).sort({ createdAt: -1 });
+    res.json(polls);
+  } catch (err) {
+    console.error('[NGL Polls Me] Error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Get poll by ID (public)
 router.get('/poll/:id', async (req, res) => {
   try {
@@ -449,19 +461,12 @@ router.post('/poll/:id/vote', voteLimiter, async (req, res) => {
   }
 });
 
-// Get my polls
-router.get('/poll/me', authenticateToken, async (req, res) => {
-  console.log('[NGL] GET /poll/me hit by user:', req.user.id);
-  try {
-    const polls = await NglPoll.find({ creatorId: req.user.id }).sort({ createdAt: -1 });
-    res.json(polls);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
   }
 });
 
 // Get total view count for a user (public endpoint)
 router.get('/views/:id', async (req, res) => {
+  console.log('[NGL] GET /views/:id hit with ID:', req.params.id);
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: 'Invalid User ID' });

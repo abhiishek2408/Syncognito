@@ -471,7 +471,7 @@ export default function NglScreen({ navigation }: any) {
 
           {/* Template Selector */}
           <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
-            <Text style={[dynamicStyles.promptLabel, { marginBottom: 12 }]}>CHOOSE TEMPLATE</Text>
+            <Text style={[dynamicStyles.promptLabel, { marginBottom: 8 }]}>CHOOSE TEMPLATE</Text>
             <View style={{ flexDirection: 'row', gap: 10 }}>
               {LINK_TEMPLATES.map(tpl => {
                 const isActive = sharePrompt === tpl.prompt;
@@ -592,18 +592,18 @@ export default function NglScreen({ navigation }: any) {
              </View>
           </LinearGradient>
 
-          <View style={{ marginHorizontal: SCREEN_WIDTH * 0.05, marginBottom: 12, marginTop: 4, alignItems: 'center' }}>
+          <View style={{ marginHorizontal: SCREEN_WIDTH * 0.05, marginBottom: 6, marginTop: 4, alignItems: 'center' }}>
             <Text style={{ color: theme.text, fontSize: Math.min(16, SCREEN_WIDTH * 0.045), fontWeight: '900', letterSpacing: 0.5, textAlign: 'center' }}>STEP 1: COPY YOUR LINK</Text>
           </View>
           
-          <View style={[dynamicStyles.linkBanner, { flexDirection: 'column', padding: 12, marginTop: 0, marginHorizontal: 16 }]}>
-            <Text style={[dynamicStyles.linkTitle, { marginBottom: 12, marginLeft: 4 }]}>YOUR SECRET LINK</Text>
+          <View style={[dynamicStyles.linkBanner, { flexDirection: 'column', padding: 10, marginTop: 0, marginHorizontal: 16 }]}>
+            <Text style={[dynamicStyles.linkTitle, { marginBottom: 8, marginLeft: 4 }]}>YOUR SECRET LINK</Text>
             <View style={{ 
               flexDirection: 'row', 
               alignItems: 'center', 
               backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', 
               borderRadius: 16, 
-              padding: 6,
+              padding: 4,
               borderWidth: 1,
               borderColor: theme.border
             }}>
@@ -615,7 +615,7 @@ export default function NglScreen({ navigation }: any) {
               <TouchableOpacity 
                 style={{ 
                   backgroundColor: accentColor, 
-                  padding: 12, 
+                  padding: 10, 
                   borderRadius: 12,
                   shadowColor: accentColor,
                   shadowOpacity: 0.3,
@@ -624,7 +624,7 @@ export default function NglScreen({ navigation }: any) {
                 }} 
                 onPress={copyNglLink}
               >
-                <MaterialCommunityIcons name="content-copy" size={20} color={theme.background} />
+                <MaterialCommunityIcons name="content-copy" size={18} color={theme.background} />
               </TouchableOpacity>
             </View>
           </View>
@@ -1077,11 +1077,11 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
   shareIconBtn: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(29, 185, 84, 0.1)', borderRadius: 10 },
   
   tabWrapper: { 
-    paddingBottom: 15, 
+    paddingBottom: 10, 
     paddingTop: 4, 
     paddingHorizontal: 16,
     backgroundColor: '#FFF',
-    marginBottom: 16,
+    marginBottom: 4,
   },
   tabContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   tabBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 14, backgroundColor: 'transparent' },
