@@ -192,19 +192,19 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={dynamicStyles.container}>
-      <View style={dynamicStyles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={dynamicStyles.backBtnMini}>
-            <MaterialCommunityIcons name="chevron-left" size={28} color={theme.text} />
-          </TouchableOpacity>
-          <Text style={dynamicStyles.headerTitle}>Anonymous</Text>
-        </View>
-        <TouchableOpacity onPress={togglePremium} style={dynamicStyles.premiumToggle}>
-          <MaterialCommunityIcons name={isPremium ? "star" : "star-outline"} size={22} color={isPremium ? "#FFD700" : theme.textSecondary} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={{ flex: 1 }} contentContainerStyle={dynamicStyles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={dynamicStyles.header}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={dynamicStyles.backBtnMini}>
+              <MaterialCommunityIcons name="chevron-left" size={28} color={theme.text} />
+            </TouchableOpacity>
+            <Text style={dynamicStyles.headerTitle}>Anonymous</Text>
+          </View>
+          <TouchableOpacity onPress={togglePremium} style={dynamicStyles.premiumToggle}>
+            <MaterialCommunityIcons name={isPremium ? "star" : "star-outline"} size={22} color={isPremium ? "#FFD700" : theme.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
         {/* Message Card */}
         <Animated.View style={[dynamicStyles.cardWrapper, { transform: [{ scale: cardScale }], opacity: cardOpacity }]}>
           {/* Particle burst */}
@@ -231,7 +231,22 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
                       <View style={dynamicStyles.shareIconCircle}>
                         <MaterialCommunityIcons name="incognito" size={24} color="#FFF" />
                       </View>
-                      <Text style={dynamicStyles.shareHeaderText}>ANONYMOUS ASK</Text>
+                      <View>
+                        <Text style={dynamicStyles.shareHeaderText}>ANONYMOUS ASK</Text>
+                        <View style={dynamicStyles.moodBadge}>
+                           <MaterialCommunityIcons 
+                              name={
+                                message.mood === 'Happy' ? 'emoticon-happy' :
+                                message.mood === 'Angry' ? 'emoticon-angry' :
+                                message.mood === 'Romantic' ? 'heart-multiple' :
+                                message.mood === 'Sarcastic' ? 'emoticon-tongue' :
+                                message.mood === 'Curious' ? 'help-circle' : 'emoticon-neutral'
+                              } 
+                              size={10} color="#FFF" 
+                           />
+                           <Text style={dynamicStyles.moodText}>{message.mood?.toUpperCase() || 'NEUTRAL'} VIBE</Text>
+                        </View>
+                      </View>
                     </View>
                     <TouchableOpacity onPress={cycleTheme} style={dynamicStyles.themeBtn}>
                       <MaterialCommunityIcons name="palette" size={18} color="#FFF" />
@@ -290,16 +305,39 @@ export default function NglMessageDetailScreen({ route, navigation }: Props) {
                 </View>
              </View>
 
-             <View style={dynamicStyles.hintCard}>
-                <MaterialCommunityIcons name="account-question" size={18} color={isPremium ? '#8A2BE2' : '#444'} />
-                <View>
-                   <Text style={dynamicStyles.hintLabel}>NAME HINT</Text>
-                   <Text style={[dynamicStyles.hintValue, !isPremium && dynamicStyles.blurredText]}>
-                      {isPremium ? (message.senderUserHint || 'Not Registered') : 'A***'}
-                   </Text>
-                </View>
-             </View>
-          </View>
+              <View style={dynamicStyles.hintCard}>
+                 <MaterialCommunityIcons name="account-question" size={18} color={isPremium ? '#8A2BE2' : '#444'} />
+                 <View>
+                    <Text style={dynamicStyles.hintLabel}>NAME HINT</Text>
+                    <Text style={[dynamicStyles.hintValue, !isPremium && dynamicStyles.blurredText]}>
+                       {isPremium ? (message.senderUserHint || 'Not Registered') : 'A***'}
+                    </Text>
+                 </View>
+              </View>
+
+              <View style={dynamicStyles.hintCard}>
+                 <MaterialCommunityIcons name="broadcast" size={18} color={isPremium ? '#1DB954' : '#444'} />
+                 <View>
+                    <Text style={dynamicStyles.hintLabel}>PROVIDER</Text>
+                    <Text style={[dynamicStyles.hintValue, !isPremium && dynamicStyles.blurredText]}>
+                       {isPremium ? (message.provider || 'Jio / Airtel') : 'XXXXXX'}
+                    </Text>
+                 </View>
+              </View>
+
+              <View style={dynamicStyles.hintCard}>
+                 <MaterialCommunityIcons 
+                    name={message.batteryLevel < 20 ? "battery-alert" : message.batteryLevel < 50 ? "battery-medium" : "battery-high"} 
+                    size={18} color={isPremium ? '#FFA500' : '#444'} 
+                 />
+                 <View>
+                    <Text style={dynamicStyles.hintLabel}>BATTERY</Text>
+                    <Text style={[dynamicStyles.hintValue, !isPremium && dynamicStyles.blurredText]}>
+                       {isPremium ? `${message.batteryLevel || 68}%` : 'XX%'}
+                    </Text>
+                 </View>
+              </View>
+           </View>
           
           {!isPremium && (
             <TouchableOpacity style={dynamicStyles.unlockBtn} onPress={() => navigation.navigate('Pricing')}>
@@ -408,18 +446,17 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center', 
     justifyContent: 'space-between', 
-    paddingHorizontal: 16, 
+    paddingHorizontal: 24, 
     paddingTop: 10, 
-    paddingBottom: 8,
-    backgroundColor: theme.background,
+    paddingBottom: 20,
   },
   backBtnMini: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 10, borderWidth: 1, borderColor: theme.border },
   headerTitle: { color: theme.text, fontSize: 26, fontWeight: '800' },
   pinBtnMini: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 10, borderWidth: 1, borderColor: theme.border },
-  scrollContent: { paddingHorizontal: 24, paddingBottom: 20 },
+  scrollContent: { paddingBottom: 40 },
   
   // Card
-  cardWrapper: { width: '100%', marginTop: 10, marginBottom: 24 },
+  cardWrapper: { width: '100%', paddingHorizontal: 24, marginTop: 10, marginBottom: 24 },
   particleContainer: { position: 'absolute', top: '50%', left: '50%', zIndex: 10 },
   particle: { position: 'absolute', width: 8, height: 8, borderRadius: 4 },
   messageCard: { width: '100%', borderRadius: 28, overflow: 'hidden', minHeight: 220, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 20, elevation: 12 },
@@ -499,5 +536,7 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
   aiDraftText: { color: '#FFF', fontWeight: '900', fontSize: 14 },
   aiBubble: { backgroundColor: 'rgba(138, 43, 226, 0.1)', padding: 16, borderRadius: 20, borderLeftWidth: 4, borderLeftColor: '#8A2BE2' },
   aiText: { color: theme.text, fontSize: 15, fontStyle: 'italic', lineHeight: 22 },
+  moodBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,0,0,0.2)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginTop: 2 },
+  moodText: { color: '#FFF', fontSize: 7, fontWeight: '900', letterSpacing: 0.5 },
 });
 

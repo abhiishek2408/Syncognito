@@ -116,13 +116,30 @@ router.post('/send',
   async (req, res) => {
   const { recipientId, slug, text } = req.body;
 
-  // Simple spam filter — block messages with too many repeated chars or offensive patterns
+  // Enhanced Spam Filter & Mood Analysis
   const SPAM_PATTERNS = [
     /(.)\1{8,}/i, // same char repeated 8+ times
     /https?:\/\//i, // links
     /bit\.ly|tinyurl/i, // shortened links
+    /\b(fuck|bitch|shit|asshole|pussy|porn|sex|buy now|offer)\b/i, // offensive/spam keywords
   ];
   const isSpam = SPAM_PATTERNS.some(p => p.test(text));
+
+  // Simple AI Mood Analysis (Heuristic)
+  let mood = 'Neutral';
+  const MOOD_RULES = [
+    { mood: 'Happy', pattern: /\b(love|happy|great|nice|cool|best|🔥|❤️|😊|🙌)\b/i },
+    { mood: 'Angry', pattern: /\b(hate|bad|worst|stupid|idiot|wtf|😡|🤬|👎)\b/i },
+    { mood: 'Romantic', pattern: /\b(crush|date|kiss|cute|miss you|babe|😘|💍|🌹)\b/i },
+    { mood: 'Sarcastic', pattern: /\b(yeah right|whatever|lol|rofl|😂|🙄|🤡)\b/i },
+    { mood: 'Curious', pattern: /\?|how|why|who|when/i },
+  ];
+  for (const rule of MOOD_RULES) {
+    if (rule.pattern.test(text)) {
+      mood = rule.mood;
+      break;
+    }
+  }
 
   try {
     let targetId = recipientId;
@@ -181,19 +198,21 @@ router.post('/send',
       locationHint = `Web User (IP: ${ip.substring(0, 7)}...)`;
     }
 
-    // Sender Hint (if they provide a name or are logged in)
-    const senderUserHint = req.body.senderName ? `${req.body.senderName[0]}***` : null;
+    // Capture extra insights from body
+    const { provider, batteryLevel, lat, lng } = req.body;
 
-    const newMessage = new NglMessage({ 
+    const newMessage = await NglMessage.create({ 
       recipientId: targetId, 
       text, 
       isSpam, 
       deviceHint,
       deviceFull,
       locationHint,
-      senderUserHint
+      mood,
+      provider: provider || null,
+      batteryLevel: batteryLevel || null,
+      coordinates: (lat && lng) ? { lat, lng } : null
     });
-    await newMessage.save();
     res.status(201).json({ message: 'Sent anonymously!' });
   } catch (err) {
     res.status(500).json({ message: err.message });

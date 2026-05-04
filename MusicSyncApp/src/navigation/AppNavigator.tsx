@@ -59,6 +59,7 @@ function AnonymousStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="AnonymousMain" component={NglScreen} />
       <Stack.Screen name="NglMessageDetail" component={NglMessageDetailScreen} />
+      <Stack.Screen name="Pricing" component={PricingScreen} />
     </Stack.Navigator>
   );
 }
@@ -80,8 +81,9 @@ export default function AppNavigator() {
           }
           return {
             backgroundColor: theme.background,
-            borderTopColor: theme.border,
-            borderTopWidth: 1,
+            borderTopWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0,
             height: 85,
             paddingBottom: 22,
             paddingTop: 10,

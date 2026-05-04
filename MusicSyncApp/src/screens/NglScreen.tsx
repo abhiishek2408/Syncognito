@@ -99,6 +99,12 @@ export default function NglScreen({ navigation }: any) {
     "What song reminds you of me?",
     "Confess something you've been hiding",
   ];
+
+  const LINK_TEMPLATES = [
+    { id: 'general', label: 'General', prompt: 'Send me anonymous notes!', icon: 'incognito', colors: ['#38ef7d', '#11998e'] },
+    { id: 'confession', label: 'Confession', prompt: 'Confess something secret to me...', icon: 'heart-broken', colors: ['#FF1493', '#C71585'] },
+    { id: 'rate', label: 'Rate Me', prompt: 'Rate my profile 1-10 🕵️‍♂️', icon: 'star-circle', colors: ['#8A2BE2', '#4B0082'] },
+  ];
   const todayIndex = new Date().getDate() % DAILY_PROMPTS.length;
   const questionOfTheDay = DAILY_PROMPTS[todayIndex];
 
@@ -451,15 +457,13 @@ export default function NglScreen({ navigation }: any) {
               <View style={dynamicStyles.header}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <TouchableOpacity onPress={() => navigation.navigate('Home')} style={dynamicStyles.backBtnMini}>
-                    <MaterialCommunityIcons name="chevron-left" size={28} color={theme.text} />
+                    <MaterialCommunityIcons name="chevron-left" size={28} color="#000" />
                   </TouchableOpacity>
                   <Text style={dynamicStyles.headerTitle}>
                     Anonymous
                   </Text>
                 </View>
-                <TouchableOpacity onPress={shareNglLink} style={dynamicStyles.shareIconBtn}>
-                  <MaterialCommunityIcons name="share-variant" size={22} color={accentColor} />
-                </TouchableOpacity>
+                {/* Share button removed */}
                 {isPremium && (
                   <TouchableOpacity onPress={fetchAnalytics} style={[dynamicStyles.shareIconBtn, { backgroundColor: 'rgba(138, 43, 226, 0.1)' }]}>
                     <MaterialCommunityIcons name="chart-box" size={22} color="#8A2BE2" />
@@ -581,15 +585,13 @@ export default function NglScreen({ navigation }: any) {
             <View style={dynamicStyles.header}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <TouchableOpacity onPress={() => navigation.navigate('Home')} style={dynamicStyles.backBtnMini}>
-                  <MaterialCommunityIcons name="chevron-left" size={28} color={theme.text} />
+                  <MaterialCommunityIcons name="chevron-left" size={28} color="#000" />
                 </TouchableOpacity>
                 <Text style={dynamicStyles.headerTitle}>
                   Anonymous
                 </Text>
               </View>
-              <TouchableOpacity onPress={shareNglLink} style={dynamicStyles.shareIconBtn}>
-                <MaterialCommunityIcons name="share-variant" size={22} color={accentColor} />
-              </TouchableOpacity>
+              {/* Share button removed */}
             </View>
             <View style={dynamicStyles.tabWrapper}>
               <View style={dynamicStyles.tabContainer}>
@@ -608,8 +610,54 @@ export default function NglScreen({ navigation }: any) {
                     ) : null}
                   </TouchableOpacity>
                 ))}
-              </View>
             </View>
+          </View>
+
+          {/* Template Selector */}
+          <View style={{ paddingHorizontal: 16, marginBottom: 16 }}>
+            <Text style={[dynamicStyles.promptLabel, { marginBottom: 12 }]}>CHOOSE TEMPLATE</Text>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              {LINK_TEMPLATES.map(tpl => {
+                const isActive = sharePrompt === tpl.prompt;
+                return (
+                  <TouchableOpacity 
+                    key={tpl.id}
+                    onPress={() => {
+                      setSharePrompt(tpl.prompt);
+                      // Find theme index that matches template colors
+                      const tIdx = CARD_THEMES.findIndex(c => c[0] === tpl.colors[0]);
+                      if (tIdx !== -1) setCardThemeIndex(tIdx);
+                      triggerHaptic('medium');
+                    }}
+                    style={{ 
+                      flex: 1, 
+                      backgroundColor: isActive ? accentColor : theme.surface, 
+                      paddingVertical: 12, 
+                      borderRadius: 16, 
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: isActive ? accentColor : theme.border,
+                      shadowColor: isActive ? accentColor : '#000',
+                      shadowOpacity: isActive ? 0.2 : 0,
+                      shadowRadius: 5,
+                      elevation: isActive ? 4 : 0
+                    }}
+                  >
+                    <MaterialCommunityIcons name={tpl.icon as any} size={22} color={isActive ? theme.background : theme.textSecondary} />
+                    <Text style={{ 
+                      color: isActive ? theme.background : theme.textSecondary, 
+                      fontSize: 10, 
+                      fontWeight: '800', 
+                      marginTop: 6,
+                      textTransform: 'uppercase',
+                      letterSpacing: 0.5
+                    }}>{tpl.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
           <LinearGradient 
             colors={cardThemeIndex === 0 ? ['#434343', '#000000'] : CARD_THEMES[cardThemeIndex]} 
             start={{ x: 0, y: 0 }} 
@@ -664,46 +712,61 @@ export default function NglScreen({ navigation }: any) {
                     <MaterialCommunityIcons name="restore" size={22} color="rgba(255,255,255,0.7)" />
                   </TouchableOpacity>
                 )}
-                <TouchableOpacity onPress={togglePrompt}>
+                <TouchableOpacity 
+                  onPress={togglePrompt}
+                  style={{ 
+                    backgroundColor: 'rgba(255,255,255,0.2)', 
+                    padding: 8, 
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.3)'
+                  }}
+                >
                   <Animated.View style={{ transform: [{ rotate: diceSpin }] }}>
-                    <MaterialCommunityIcons name="dice-5" size={26} color="#FFF" />
+                    <MaterialCommunityIcons name="auto-fix" size={24} color="#FFF" />
                   </Animated.View>
                 </TouchableOpacity>
              </View>
           </LinearGradient>
 
-
-          <View style={{ marginHorizontal: SCREEN_WIDTH * 0.05, marginBottom: 16, marginTop: 10, alignItems: 'center' }}>
+          <View style={{ marginHorizontal: SCREEN_WIDTH * 0.05, marginBottom: 12, marginTop: 4, alignItems: 'center' }}>
             <Text style={{ color: theme.text, fontSize: Math.min(16, SCREEN_WIDTH * 0.045), fontWeight: '900', letterSpacing: 0.5, textAlign: 'center' }}>STEP 1: COPY YOUR LINK</Text>
           </View>
-          <View style={[dynamicStyles.linkBanner, { flexDirection: 'column', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, marginTop: 0, marginHorizontal: 16 }]}>
-            <View style={{ alignItems: 'center', marginBottom: 16 }}>
-               <Text style={[dynamicStyles.linkTitle, { textAlign: 'center', fontSize: 11 }]}>YOUR SECRET LINK</Text>
-
-            </View>
-            <View style={{ flexDirection: 'row', width: '100%', gap: 10, paddingHorizontal: 12, marginTop: 4 }}>
+          
+          <View style={[dynamicStyles.linkBanner, { flexDirection: 'column', padding: 12, marginTop: 0, marginHorizontal: 16 }]}>
+            <Text style={[dynamicStyles.linkTitle, { marginBottom: 12, marginLeft: 4 }]}>YOUR SECRET LINK</Text>
+            <View style={{ 
+              flexDirection: 'row', 
+              alignItems: 'center', 
+              backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', 
+              borderRadius: 16, 
+              padding: 6,
+              borderWidth: 1,
+              borderColor: theme.border
+            }}>
+              <View style={{ flex: 1, paddingHorizontal: 12 }}>
+                <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600' }} numberOfLines={1}>
+                  syncognito.app/anon/{anonSlug || 'yourname'}
+                </Text>
+              </View>
               <TouchableOpacity 
-                style={{ flex: 1, height: 48, backgroundColor: isDarkMode ? '#111' : '#EEE', borderRadius: 24, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: isDarkMode ? '#222' : '#DDD' }} 
+                style={{ 
+                  backgroundColor: accentColor, 
+                  padding: 12, 
+                  borderRadius: 12,
+                  shadowColor: accentColor,
+                  shadowOpacity: 0.3,
+                  shadowRadius: 5,
+                  elevation: 3
+                }} 
                 onPress={copyNglLink}
               >
-                <Text style={{ color: theme.text, fontWeight: '900', fontSize: 11, letterSpacing: 1 }}>COPY LINK</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={{ flex: 1, height: 48, backgroundColor: accentColor, borderRadius: 24, justifyContent: 'center', alignItems: 'center' }} 
-                onPress={shareNglLink}
-              >
-                <Text style={{ color: '#000', fontWeight: '900', fontSize: 11, letterSpacing: 1 }}>SHARE LINK</Text>
+                <MaterialCommunityIcons name="content-copy" size={20} color={theme.background} />
               </TouchableOpacity>
             </View>
-            <TouchableOpacity 
-              style={{ position: 'absolute', top: 12, right: 12 }} 
-              onPress={() => { triggerHaptic('light'); setShowSlugModal(true); }}
-            >
-              <MaterialCommunityIcons name="pencil" size={16} color={theme.textSecondary} />
-            </TouchableOpacity>
           </View>
 
-          <View style={{ marginHorizontal: SCREEN_WIDTH * 0.05, marginBottom: 16, marginTop: SCREEN_WIDTH * 0.1, alignItems: 'center' }}>
+          <View style={{ marginHorizontal: SCREEN_WIDTH * 0.05, marginBottom: 12, marginTop: 16, alignItems: 'center' }}>
             <Text style={{ color: theme.text, fontSize: Math.min(16, SCREEN_WIDTH * 0.045), fontWeight: '900', letterSpacing: 0.5, textAlign: 'center' }}>STEP 2: SHARE ON INSTAGRAM</Text>
           </View>
           <TouchableOpacity style={dynamicStyles.igShareBanner} activeOpacity={0.9} onPress={shareNglLink}>
@@ -1016,17 +1079,23 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'space-between', 
     paddingHorizontal: 16, 
-    paddingTop: 4, 
-    paddingBottom: 12,
-    backgroundColor: theme.surface,
+    paddingTop: 10, 
+    paddingBottom: 15,
+    backgroundColor: '#FFF',
   },
   backBtnMini: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' },
-  headerTitle: { color: theme.text, fontSize: 26, fontWeight: '800' },
+  headerTitle: { color: '#000', fontSize: 26, fontWeight: '800' },
   shareIconBtn: { width: 36, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(29, 185, 84, 0.1)', borderRadius: 10 },
   
-  tabWrapper: { marginBottom: 24, marginTop: 16, paddingHorizontal: 16 },
+  tabWrapper: { 
+    paddingBottom: 15, 
+    paddingTop: 4, 
+    paddingHorizontal: 16,
+    backgroundColor: '#FFF',
+    marginBottom: 16,
+  },
   tabContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  tabBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, borderColor: theme.border, backgroundColor: 'transparent' },
+  tabBtn: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 14, backgroundColor: 'transparent' },
   activeTabBtn: { backgroundColor: accentColor, borderColor: accentColor },
   tabText: { color: theme.textSecondary, fontWeight: '700', fontSize: 12 },
   activeTabText: { color: theme.background },
@@ -1073,7 +1142,7 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
   promptChipText: { color: accentColor, fontSize: 12, fontWeight: '700' },
   
   listContent: { paddingTop: 0, paddingBottom: 100 },
-  messageCard: { marginHorizontal: 16, backgroundColor: theme.card, borderRadius: 20, padding: 12, marginBottom: 10, borderWidth: 1.5, borderColor: 'rgba(29, 185, 84, 0.15)', shadowColor: accentColor, shadowOpacity: 0.08, shadowRadius: 15, elevation: 3 },
+  messageCard: { marginHorizontal: 16, backgroundColor: theme.card, borderRadius: 20, padding: 12, marginBottom: 10, borderWidth: 1.5, borderColor: 'rgba(29, 185, 84, 0.15)' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   anonLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(29, 185, 84, 0.08)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
   anonLabel: { color: accentColor, fontSize: 8, fontWeight: '800', letterSpacing: 1.5 },
