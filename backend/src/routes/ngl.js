@@ -464,9 +464,6 @@ router.post('/poll/:id/vote', voteLimiter, async (req, res) => {
   }
 });
 
-  }
-});
-
 // Get total view count for a user (public endpoint)
 router.get('/views/:id', async (req, res) => {
   console.log('[NGL] GET /views/:id hit with ID:', req.params.id);
