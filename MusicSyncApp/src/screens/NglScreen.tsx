@@ -4,7 +4,7 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, 
   ActivityIndicator, RefreshControl, Dimensions, Animated, Share, TextInput, Modal, ScrollView, Vibration, Image, ImageBackground
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { launchImageLibrary } from 'react-native-image-picker';
 import Video from 'react-native-video';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
@@ -48,6 +48,7 @@ const CARD_THEMES = [
 ];
 
 const GRADIENT_PALETTE = ['#FF0000', '#FF7F00', '#FFD700', '#00FF00', '#1DB954', '#00FFFF', '#0000FF', '#8A2BE2', '#FF1493', '#000000', '#FFFFFF'];
+const FONT_OPTIONS = ['Inter', 'Roboto', 'Outfit', 'System'];
 
 
 
@@ -83,6 +84,12 @@ export default function NglScreen({ navigation }: any) {
   const [activeMainTab, setActiveMainTab] = useState<'inbox' | 'my_link'>('my_link');
   const [sharePrompt, setSharePrompt] = useState('Send me anonymous notes!');
   const [cardThemeIndex, setCardThemeIndex] = useState(0);
+
+  const viewShotRef = useRef<any>(null);
+  const [showThemeEditor, setShowThemeEditor] = useState(false);
+  const [bgMediaUri, setBgMediaUri] = useState<string | null>(null);
+  const [bgMediaType, setBgMediaType] = useState<'image' | 'video' | null>(null);
+  const [fontFamily, setFontFamily] = useState('System');
 
   const cycleTheme = () => {
     triggerHaptic('light');
@@ -132,7 +139,7 @@ export default function NglScreen({ navigation }: any) {
     if (!pollQuestion.trim() || pollOptions.some(o => !o.trim())) return;
     setCreatingPoll(true);
     try {
-      const resp = await axios.post(`${API_URL}/api/polls`, 
+      const resp = await axios.post(`${API_URL}/api/ngl/poll/create`, 
         { question: pollQuestion, options: pollOptions },
         { headers: { Authorization: `Bearer ${auth.token}` } }
       );
@@ -167,6 +174,81 @@ export default function NglScreen({ navigation }: any) {
     else Vibration.vibrate(60);
   };
 
+  const updateSlug = async () => {
+    if (!newSlug.trim()) return;
+    setUpdatingSlug(true);
+    try {
+      const resp = await axios.patch(`${API_URL}/api/ngl/slug`, 
+        { slug: newSlug },
+        { headers: { Authorization: `Bearer ${auth.token}` } }
+      );
+      setAnonSlug(resp.data.slug);
+      if (auth.setUser) auth.setUser({ ...auth.user, anonSlug: resp.data.slug });
+      setShowSlugModal(false);
+      showToast('Link updated!', 'success');
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Update failed', 'error');
+    } finally {
+      setUpdatingSlug(false);
+    }
+  };
+
+  const copyNglLink = () => {
+    const link = `https://syncognito-nine.vercel.app/anon/${anonSlug || auth.user?._id}`;
+    Clipboard.setString(link);
+    triggerHaptic('medium');
+    showToast('Link copied to clipboard!', 'success');
+  };
+
+  const shareNglLink = async () => {
+     try {
+       if (!viewShotRef.current) return;
+       const uri = await viewShotRef.current.capture();
+       await RNShare.open({
+         url: uri,
+         title: 'Share my NGL Link',
+         message: `Send me anonymous notes! 🕵️‍♂️\nhttps://syncognito-nine.vercel.app/anon/${anonSlug || auth.user?._id}`
+       });
+     } catch (err) {
+       console.warn('Share error:', err);
+     }
+  };
+
+  const openThemeEditor = () => setShowThemeEditor(true);
+  const closeThemeEditor = () => setShowThemeEditor(false);
+
+  const pickImage = async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 1,
+        selectionLimit: 1,
+      });
+      if (result.assets && result.assets.length > 0 && result.assets[0].uri) {
+        setBgMediaUri(result.assets[0].uri);
+        setBgMediaType('image');
+      }
+    } catch (err) {
+      console.warn('Pick image error:', err);
+    }
+  };
+
+  const pickVideo = async () => {
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'video',
+        quality: 1,
+        selectionLimit: 1,
+      });
+      if (result.assets && result.assets.length > 0 && result.assets[0].uri) {
+        setBgMediaUri(result.assets[0].uri);
+        setBgMediaType('video');
+      }
+    } catch (err) {
+      console.warn('Pick video error:', err);
+    }
+  };
+
   useEffect(() => {
     if (auth.user?.anonSlug) {
       setAnonSlug(auth.user.anonSlug);
@@ -180,9 +262,9 @@ export default function NglScreen({ navigation }: any) {
 
   // Fetch total view count for the current user
   const fetchViewCount = async () => {
-    if (!auth.user?.id) return;
+    if (!auth.user?._id) return;
     try {
-      const resp = await axios.get(`${API_URL}/api/ngl/views/${auth.user.id}`);
+      const resp = await axios.get(`${API_URL}/api/ngl/views/${auth.user._id}`);
       const total = resp.data.totalViews || 0;
       setIsVerifiedGhost(total >= VERIFIED_VIEW_THRESHOLD);
     } catch (err) {
@@ -192,7 +274,7 @@ export default function NglScreen({ navigation }: any) {
 
   useEffect(() => {
     fetchViewCount();
-  }, [auth.user?.id]);
+  }, [auth.user?._id]);
 
   const fetchMessages = useCallback(async (isRefresh = false) => {
     if (!auth.token) return;
@@ -201,7 +283,7 @@ export default function NglScreen({ navigation }: any) {
     try {
       const [msgResp, pollResp] = await Promise.all([
         axios.get(`${API_URL}/api/ngl/me`, { headers: { Authorization: `Bearer ${auth.token}` } }),
-        axios.get(`${API_URL}/api/polls/me`, { headers: { Authorization: `Bearer ${auth.token}` } })
+        axios.get(`${API_URL}/api/ngl/poll/me`, { headers: { Authorization: `Bearer ${auth.token}` } })
       ]);
       setMessages(msgResp.data || []);
       setPolls(pollResp.data || []);
@@ -215,6 +297,22 @@ export default function NglScreen({ navigation }: any) {
       setRefreshing(false);
     }
   }, [auth.token, showToast]);
+
+  const fetchAnalytics = async () => {
+    if (!auth.token) return;
+    setLoadingAnalytics(true);
+    try {
+      const resp = await axios.get(`${API_URL}/api/ngl/analytics`, {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+      setAnalyticsData(resp.data);
+      setShowAnalyticsModal(true);
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Failed to load analytics', 'error');
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
 
   useEffect(() => {
     fetchMessages();
@@ -299,8 +397,8 @@ export default function NglScreen({ navigation }: any) {
               <View style={dynamicStyles.header}>
                 <Text style={dynamicStyles.headerTitle}>Anonymous</Text>
                 {isPremium && (
-                  <TouchableOpacity onPress={() => {}} style={dynamicStyles.shareIconBtn}>
-                    <MaterialCommunityIcons name="chart-box" size={22} color="#8A2BE2" />
+                  <TouchableOpacity onPress={fetchAnalytics} style={dynamicStyles.shareIconBtn}>
+                    {loadingAnalytics ? <ActivityIndicator size="small" color="#8A2BE2" /> : <MaterialCommunityIcons name="chart-box" size={22} color="#8A2BE2" />}
                   </TouchableOpacity>
                 )}
               </View>
@@ -448,7 +546,12 @@ export default function NglScreen({ navigation }: any) {
                   <Text style={{color: '#FFF', fontSize: 32, fontWeight: '800'}}>{auth.user?.name?.charAt(0).toUpperCase() || 'A'}</Text>
                </View>
              )}
-             <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '800', marginTop: 0, marginBottom: 0 }}>@{anonSlug || (auth.user?._id ? auth.user._id.substring(0, 8) : 'user')}</Text>
+             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 0, marginBottom: 0 }}>
+               <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '800' }}>@{anonSlug || (auth.user?._id ? auth.user._id.substring(0, 8) : 'user')}</Text>
+               {isVerifiedGhost && (
+                 <MaterialCommunityIcons name="check-decagram" size={14} color="#00BFFF" />
+               )}
+             </View>
 
              <View style={{ width: '100%', paddingHorizontal: 0, marginTop: 1 }}>
                 <View style={{ width: '100%', marginBottom: 4, maxHeight: 100 }}>

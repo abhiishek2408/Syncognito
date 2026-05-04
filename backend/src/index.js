@@ -69,12 +69,12 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/music-sync'
 
 // Routes
 
+app.use('/api/ngl', nglRoutes);
 app.use('/api/playlists', playlistRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/alarms', alarmRoutes);
-app.use('/api/ngl', nglRoutes);
 app.use('/api/payments', paymentRoutes);
 
 app.get('/', (req, res) => {

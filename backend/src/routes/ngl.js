@@ -1,5 +1,7 @@
 import express from 'express';
 import axios from 'axios';
+import mongoose from 'mongoose';
+import rateLimit from 'express-rate-limit';
 import { body, param, validationResult } from 'express-validator';
 import NglMessage from '../models/NglMessage.js';
 import User from '../models/User.js';
@@ -12,6 +14,19 @@ import { authenticateToken } from '../middleware/auth.js';
 dotenv.config();
 
 const router = express.Router();
+
+// Specific rate limiters for public endpoints
+const sendLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 messages per window
+  message: { message: 'Too many messages from this IP, please try again in 15 minutes.' }
+});
+
+const voteLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 50, // Limit each IP to 50 votes per hour
+  message: { message: 'Too many votes from this IP, please try again later.' }
+});
  
 // Get global stats (Total messages, etc.)
 router.get('/stats/global', async (req, res) => {
@@ -105,7 +120,7 @@ router.patch('/slug',
 });
 
 // Send anonymous message (with spam filter + device hint)
-router.post('/send', 
+router.post('/send', sendLimiter, 
   [
     body('text')
       .trim()
@@ -222,6 +237,7 @@ router.post('/send',
 
 // Get my anonymous messages (excludes spam by default)
 router.get('/me', authenticateToken, async (req, res) => {
+  console.log('[NGL] GET /me hit by user:', req.user.id);
   try {
     const includeSpam = req.query.includeSpam === 'true';
     const filter = { recipientId: req.user.id };
@@ -304,8 +320,10 @@ router.delete('/:id', authenticateToken, async (req, res) => {
 
 // Premium: Get Analytics
 router.get('/analytics', authenticateToken, async (req, res) => {
+  console.log('[NGL] GET /analytics hit by user:', req.user.id);
   try {
     const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
     if (!user.isPremium) return res.status(403).json({ message: 'Premium required' });
 
     const views = await NglLinkView.find({ recipientId: req.user.id }).sort({ createdAt: -1 });
@@ -340,6 +358,7 @@ router.post('/ghost-ai', authenticateToken, async (req, res) => {
   const { messageText } = req.body;
   try {
     const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
     if (!user.isPremium) return res.status(403).json({ message: 'Premium required' });
 
     // Mock AI Generation Logic
@@ -403,7 +422,7 @@ router.get('/poll/:id', async (req, res) => {
 });
 
 // Vote on a poll (public)
-router.post('/poll/:id/vote', async (req, res) => {
+router.post('/poll/:id/vote', voteLimiter, async (req, res) => {
   const { optionId } = req.body;
   const voterIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
@@ -432,6 +451,7 @@ router.post('/poll/:id/vote', async (req, res) => {
 
 // Get my polls
 router.get('/poll/me', authenticateToken, async (req, res) => {
+  console.log('[NGL] GET /poll/me hit by user:', req.user.id);
   try {
     const polls = await NglPoll.find({ creatorId: req.user.id }).sort({ createdAt: -1 });
     res.json(polls);
@@ -443,6 +463,9 @@ router.get('/poll/me', authenticateToken, async (req, res) => {
 // Get total view count for a user (public endpoint)
 router.get('/views/:id', async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: 'Invalid User ID' });
+    }
     const total = await NglLinkView.countDocuments({ recipientId: req.params.id });
     res.json({ totalViews: total });
   } catch (err) {
