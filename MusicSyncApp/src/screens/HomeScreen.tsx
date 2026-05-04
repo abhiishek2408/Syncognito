@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  ActivityIndicator, Animated, Dimensions, Image, RefreshControl
+  ActivityIndicator, Animated, Dimensions, Image, RefreshControl, Share
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import axios from 'axios';
 import AuthContext from '../context/AuthContext';
@@ -29,7 +30,8 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const [publicRooms, setPublicRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [globalStats, setGlobalStats] = useState({ listeners: 0, activeRooms: 0, friends: 0 });
+  const [globalStats, setGlobalStats] = useState({ listeners: 0, activeRooms: 0, friends: 0, totalMessages: 0, totalLinks: 0, totalViews: 0 });
+  const [userStats, setUserStats] = useState({ messages: 0, views: 0, unread: 0 });
   const [startingRoomId, setStartingRoomId] = useState<string | null>(null);
   const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const pulseAnim = React.useRef(new Animated.Value(0.1)).current;
@@ -87,17 +89,26 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     else setRefreshing(true);
     
     try {
-      const [roomsResp, statsResp, userStatsResp] = await Promise.all([
+      const [roomsResp, statsResp, userStatsResp, nglStatsResp] = await Promise.all([
         axios.get(`${API_URL}/api/rooms/public`, { headers }).catch(() => ({ data: [] })),
         axios.get(`${API_URL}/api/rooms/stats/global`).catch(() => ({ data: { listeners: 0, activeRooms: 0 } })),
-        auth.token ? axios.get(`${API_URL}/api/users/me/stats`, { headers }).catch(() => ({ data: { friends: 0 } })) : Promise.resolve({ data: { friends: 0 } })
+        auth.token ? axios.get(`${API_URL}/api/users/me/stats`, { headers }).catch(() => ({ data: { friends: 0 } })) : Promise.resolve({ data: { friends: 0 } }),
+        axios.get(`${API_URL}/api/ngl/stats/global`).catch(() => ({ data: { totalMessages: 0, totalLinks: 0, totalViews: 0 } }))
       ]);
       
       setPublicRooms((roomsResp.data || []).slice(0, 5));
       setGlobalStats({
         listeners: statsResp.data.listeners || 0,
         activeRooms: statsResp.data.activeRooms || 0,
-        friends: userStatsResp.data.friends || 0
+        friends: userStatsResp.data.friends || 0,
+        totalMessages: nglStatsResp.data.totalMessages || 0,
+        totalLinks: nglStatsResp.data.totalLinks || 0,
+        totalViews: nglStatsResp.data.totalViews || 0
+      });
+      setUserStats({
+        messages: userStatsResp.data.messages || 0,
+        views: userStatsResp.data.views || 0,
+        unread: userStatsResp.data.unread || 0
       });
       loadAlarms();
     } catch (err) {
@@ -108,6 +119,25 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
       Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
     }
   }, [auth.token, headers, loadAlarms, fadeAnim]);
+  
+  const copyInviteLink = () => {
+    const slugOrId = auth.user?.anonSlug || auth.user?._id;
+    const shareUrl = `https://syncognito-nine.vercel.app/anon/${slugOrId}`;
+    Clipboard.setString(shareUrl);
+    showToast('Link copied! 🤫', 'success');
+  };
+
+  const shareInviteLink = async () => {
+    const slugOrId = auth.user?.anonSlug || auth.user?._id;
+    const shareUrl = `https://syncognito-nine.vercel.app/anon/${slugOrId}`;
+    try {
+      await Share.share({
+        message: `Send me anonymous messages on Syncognito! 🤫✨\n\n${shareUrl}`,
+      });
+    } catch (error) {
+      console.warn('Share error:', error);
+    }
+  };
 
   // Derived state for upcoming alarms
   const upcomingAlarms = (alarms || [])
@@ -171,49 +201,40 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
 
 
-        {/* Quick Actions Compact Row (No Scroll) */}
+        {/* Your Status Compact Row (Non-clickable) */}
         <View style={dynamicStyles.quickCardRow}>
-          {/* Public Rooms */}
-          <TouchableOpacity 
-            style={[dynamicStyles.gridCard, { backgroundColor: '#1DB95410' }]} 
-            onPress={() => showToast('Music Rooms coming soon!', 'info')} 
-            activeOpacity={0.8}
-          >
+          {/* Your Messages */}
+          <View style={[dynamicStyles.gridCard, { backgroundColor: '#1DB95410' }]}>
             <View style={[dynamicStyles.gridBlob, { backgroundColor: '#1DB95415' }]} />
             <View style={dynamicStyles.gridIconBubble}>
-              <MaterialCommunityIcons name="broadcast" size={20} color="#1DB954" />
+              <MaterialCommunityIcons name="email-check-outline" size={20} color="#1DB954" />
             </View>
-            <Text style={dynamicStyles.gridTitle} numberOfLines={1}>Rooms</Text>
+            <Text style={dynamicStyles.gridTitle} numberOfLines={1}>{userStats.messages}</Text>
+            <Text style={dynamicStyles.gridDesc}>My Inbox</Text>
             <View style={[dynamicStyles.gridDot, { backgroundColor: '#1DB95440' }]} />
-          </TouchableOpacity>
+          </View>
 
-          {/* NGL Anonymous Notes */}
-          <TouchableOpacity 
-            style={[dynamicStyles.gridCard, { backgroundColor: isDarkMode ? '#100E1D' : '#F4E8FF' }]} 
-            onPress={() => navigation.navigate('Profile', { screen: 'Ngl' })} 
-            activeOpacity={0.8}
-          >
+          {/* Your Views */}
+          <View style={[dynamicStyles.gridCard, { backgroundColor: isDarkMode ? '#100E1D' : '#F4E8FF' }]}>
             <View style={[dynamicStyles.gridBlob, { backgroundColor: '#BB86FC15' }]} />
             <View style={dynamicStyles.gridIconBubble}>
-              <MaterialCommunityIcons name="incognito" size={20} color="#BB86FC" />
+              <MaterialCommunityIcons name="eye-outline" size={20} color="#BB86FC" />
             </View>
-            <Text style={dynamicStyles.gridTitle} numberOfLines={1}>Anonymous</Text>
+            <Text style={dynamicStyles.gridTitle} numberOfLines={1}>{userStats.views}</Text>
+            <Text style={dynamicStyles.gridDesc}>My Views</Text>
             <View style={[dynamicStyles.gridDot, { backgroundColor: '#BB86FC40' }]} />
-          </TouchableOpacity>
+          </View>
 
-          {/* Global Alarms */}
-          <TouchableOpacity 
-            style={[dynamicStyles.gridCard, { backgroundColor: isDarkMode ? '#1A1208' : '#FFF3E0' }]} 
-            onPress={() => navigation.navigate('Alarms')} 
-            activeOpacity={0.8}
-          >
+          {/* Your Unread */}
+          <View style={[dynamicStyles.gridCard, { backgroundColor: isDarkMode ? '#1A1208' : '#FFF3E0' }]}>
             <View style={[dynamicStyles.gridBlob, { backgroundColor: '#FFB74D15' }]} />
             <View style={dynamicStyles.gridIconBubble}>
-              <MaterialCommunityIcons name="alarm" size={20} color="#FFB74D" />
+              <MaterialCommunityIcons name="email-alert-outline" size={20} color="#FFB74D" />
             </View>
-            <Text style={dynamicStyles.gridTitle} numberOfLines={1}>Alarms</Text>
+            <Text style={dynamicStyles.gridTitle} numberOfLines={1}>{userStats.unread}</Text>
+            <Text style={dynamicStyles.gridDesc}>New Notes</Text>
             <View style={[dynamicStyles.gridDot, { backgroundColor: '#FFB74D40' }]} />
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Spotlight Card: Anonymous Messages */}
@@ -221,7 +242,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           <TouchableOpacity 
             style={[dynamicStyles.spotlightCard, { borderColor: '#BB86FC30', shadowColor: '#BB86FC' }]} 
             activeOpacity={0.9}
-            onPress={() => navigation.navigate('Profile', { screen: 'Ngl' })} 
+            onPress={() => navigation.navigate('Anonymous', { screen: 'AnonymousMain' })} 
           >
             <View style={[dynamicStyles.spotlightBlob, { backgroundColor: '#BB86FC' }]} />
             <View style={dynamicStyles.spotlightContent}>
@@ -410,36 +431,35 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
         */
         }
 
-        {/* Upcoming Alarms */}
+        {/* Invite Friends Section */}
         <View style={dynamicStyles.section}>
           <View style={dynamicStyles.sectionHeader}>
-            <Text style={dynamicStyles.sectionTitle}><MaterialCommunityIcons name="alarm" size={20} color="#FFB74D" /> Upcoming Alarms</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Alarms')}>
-              <Text style={dynamicStyles.seeAll}>See all</Text>
-            </TouchableOpacity>
+            <Text style={dynamicStyles.sectionTitle}><MaterialCommunityIcons name="account-plus" size={20} color={accentColor} /> Invite Your Friends</Text>
           </View>
-          {upcomingAlarms.length > 0 ? (
-            upcomingAlarms.map((alarm, i) => (
-              <View key={alarm._id || i} style={dynamicStyles.alarmPreview}>
-                <MaterialCommunityIcons name="alarm" size={20} color="#FFB74D" />
-                <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={dynamicStyles.alarmPreviewTitle}>{alarm.title}</Text>
-                  {alarm.message ? <Text style={dynamicStyles.alarmPreviewMsg} numberOfLines={1}>{alarm.message}</Text> : null}
+          <View style={dynamicStyles.inviteCard}>
+            <View style={dynamicStyles.inviteContent}>
+              <Text style={dynamicStyles.inviteTitle}>Your Secret Link</Text>
+              <Text style={dynamicStyles.inviteDesc}>Share this link to receive anonymous messages from your friends.</Text>
+              
+              <View style={dynamicStyles.linkCopyRow}>
+                <View style={dynamicStyles.linkTextContainer}>
+                  <Text style={dynamicStyles.linkText} numberOfLines={1}>
+                    syncognito.app/anon/{auth.user?.anonSlug || 'yourname'}
+                  </Text>
                 </View>
-                <AlarmCountdown 
-                  triggerAt={alarm.triggerAt} 
-                  isPast={new Date(alarm.triggerAt) < new Date()} 
-                  color="#FFB74D" 
-                  style={dynamicStyles.alarmPreviewTime} 
-                />
+                <TouchableOpacity style={dynamicStyles.copyIconButton} onPress={copyInviteLink}>
+                  <MaterialCommunityIcons name="content-copy" size={18} color={theme.background} />
+                </TouchableOpacity>
               </View>
-            ))
-          ) : (
-            <View style={[dynamicStyles.emptyCard, { paddingVertical: 45, borderStyle: 'solid' }]}>
-               <MaterialCommunityIcons name="alarm-off" size={24} color="#333" />
-               <Text style={[dynamicStyles.emptyText, { fontSize: 12, marginTop: 12 }]}>No alarms scheduled. Start your day with music! 🎵</Text>
+
+              <View style={dynamicStyles.inviteActionRow}>
+                <TouchableOpacity style={dynamicStyles.inviteMainBtn} onPress={shareInviteLink}>
+                  <MaterialCommunityIcons name="share-variant" size={18} color={theme.background} />
+                  <Text style={dynamicStyles.inviteMainBtnText}>SHARE ON INSTAGRAM</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          )}
+          </View>
         </View>
 
         {/* Global Trending Section */}
@@ -450,26 +470,26 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           <View style={dynamicStyles.trendingRow}>
             <View style={dynamicStyles.trendingCard}>
               <View style={[dynamicStyles.trendingIcon, { backgroundColor: '#1DB95420' }]}>
-                <MaterialCommunityIcons name="headphones" size={20} color="#1DB954" />
+                <MaterialCommunityIcons name="email-check-outline" size={20} color="#1DB954" />
               </View>
-              <Text style={dynamicStyles.trendingVal}>{globalStats.listeners > 1000 ? `${(globalStats.listeners / 1000).toFixed(1)}k` : globalStats.listeners}</Text>
-              <Text style={dynamicStyles.trendingLabel} numberOfLines={1}>Listeners</Text>
+              <Text style={dynamicStyles.trendingVal}>{globalStats.totalMessages > 1000 ? `${(globalStats.totalMessages / 1000).toFixed(1)}k` : globalStats.totalMessages}</Text>
+              <Text style={dynamicStyles.trendingLabel} numberOfLines={1}>Messages</Text>
             </View>
             
             <View style={dynamicStyles.trendingCard}>
               <View style={[dynamicStyles.trendingIcon, { backgroundColor: '#BB86FC20' }]}>
-                <MaterialCommunityIcons name="playlist-music" size={20} color="#BB86FC" />
+                <MaterialCommunityIcons name="link-variant" size={20} color="#BB86FC" />
               </View>
-              <Text style={dynamicStyles.trendingVal}>{globalStats.activeRooms}</Text>
-              <Text style={dynamicStyles.trendingLabel} numberOfLines={1}>Rooms</Text>
+              <Text style={dynamicStyles.trendingVal}>{globalStats.totalLinks > 1000 ? `${(globalStats.totalLinks / 1000).toFixed(1)}k` : globalStats.totalLinks}</Text>
+              <Text style={dynamicStyles.trendingLabel} numberOfLines={1}>Active Links</Text>
             </View>
 
             <View style={dynamicStyles.trendingCard}>
               <View style={[dynamicStyles.trendingIcon, { backgroundColor: '#64B5F620' }]}>
-                <MaterialCommunityIcons name="account-group" size={20} color="#64B5F6" />
+                <MaterialCommunityIcons name="eye-outline" size={20} color="#64B5F6" />
               </View>
-              <Text style={dynamicStyles.trendingVal}>{globalStats.friends}</Text>
-              <Text style={dynamicStyles.trendingLabel} numberOfLines={1}>{auth.token ? 'Friends' : 'Users'}</Text>
+              <Text style={dynamicStyles.trendingVal}>{globalStats.totalViews > 1000 ? `${(globalStats.totalViews / 1000).toFixed(1)}k` : globalStats.totalViews}</Text>
+              <Text style={dynamicStyles.trendingLabel} numberOfLines={1}>Total Views</Text>
             </View>
           </View>
         </View>
@@ -482,10 +502,10 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
           </View>
           <View style={dynamicStyles.pulseGrid}>
             {[
-              { name: 'Sync Rooms', color: '#1DB954', icon: 'broadcast' },
-              { name: 'AI Alarms', color: '#64B5F6', icon: 'alarm-panel' },
-              { name: 'Anon Vibes', color: '#BB86FC', icon: 'incognito' },
-              { name: 'Social Chat', color: '#FF7043', icon: 'chat-processing' }
+              { name: 'Anon Inbox', color: '#BB86FC', icon: 'email-lock' },
+              { name: 'Secret Links', color: '#1DB954', icon: 'link-variant' },
+              { name: 'Ghost Mode', color: '#64B5F6', icon: 'incognito' },
+              { name: 'Insights', color: '#FF7043', icon: 'chart-arc' }
             ].map((p, i) => (
               <View key={i} style={[dynamicStyles.pulseCard, { borderColor: p.color + '25' }]}>
                 <View style={[dynamicStyles.pulseIconWrap, { backgroundColor: p.color + '10' }]}>
@@ -797,4 +817,52 @@ const getStyles = (theme: any, accentColor: string) => StyleSheet.create({
     paddingVertical: 8,
   },
   offlineStatusText: { color: theme.textSecondary, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  // Invite Section
+  inviteCard: { 
+    backgroundColor: theme.card, 
+    borderRadius: 24, 
+    borderWidth: 1.5, 
+    borderColor: theme.border,
+    overflow: 'hidden'
+  },
+  inviteContent: { padding: 20 },
+  inviteTitle: { color: theme.text, fontSize: 18, fontWeight: '800', marginBottom: 4 },
+  inviteDesc: { color: theme.textSecondary, fontSize: 12, marginBottom: 16, lineHeight: 18 },
+  linkCopyRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: theme.surfaceDarker, 
+    borderRadius: 12, 
+    padding: 4, 
+    borderWidth: 1, 
+    borderColor: theme.border,
+    marginBottom: 16
+  },
+  linkTextContainer: { flex: 1, paddingHorizontal: 12 },
+  linkText: { color: theme.textSecondary, fontSize: 13, fontWeight: '600' },
+  copyIconButton: { 
+    backgroundColor: accentColor, 
+    padding: 10, 
+    borderRadius: 10,
+    shadowColor: accentColor,
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 3
+  },
+  inviteActionRow: { flexDirection: 'row', gap: 12 },
+  inviteMainBtn: { 
+    flex: 1, 
+    backgroundColor: accentColor, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    gap: 8, 
+    paddingVertical: 14, 
+    borderRadius: 16,
+    shadowColor: accentColor,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8
+  },
+  inviteMainBtnText: { color: theme.background, fontWeight: '900', fontSize: 13, letterSpacing: 0.5 },
 });

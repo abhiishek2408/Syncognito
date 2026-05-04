@@ -11,6 +11,23 @@ import { authenticateToken } from '../middleware/auth.js';
 dotenv.config();
 
 const router = express.Router();
+ 
+// Get global stats (Total messages, etc.)
+router.get('/stats/global', async (req, res) => {
+  try {
+    const totalMessages = await NglMessage.countDocuments({ isSpam: false });
+    const totalLinks = await User.countDocuments({ anonSlug: { $exists: true, $ne: '' } });
+    const totalViews = await NglLinkView.countDocuments();
+    
+    res.json({
+      totalMessages,
+      totalLinks,
+      totalViews
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 // Get recipient info by slug or ID (public)
 router.get('/recipient/:identifier', async (req, res) => {

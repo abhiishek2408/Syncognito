@@ -2,24 +2,28 @@ import express from 'express';
 import User from '../models/User.js';
 import Room from '../models/Room.js';
 import Alarm from '../models/Alarm.js';
+import NglMessage from '../models/NglMessage.js';
+import NglLinkView from '../models/NglLinkView.js';
 import { sendPushNotification } from '../utils/push.js';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get user stats (rooms count, friends, alarms)
+// Get user stats (NGL messages count, views, alarms)
 router.get('/me/stats', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.id;
-    const [roomCount, user, alarmCount] = await Promise.all([
-      Room.countDocuments({ host: userId }),
-      User.findById(userId).select('friends'),
+    const [msgCount, viewCount, alarmCount, unreadCount] = await Promise.all([
+      NglMessage.countDocuments({ recipientId: userId, isSpam: false }),
+      NglLinkView.countDocuments({ recipientId: userId }),
       Alarm.countDocuments({ user: userId }),
+      NglMessage.countDocuments({ recipientId: userId, isRead: false, isSpam: false })
     ]);
     res.json({
-      rooms: roomCount,
-      friends: user?.friends?.length || 0,
+      messages: msgCount,
+      views: viewCount,
       alarms: alarmCount,
+      unread: unreadCount
     });
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch stats' });

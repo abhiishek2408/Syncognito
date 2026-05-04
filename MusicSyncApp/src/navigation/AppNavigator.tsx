@@ -6,7 +6,6 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { Image, Alert } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import HomeScreen from '../screens/HomeScreen';
-import FriendsScreen from '../screens/FriendsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import HelpScreen from '../screens/HelpScreen';
@@ -49,19 +48,17 @@ function ProfileStack() {
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Help" component={HelpScreen} />
-      <Stack.Screen name="Ngl" component={NglScreen} />
-      <Stack.Screen name="NglMessageDetail" component={NglMessageDetailScreen} />
       <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
       <Stack.Screen name="Pricing" component={PricingScreen} />
     </Stack.Navigator>
   );
 }
 
-function FriendsStack() {
+function AnonymousStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="FriendsMain" component={FriendsScreen} />
-      <Stack.Screen name="ProfileDetail" component={ProfileDetailScreen} />
+      <Stack.Screen name="AnonymousMain" component={NglScreen} />
+      <Stack.Screen name="NglMessageDetail" component={NglMessageDetailScreen} />
     </Stack.Navigator>
   );
 }
@@ -78,7 +75,7 @@ export default function AppNavigator() {
         tabBarInactiveTintColor: theme.textSecondary,
         tabBarStyle: ((route) => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-          if (routeName === 'Ngl' || routeName === 'NglMessageDetail') {
+          if (routeName === 'AnonymousMain' || routeName === 'NglMessageDetail') {
             return { display: 'none' };
           }
           return {
@@ -98,8 +95,8 @@ export default function AppNavigator() {
           if (route.name === 'Rooms') {
             return <MaterialCommunityIcons name="music-circle" size={size} color={color} />;
           }
-          if (route.name === 'Friends') {
-            return <MaterialCommunityIcons name="account-group" size={size} color={color} />;
+          if (route.name === 'Anonymous') {
+            return <MaterialCommunityIcons name="incognito" size={size} color={color} />;
           }
           if (route.name === 'Alarms') {
             return <MaterialCommunityIcons name="alarm" size={size} color={color} />;
@@ -117,7 +114,7 @@ export default function AppNavigator() {
         component={RoomsStack} 
         options={{ tabBarButton: () => null }}
       />
-      <Tab.Screen name="Friends" component={FriendsStack} />
+      <Tab.Screen name="Anonymous" component={AnonymousStack} />
       <Tab.Screen name="Alarms" component={AlarmScreen} />
       <Tab.Screen 
         name="Profile" 
