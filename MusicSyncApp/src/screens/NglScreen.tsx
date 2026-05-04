@@ -2,8 +2,10 @@ import React, { useState, useEffect, useContext, useCallback, useRef } from 'rea
 import { useTheme } from '../context/ThemeContext';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity, 
-  ActivityIndicator, RefreshControl, Dimensions, Animated, Share, TextInput, Modal, ScrollView, Vibration, Image
+  ActivityIndicator, RefreshControl, Dimensions, Animated, Share, TextInput, Modal, ScrollView, Vibration, Image, ImageBackground
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import Video from 'react-native-video';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import axios from 'axios';
@@ -88,6 +90,11 @@ export default function NglScreen({ navigation }: any) {
   };
   const [revealedMessages, setRevealedMessages] = useState<string[]>([]);
   const [pinnedMessages, setPinnedMessages] = useState<string[]>([]);
+  const [polls, setPolls] = useState<any[]>([]);
+  const [showPollModal, setShowPollModal] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['', '']);
+  const [creatingPoll, setCreatingPoll] = useState(false);
 
   // Question of the Day
   const DAILY_PROMPTS = [
@@ -104,11 +111,11 @@ export default function NglScreen({ navigation }: any) {
     { id: 'general', label: 'General', prompt: 'Send me anonymous notes!', icon: 'incognito', colors: ['#38ef7d', '#11998e'] },
     { id: 'confession', label: 'Confession', prompt: 'Confess something secret to me...', icon: 'heart-broken', colors: ['#FF1493', '#C71585'] },
     { id: 'rate', label: 'Rate Me', prompt: 'Rate my profile 1-10 🕵️‍♂️', icon: 'star-circle', colors: ['#8A2BE2', '#4B0082'] },
+    { id: 'poll', label: 'Poll', prompt: 'Create an anonymous poll!', icon: 'chart-bar', colors: ['#FFD700', '#FFA500'] },
   ];
   const todayIndex = new Date().getDate() % DAILY_PROMPTS.length;
   const questionOfTheDay = DAILY_PROMPTS[todayIndex];
 
-  // Stats computations
   const totalMessages = messages.length;
   const today = new Date();
   const todayMessages = messages.filter(m => {
@@ -121,12 +128,27 @@ export default function NglScreen({ navigation }: any) {
     return diff <= 7;
   }).length;
 
-  // Sort messages: pinned first
-  const sortedMessages = [...messages].sort((a, b) => {
-    const aPinned = pinnedMessages.includes(a._id) ? 0 : 1;
-    const bPinned = pinnedMessages.includes(b._id) ? 0 : 1;
-    return aPinned - bPinned;
-  });
+  const createPoll = async () => {
+    if (!pollQuestion.trim() || pollOptions.some(o => !o.trim())) return;
+    setCreatingPoll(true);
+    try {
+      const resp = await axios.post(`${API_URL}/api/polls`, 
+        { question: pollQuestion, options: pollOptions },
+        { headers: { Authorization: `Bearer ${auth.token}` } }
+      );
+      setPolls(prev => [resp.data, ...prev]);
+      setShowPollModal(false);
+      setPollQuestion('');
+      setPollOptions(['', '']);
+      showToast('Poll created!', 'success');
+    } catch (err) {
+      showToast('Failed to create poll', 'error');
+    } finally {
+      setCreatingPoll(false);
+    }
+  };
+
+  const sortedInbox = [...messages, ...polls.map(p => ({ ...p, isPoll: true }))].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   
   const SHARE_PROMPTS = ["Send me anonymous notes!", "Ask me anything", "What vibe do I give off?", "Confess a secret", "What's my red flag?", "Rate me out of 10!"];
   const togglePrompt = () => {
@@ -134,23 +156,11 @@ export default function NglScreen({ navigation }: any) {
     const nextIndex = (currentIndex + 1) % SHARE_PROMPTS.length;
     setSharePrompt(SHARE_PROMPTS[nextIndex]);
     triggerHaptic('light');
-    
-    // Dice roll animation
     diceAnim.setValue(0);
-    Animated.timing(diceAnim, {
-      toValue: 1,
-      duration: 400,
-      useNativeDriver: true,
-    }).start();
+    Animated.timing(diceAnim, { toValue: 1, duration: 400, useNativeDriver: true }).start();
   };
   
-  const diceSpin = diceAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg']
-  });
-  
-
-
+  const diceSpin = diceAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
   const triggerHaptic = (type: 'light' | 'medium' | 'heavy' = 'light') => {
     if (type === 'light') Vibration.vibrate(10);
     else if (type === 'medium') Vibration.vibrate(30);
@@ -164,308 +174,132 @@ export default function NglScreen({ navigation }: any) {
     }
   }, [auth.user?.anonSlug]);
 
+  // State for Verified Ghost Badge
+  const VERIFIED_VIEW_THRESHOLD = 1000;
+  const [isVerifiedGhost, setIsVerifiedGhost] = useState(false);
+
+  // Fetch total view count for the current user
+  const fetchViewCount = async () => {
+    if (!auth.user?.id) return;
+    try {
+      const resp = await axios.get(`${API_URL}/api/ngl/views/${auth.user.id}`);
+      const total = resp.data.totalViews || 0;
+      setIsVerifiedGhost(total >= VERIFIED_VIEW_THRESHOLD);
+    } catch (err) {
+      console.warn('View count fetch error:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchViewCount();
+  }, [auth.user?.id]);
+
   const fetchMessages = useCallback(async (isRefresh = false) => {
     if (!auth.token) return;
     if (!isRefresh) setLoading(true);
     else setRefreshing(true);
-
     try {
-      const resp = await axios.get(`${API_URL}/api/ngl/me`, {
-        headers: { Authorization: `Bearer ${auth.token}` }
-      });
-      const msgs = resp.data || [];
-      setMessages(msgs);
-      // Sync pinned state from server
-      setPinnedMessages(msgs.filter((m: any) => m.isPinned).map((m: any) => m._id));
-      // Sync revealed state (read messages)
-      setRevealedMessages(msgs.filter((m: any) => m.isRead).map((m: any) => m._id));
+      const [msgResp, pollResp] = await Promise.all([
+        axios.get(`${API_URL}/api/ngl/me`, { headers: { Authorization: `Bearer ${auth.token}` } }),
+        axios.get(`${API_URL}/api/polls/me`, { headers: { Authorization: `Bearer ${auth.token}` } })
+      ]);
+      setMessages(msgResp.data || []);
+      setPolls(pollResp.data || []);
+      setPinnedMessages(msgResp.data.filter((m: any) => m.isPinned).map((m: any) => m._id));
+      setRevealedMessages(msgResp.data.filter((m: any) => m.isRead).map((m: any) => m._id));
     } catch (err) {
       console.warn('NGL fetch error:', err);
-      showToast('Failed to load notes', 'error');
+      showToast('Failed to load data', 'error');
     } finally {
       setLoading(false);
       setRefreshing(false);
-      Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
     }
-  }, [auth.token, fadeAnim, showToast]);
-
-  const togglePinApi = async (id: string) => {
-    try {
-      await axios.patch(`${API_URL}/api/ngl/${id}/pin`, {}, {
-        headers: { Authorization: `Bearer ${auth.token}` }
-      });
-    } catch (err) {
-      console.warn('Pin toggle error:', err);
-    }
-  };
-
-  const markAsReadApi = async (id: string) => {
-    try {
-      await axios.patch(`${API_URL}/api/ngl/${id}/read`, {}, {
-        headers: { Authorization: `Bearer ${auth.token}` }
-      });
-    } catch (err) {
-      console.warn('Mark read error:', err);
-    }
-  };
-
-
+  }, [auth.token, showToast]);
 
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
 
-  const deleteMessage = async (id: string) => {
-    try {
-      await axios.delete(`${API_URL}/api/ngl/${id}`, {
-        headers: { Authorization: `Bearer ${auth.token}` }
-      });
-      setMessages(prev => prev.filter(m => m._id !== id));
-      showToast('Note deleted', 'info');
-    } catch (err) {
-      showToast('Failed to delete', 'error');
-    }
-  };
-
-  const copyNglLink = () => {
-    const slugOrId = anonSlug || auth.user?._id;
-    const shareUrl = `https://syncognito-nine.vercel.app/anon/${slugOrId}`;
-    Clipboard.setString(shareUrl);
-    triggerHaptic('medium');
-    showToast('Link copied to clipboard! 🤫', 'success');
-  };
-
-  const viewShotRef = useRef<any>(null);
-
-  const shareNglLink = async () => {
-    try {
-      const slugOrId = anonSlug || auth.user?._id;
-      const shareUrl = `https://syncognito-nine.vercel.app/anon/${slugOrId}`;
-      Clipboard.setString(shareUrl);
-      
-      triggerHaptic('heavy');
-      showToast('Generating your design... 🎨', 'info');
-
-      // Wait a tiny bit for UI to be sure it's ready if needed
-      setTimeout(async () => {
-        try {
-          const uri = await viewShotRef.current.capture();
-          
-          const shareOptions: any = {
-            backgroundImage: uri,
-            social: RNShare.Social.INSTAGRAM_STORIES,
-            appId: '862585517468', // Your Facebook App ID if available, else omit
-          };
-
-          await RNShare.shareSingle(shareOptions);
-        } catch (err) {
-          console.warn('Direct Instagram share failed, falling back:', err);
-          // Fallback to standard share sheet if direct story fails
-          try {
-            const uri = await viewShotRef.current.capture();
-            await RNShare.open({
-              url: uri,
-              type: 'image/png',
-            });
-          } catch (fallbackErr) {
-            await Share.share({
-              message: `${sharePrompt}\n${shareUrl}`,
-            });
-          }
-        }
-      }, 500);
-
-    } catch (err) {
-      console.warn('Outer Share error:', err);
-    }
-  };
-
-  const updateSlug = async () => {
-    if (!newSlug.trim()) return;
-    setUpdatingSlug(true);
-    try {
-      const resp = await axios.patch(`${API_URL}/api/ngl/slug`, 
-        { slug: newSlug.trim() },
-        { headers: { Authorization: `Bearer ${auth.token}` } }
-      );
-      setAnonSlug(resp.data.slug);
-      if (auth.refreshProfile) await auth.refreshProfile();
-      setShowSlugModal(false);
-      showToast(`Link customized to: ${resp.data.slug}`, 'success');
-    } catch (err: any) {
-      console.warn('[NGL] Slug Update Error:', err.response?.data || err.message);
-      showToast(err.response?.data?.message || 'Failed to update link', 'error');
-    } finally {
-      setUpdatingSlug(false);
-    }
-  };
-
-  // Unread count
-  const unreadCount = messages.filter(m => !revealedMessages.includes(m._id) && !m.isRead).length;
-
-  const markAllAsRead = async () => {
-    try {
-      await axios.patch(`${API_URL}/api/ngl/read-all`, {}, {
-        headers: { Authorization: `Bearer ${auth.token}` }
-      });
-      setRevealedMessages(messages.map(m => m._id));
-      showToast('All messages marked as read', 'success');
-    } catch (err) {
-      console.warn('Mark all read error:', err);
-    }
-  };
-
-  const fetchAnalytics = async () => {
-    if (!isPremium) {
-      showToast('Analytics is a Premium feature! 📊', 'info');
-      return;
-    }
-    setLoadingAnalytics(true);
-    try {
-      const resp = await axios.get(`${API_URL}/api/ngl/analytics`, {
-        headers: { Authorization: `Bearer ${auth.token}` }
-      });
-      setAnalyticsData(resp.data);
-      setShowAnalyticsModal(true);
-    } catch (err) {
-      showToast('Failed to load insights', 'error');
-    } finally {
-      setLoadingAnalytics(false);
-    }
-  };
-
-  // Swipe action renderers
-  const renderLeftActions = (item: any) => (
-    <View style={dynamicStyles.swipeActionLeft}>
-      <MaterialCommunityIcons name="pin" size={22} color="#000" />
-      <Text style={dynamicStyles.swipeActionText}>PIN</Text>
-    </View>
-  );
-
-  const renderRightActions = (item: any) => (
-    <View style={dynamicStyles.swipeActionRight}>
-      <MaterialCommunityIcons name="delete" size={22} color="#FFF" />
-      <Text style={[dynamicStyles.swipeActionText, { color: '#FFF' }]}>DELETE</Text>
-    </View>
-  );
-
-  const renderItem = ({ item }: { item: any }) => {
-    const isRevealed = revealedMessages.includes(item._id) || item.isRead;
-
-    const msgPinned = pinnedMessages.includes(item._id);
-
+  const renderPollItem = (item: any) => {
+    const totalVotes = item.options.reduce((acc: number, opt: any) => acc + opt.votes, 0);
     return (
-      <Swipeable
-        renderLeftActions={() => renderLeftActions(item)}
-        renderRightActions={() => renderRightActions(item)}
-        onSwipeableLeftOpen={() => {
-          triggerHaptic('medium');
-          setPinnedMessages(prev => prev.includes(item._id) ? prev.filter(id => id !== item._id) : [...prev, item._id]);
-          togglePinApi(item._id);
-        }}
-        onSwipeableRightOpen={() => {
-          triggerHaptic('heavy');
-          deleteMessage(item._id);
-        }}
-        overshootLeft={false}
-        overshootRight={false}
-      >
-        <TouchableOpacity 
-          activeOpacity={0.9}
-          onPress={() => {
-            if (!isRevealed) {
-              setRevealedMessages(prev => [...prev, item._id]);
-              markAsReadApi(item._id);
-              triggerHaptic('medium');
-            }
-            navigation.navigate('NglMessageDetail', { message: item });
-          }}
-        >
-          <Animated.View style={[dynamicStyles.messageCard, { opacity: fadeAnim, borderStyle: isRevealed ? 'solid' : 'dashed' }, msgPinned && { borderColor: 'rgba(255,215,0,0.4)' }]}>
-            <View style={dynamicStyles.cardHeader}>
-              <View style={dynamicStyles.anonLabelRow}>
-                {msgPinned && <MaterialCommunityIcons name="pin" size={12} color="#FFD700" />}
-                <MaterialCommunityIcons 
-                  name={isRevealed ? "email-open-outline" : "email-outline"} 
-                  size={16} 
-                  color={accentColor} 
-                />
-                <Text style={dynamicStyles.anonLabel}>
-                  {msgPinned ? 'PINNED' : isRevealed ? 'REVEALED NOTE' : 'NEW ANONYMOUS NOTE'}
-                </Text>
+      <View style={[dynamicStyles.messageCard, { borderColor: '#FFD700', padding: 16 }]}>
+        <View style={dynamicStyles.cardHeader}>
+          <View style={dynamicStyles.anonLabelRow}>
+            <MaterialCommunityIcons name="chart-bar" size={16} color="#FFD700" />
+            <Text style={[dynamicStyles.anonLabel, { color: '#FFD700' }]}>ANONYMOUS POLL</Text>
+          </View>
+          <Text style={dynamicStyles.timeLabel}>{totalVotes} VOTES</Text>
+        </View>
+        
+        <Text style={[dynamicStyles.messageText, { marginBottom: 16, fontSize: 18 }]}>{item.question}</Text>
+        
+        <View style={{ gap: 10 }}>
+          {item.options.map((opt: any) => {
+            const percentage = totalVotes > 0 ? Math.round((opt.votes / totalVotes) * 100) : 0;
+            return (
+              <View key={opt._id} style={{ gap: 4 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>{opt.text}</Text>
+                  <Text style={{ color: theme.textSecondary, fontSize: 12, fontWeight: '800' }}>{percentage}% ({opt.votes})</Text>
+                </View>
+                <View style={{ height: 8, backgroundColor: theme.surface, borderRadius: 4, overflow: 'hidden' }}>
+                  <View style={{ height: '100%', width: `${percentage}%`, backgroundColor: '#FFD700' }} />
+                </View>
               </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                {item.reaction && <Text style={{ fontSize: 14 }}>{item.reaction}</Text>}
-                <TouchableOpacity onPress={() => {
-                  triggerHaptic('light');
-                  setPinnedMessages(prev => prev.includes(item._id) ? prev.filter(id => id !== item._id) : [...prev, item._id]);
-                  togglePinApi(item._id);
-                }}>
-                  <MaterialCommunityIcons name={msgPinned ? "pin" : "pin-outline"} size={18} color={msgPinned ? "#FFD700" : "#444"} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => deleteMessage(item._id)}>
-                  <MaterialCommunityIcons name="delete-outline" size={18} color="#FF5252" />
-                </TouchableOpacity>
-              </View>
-            </View>
-            
-            <View style={{ paddingVertical: 4 }}>
-              {isRevealed ? (
-                <Text style={dynamicStyles.messageText} numberOfLines={1} ellipsizeMode="tail">
-                  {item.text}
-                </Text>
-              ) : (
-                <Text style={[dynamicStyles.messageText, { color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', fontSize: 13 }]}>
-                  Tap to reveal message...
-                </Text>
-              )}
-            </View>
+            );
+          })}
+        </View>
 
-            <View style={[dynamicStyles.cardFooter, { marginTop: 4 }]}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Text style={dynamicStyles.timeLabel}>{new Date(item.createdAt).toLocaleDateString()}</Text>
-                {item.deviceHint && (
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: 'rgba(29,185,84,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
-                    <MaterialCommunityIcons 
-                      name={item.deviceHint === 'Android' ? 'android' : item.deviceHint === 'iOS' ? 'apple' : 'web'} 
-                      size={10} color="#555" 
-                    />
-                    <Text style={{ color: '#555', fontSize: 8, fontWeight: '700' }}>{item.deviceHint}</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          </Animated.View>
-        </TouchableOpacity>
-      </Swipeable>
+        <View style={{ marginTop: 16, flexDirection: 'row', justifyContent: 'flex-end', gap: 12 }}>
+           <TouchableOpacity onPress={() => {
+              const shareUrl = `https://syncognito-nine.vercel.app/poll/${item._id}`;
+              Clipboard.setString(shareUrl);
+              showToast('Poll link copied!', 'success');
+           }}>
+              <MaterialCommunityIcons name="share-variant" size={20} color={theme.textSecondary} />
+           </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  const renderMessageItem = ({ item }: { item: any }) => {
+    const isRevealed = revealedMessages.includes(item._id) || item.isRead;
+    return (
+       <View style={dynamicStyles.messageCard}>
+         <Text style={dynamicStyles.messageText}>{isRevealed ? item.text : 'Hidden note'}</Text>
+       </View>
     );
   };
 
   return (
     <View style={[dynamicStyles.container, { backgroundColor: theme.background }]}>
-
-        {/* Header and Tabs are now inside scrollable areas */}
+      <Modal visible={showPollModal} animationType="slide" transparent>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: theme.surface, padding: 20, borderRadius: 20 }}>
+            <Text style={{ color: theme.text, fontSize: 18, fontWeight: 'bold' }}>Create Poll</Text>
+            <TextInput style={{ borderBottomWidth: 1, borderBottomColor: theme.border, color: theme.text, padding: 10, marginVertical: 10 }} placeholder="Question?" value={pollQuestion} onChangeText={setPollQuestion} />
+            {pollOptions.map((opt, i) => (
+              <TextInput key={i} style={{ borderBottomWidth: 1, borderBottomColor: theme.border, color: theme.text, padding: 10 }} placeholder={`Option ${i+1}`} value={opt} onChangeText={(val) => setPollOptions(p => p.map((v, idx) => idx === i ? val : v))} />
+            ))}
+            <TouchableOpacity style={{ backgroundColor: accentColor, padding: 15, borderRadius: 10, marginTop: 15 }} onPress={createPoll}>
+              <Text style={{ textAlign: 'center', color: '#FFF' }}>{creatingPoll ? 'Creating...' : 'Post Poll'}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {loading && !refreshing ? (
-        <View style={dynamicStyles.loader}>
-          <ActivityIndicator size="large" color={accentColor} />
-        </View>
+        <View style={dynamicStyles.loader}><ActivityIndicator size="large" color={accentColor} /></View>
       ) : activeMainTab === 'inbox' ? (
         <FlatList
           ListHeaderComponent={
             <>
               <View style={dynamicStyles.header}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <TouchableOpacity onPress={() => navigation.navigate('Home')} style={dynamicStyles.backBtnMini}>
-                    <MaterialCommunityIcons name="chevron-left" size={28} color="#000" />
-                  </TouchableOpacity>
-                  <Text style={dynamicStyles.headerTitle}>
-                    Anonymous
-                  </Text>
-                </View>
-                {/* Share button removed */}
+                <Text style={dynamicStyles.headerTitle}>Anonymous</Text>
                 {isPremium && (
-                  <TouchableOpacity onPress={fetchAnalytics} style={[dynamicStyles.shareIconBtn, { backgroundColor: 'rgba(138, 43, 226, 0.1)' }]}>
+                  <TouchableOpacity onPress={() => {}} style={dynamicStyles.shareIconBtn}>
                     <MaterialCommunityIcons name="chart-box" size={22} color="#8A2BE2" />
                   </TouchableOpacity>
                 )}
@@ -474,7 +308,7 @@ export default function NglScreen({ navigation }: any) {
                 <View style={dynamicStyles.tabContainer}>
                   {[
                     { id: 'my_link', label: 'My Link' },
-                    { id: 'inbox', label: 'Inbox', badge: messages.length }
+                    { id: 'inbox', label: 'Inbox', badge: messages.length + polls.length }
                   ].map(tab => (
                     <TouchableOpacity 
                       key={tab.id} 
@@ -482,100 +316,22 @@ export default function NglScreen({ navigation }: any) {
                       onPress={() => setActiveMainTab(tab.id as any)}
                     >
                       <Text style={[dynamicStyles.tabText, activeMainTab === tab.id && dynamicStyles.activeTabText]}>{tab.label}</Text>
-                      {tab.badge ? (
-                        <View style={dynamicStyles.badge}><Text style={dynamicStyles.badgeText}>{tab.badge}</Text></View>
-                      ) : null}
                     </TouchableOpacity>
                   ))}
                 </View>
               </View>
-
-              {/* Mark All Read */}
-              {unreadCount > 0 && (
-                <TouchableOpacity onPress={markAllAsRead} style={dynamicStyles.markAllReadBtn}>
-                  <MaterialCommunityIcons name="email-check" size={16} color={accentColor} />
-                  <Text style={dynamicStyles.markAllReadText}>Mark all as read ({unreadCount})</Text>
-                </TouchableOpacity>
-              )}
-
-              {/* Stats Dashboard */}
-              <View style={dynamicStyles.statsRow}>
-                <View style={dynamicStyles.statCard}>
-                  <Text style={dynamicStyles.statNumber}>{totalMessages}</Text>
-                  <Text style={dynamicStyles.statLabel}>TOTAL</Text>
-                </View>
-                <View style={[dynamicStyles.statCard, { borderColor: 'rgba(29,185,84,0.3)' }]}>
-                  <Text style={[dynamicStyles.statNumber, { color: accentColor }]}>{todayMessages}</Text>
-                  <Text style={dynamicStyles.statLabel}>TODAY</Text>
-                </View>
-                <View style={dynamicStyles.statCard}>
-                  <Text style={dynamicStyles.statNumber}>{thisWeekMessages}</Text>
-                  <Text style={dynamicStyles.statLabel}>THIS WEEK</Text>
-                </View>
-                <View style={[dynamicStyles.statCard, unreadCount > 0 && { borderColor: 'rgba(255,82,82,0.3)' }]}>
-                  <Text style={[dynamicStyles.statNumber, unreadCount > 0 && { color: '#FF5252' }]}>{unreadCount}</Text>
-                  <Text style={dynamicStyles.statLabel}>UNREAD</Text>
-                </View>
-              </View>
-
-              {/* Question of the Day */}
-              <TouchableOpacity 
-                activeOpacity={0.85}
-                onPress={() => {
-                  setSharePrompt(questionOfTheDay);
-                  setActiveMainTab('my_link');
-                  triggerHaptic('medium');
-                  
-                  // Also copy link with this prompt
-                  const slugOrId = anonSlug || auth.user?._id;
-                  const shareUrl = `https://syncognito-nine.vercel.app/anon/${slugOrId}`;
-                  Clipboard.setString(shareUrl);
-                  showToast('Prompt set! Link copied — share it now 🚀', 'success');
-                }}
-              >
-                <View style={dynamicStyles.qotdCard}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <MaterialCommunityIcons name="lightbulb-on" size={18} color="#FFD700" />
-                      <Text style={dynamicStyles.qotdLabel}>QUESTION OF THE DAY</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(29,185,84,0.15)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 }}>
-                      <MaterialCommunityIcons name="arrow-right" size={14} color={accentColor} />
-                      <Text style={{ color: accentColor, fontSize: 10, fontWeight: '800' }}>USE</Text>
-                    </View>
-                  </View>
-                  <Text style={[dynamicStyles.qotdText, { marginTop: 8 }]}>{questionOfTheDay}</Text>
-                </View>
-              </TouchableOpacity>
-
-              {/* Section Title */}
-              <View style={{ paddingHorizontal: 16, marginBottom: 12, marginTop: 10, alignItems: 'flex-start' }}>
-                <Text style={{ color: theme.text, fontSize: 16, fontWeight: '900', letterSpacing: 0.5, textAlign: 'left' }}>YOUR INBOX</Text>
-              </View>
             </>
           }
-          data={sortedMessages}
-          keyExtractor={(item) => item._id || Math.random().toString()}
-          renderItem={renderItem}
-          contentContainerStyle={[dynamicStyles.listContent, { flexGrow: 1 }]}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => fetchMessages(true)} tintColor={accentColor} />
-          }
+          data={sortedInbox}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => item.isPoll ? renderPollItem(item) : renderMessageItem({ item })}
+          onRefresh={() => fetchMessages(true)}
+          refreshing={refreshing}
           ListEmptyComponent={
-            <View style={dynamicStyles.emptyContainer}>
-              <View style={dynamicStyles.emptyIconCircle}>
-                <MaterialCommunityIcons name="email-off-outline" size={60} color="#222" />
-              </View>
-              <Text style={dynamicStyles.emptyTitle}>Your inbox is empty</Text>
+            <View style={{ marginTop: 50, alignItems: 'center' }}>
+              <MaterialCommunityIcons name="inbox-outline" size={60} color={theme.textSecondary} />
+              <Text style={dynamicStyles.emptyTitle}>No messages yet</Text>
               <Text style={dynamicStyles.emptySub}>Share your link to get messages!</Text>
-              <View style={dynamicStyles.emptyActionRow}>
-                <TouchableOpacity style={dynamicStyles.mainCopyBtn} onPress={copyNglLink}>
-                  <Text style={dynamicStyles.mainCopyBtnText}>COPY LINK</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={dynamicStyles.mainShareBtn} onPress={shareNglLink}>
-                  <Text style={dynamicStyles.mainShareBtnText}>SHARE LINK</Text>
-                </TouchableOpacity>
-              </View>
             </View>
           }
         />
@@ -591,7 +347,6 @@ export default function NglScreen({ navigation }: any) {
                   Anonymous
                 </Text>
               </View>
-              {/* Share button removed */}
             </View>
             <View style={dynamicStyles.tabWrapper}>
               <View style={dynamicStyles.tabContainer}>
@@ -623,8 +378,11 @@ export default function NglScreen({ navigation }: any) {
                   <TouchableOpacity 
                     key={tpl.id}
                     onPress={() => {
+                      if (tpl.id === 'poll') {
+                         setShowPollModal(true);
+                         return;
+                      }
                       setSharePrompt(tpl.prompt);
-                      // Find theme index that matches template colors
                       const tIdx = CARD_THEMES.findIndex(c => c[0] === tpl.colors[0]);
                       if (tIdx !== -1) setCardThemeIndex(tIdx);
                       triggerHaptic('medium');
@@ -705,7 +463,6 @@ export default function NglScreen({ navigation }: any) {
                     />
                 </View>
              </View>
-             {/* Character limit removed */}
              <View style={{ position: 'absolute', bottom: 10, right: 12, flexDirection: 'row', gap: 12, alignItems: 'center' }}>
                 {sharePrompt !== SHARE_PROMPTS[0] && (
                   <TouchableOpacity onPress={() => { setSharePrompt(SHARE_PROMPTS[0]); triggerHaptic('light'); }}>
@@ -807,6 +564,11 @@ export default function NglScreen({ navigation }: any) {
                   <MaterialCommunityIcons name="incognito" size={24} color="#FFF" />
                 </View>
                 <Text style={dynamicStyles.shareHeaderText}>ANONYMOUS ASK</Text>
+                {isVerifiedGhost && (
+                  <View style={dynamicStyles.verifiedBadge}>
+                    <MaterialCommunityIcons name="ghost" size={14} color="#00BFFF" />
+                  </View>
+                )}
               </View>
               <Text style={dynamicStyles.shareQuestionText}>{sharingMsg?.text}</Text>
               
@@ -958,13 +720,58 @@ export default function NglScreen({ navigation }: any) {
                          <View style={dynamicStyles.refBadge}>
                             <Text style={dynamicStyles.refText}>{v.referrer.includes('instagram') ? 'INSTAGRAM' : 'DIRECT'}</Text>
                          </View>
-                       )}
+                        )}
                     </View>
                   ))
                 ) : (
                   <Text style={{ color: theme.textSecondary, textAlign: 'center', marginTop: 20 }}>No views recorded yet.</Text>
                 )}
              </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Theme Editor Modal */}
+      <Modal visible={showThemeEditor} transparent animationType="slide" onRequestClose={closeThemeEditor}>
+        <View style={dynamicStyles.modalOverlay}>
+          <View style={dynamicStyles.themeEditorModal}>
+            <Text style={dynamicStyles.modalTitle}>Custom Card Builder</Text>
+            <ScrollView>
+              <Text style={dynamicStyles.modalSection}>Background Media</Text>
+              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
+                <TouchableOpacity style={dynamicStyles.mediaBtn} onPress={pickImage}>
+                  <MaterialCommunityIcons name="image" size={20} color={theme.text} />
+                  <Text style={dynamicStyles.mediaBtnText}>Pick Image</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={dynamicStyles.mediaBtn} onPress={pickVideo}>
+                  <MaterialCommunityIcons name="video" size={20} color={theme.text} />
+                  <Text style={dynamicStyles.mediaBtnText}>Pick Video</Text>
+                </TouchableOpacity>
+              </View>
+              {bgMediaUri && (
+                <View style={{ marginBottom: 12 }}>
+                  <Text style={{ color: theme.textSecondary }}>Preview:</Text>
+                  {bgMediaType === 'image' ? (
+                    <Image source={{ uri: bgMediaUri }} style={{ width: '100%', height: 150, borderRadius: 12 }} />
+                  ) : (
+                    <Video source={{ uri: bgMediaUri }} style={{ width: '100%', height: 150 }} resizeMode="cover" repeat muted />
+                  )}
+                </View>
+              )}
+              <Text style={dynamicStyles.modalSection}>Text Font</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {FONT_OPTIONS.map(f => (
+                  <TouchableOpacity key={f} style={[dynamicStyles.fontOption, fontFamily === f && dynamicStyles.fontOptionActive]} onPress={() => setFontFamily(f)}>
+                    <Text style={{ color: theme.text }}>{f}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 20 }}>
+                <TouchableOpacity style={dynamicStyles.modalCloseBtn} onPress={closeThemeEditor}>
+                  <Text style={dynamicStyles.modalCloseBtnText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1022,51 +829,127 @@ export default function NglScreen({ navigation }: any) {
         options={{ format: 'png', quality: 1.0 }} 
         style={dynamicStyles.hiddenViewShot}
       >
-        <LinearGradient 
-          colors={cardThemeIndex === 0 ? ['#434343', '#000000'] : CARD_THEMES[cardThemeIndex]} 
-          style={dynamicStyles.shareTemplateContainer}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          {/* Decorative Circles */}
-          <View style={[dynamicStyles.shareCircle, { top: -50, left: -50, backgroundColor: 'rgba(255,255,255,0.1)' }]} />
-          <View style={[dynamicStyles.shareCircle, { bottom: -80, right: -80, backgroundColor: 'rgba(29,185,84,0.15)' }]} />
-
-          <View style={dynamicStyles.shareTemplateCard}>
-            <View style={dynamicStyles.shareAvatarWrapper}>
-              {auth.user?.avatar ? (
-                <Image source={{ uri: auth.user.avatar }} style={dynamicStyles.shareAvatar} />
-              ) : (
-                <View style={[dynamicStyles.shareAvatar, dynamicStyles.shareAvatarPlaceholder]}>
-                  <Text style={dynamicStyles.shareAvatarInitial}>{auth.user?.name?.charAt(0).toUpperCase() || 'A'}</Text>
+        {/* Theme Editor Button */}
+        <TouchableOpacity onPress={openThemeEditor} style={{ position: 'absolute', top: 12, left: 12, backgroundColor: 'rgba(0,0,0,0.4)', padding: 8, borderRadius: 8 }}>
+          <MaterialCommunityIcons name="palette" size={20} color="#FFF" />
+        </TouchableOpacity>
+        {/* Share Template with optional background media */}
+        {bgMediaType === 'image' && bgMediaUri ? (
+          <ImageBackground source={{ uri: bgMediaUri }} style={dynamicStyles.shareTemplateContainer} imageStyle={{ borderRadius: 20 }}>
+            <LinearGradient colors={cardThemeIndex === 0 ? ['#434343', '#000000'] : CARD_THEMES[cardThemeIndex]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+            {/* Existing share template content */}
+            <View style={[dynamicStyles.shareCircle, { top: -50, left: -50, backgroundColor: 'rgba(255,255,255,0.1)' }]} />
+            <View style={[dynamicStyles.shareCircle, { bottom: -80, right: -80, backgroundColor: 'rgba(29,185,84,0.15)' }]} />
+            <View style={dynamicStyles.shareTemplateCard}>
+              <View style={dynamicStyles.shareAvatarWrapper}>
+                {auth.user?.avatar ? (
+                  <Image source={{ uri: auth.user.avatar }} style={dynamicStyles.shareAvatar} />
+                ) : (
+                  <View style={[dynamicStyles.shareAvatar, dynamicStyles.shareAvatarPlaceholder]}>
+                    <Text style={dynamicStyles.shareAvatarInitial}>{auth.user?.name?.charAt(0).toUpperCase() || 'A'}</Text>
+                  </View>
+                )}
+              </View>
+              <View style={dynamicStyles.shareQuestionBox}>
+                <Text style={dynamicStyles.shareQuestionTitle}>ANONYMOUS QUESTION</Text>
+                <Text style={dynamicStyles.templateQuestionText}>{sharePrompt}</Text>
+              </View>
+              <View style={dynamicStyles.shareLinkSticker}>
+                <MaterialCommunityIcons name="link-variant" size={20} color={accentColor} />
+                <Text style={dynamicStyles.shareLinkStickerText} numberOfLines={1}>Paste link</Text>
+              </View>
+              <View style={dynamicStyles.shareFooter}>
+                <MaterialCommunityIcons name="incognito" size={24} color={accentColor} />
+                <View>
+                  <Text style={dynamicStyles.shareBrandName}>Syncognito</Text>
+                  <Text style={dynamicStyles.shareTagline}>Stay Anonymous • Stay Connected</Text>
                 </View>
-              )}
-            </View>
-
-            <View style={dynamicStyles.shareQuestionBox}>
-               <Text style={dynamicStyles.shareQuestionTitle}>ANONYMOUS QUESTION</Text>
-               <Text style={dynamicStyles.templateQuestionText}>{sharePrompt}</Text>
-            </View>
-
-            {/* Link Sticker Placement Area (Visual Only) */}
-            <View style={dynamicStyles.shareLinkSticker}>
-               <MaterialCommunityIcons name="link-variant" size={20} color={accentColor} />
-               <Text style={dynamicStyles.shareLinkStickerText} numberOfLines={1}>
-                 Paste link
-               </Text>
-            </View>
-
-            <View style={dynamicStyles.shareFooter}>
-              <MaterialCommunityIcons name="incognito" size={24} color={accentColor} />
-              <View>
-                <Text style={dynamicStyles.shareBrandName}>Syncognito</Text>
-                <Text style={dynamicStyles.shareTagline}>Stay Anonymous • Stay Connected</Text>
               </View>
             </View>
+            <Text style={dynamicStyles.shareLinkHint}>Link in bio / syncognito-nine.vercel.app</Text>
+          </ImageBackground>
+        ) : bgMediaType === 'video' && bgMediaUri ? (
+          <View style={dynamicStyles.shareTemplateContainer}>
+            <Video source={{ uri: bgMediaUri }} style={StyleSheet.absoluteFill} resizeMode="cover" repeat muted />
+            <LinearGradient colors={cardThemeIndex === 0 ? ['#434343', '#000000'] : CARD_THEMES[cardThemeIndex]} style={StyleSheet.absoluteFill} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} />
+            {/* Existing share template content */}
+            <View style={[dynamicStyles.shareCircle, { top: -50, left: -50, backgroundColor: 'rgba(255,255,255,0.1)' }]} />
+            <View style={[dynamicStyles.shareCircle, { bottom: -80, right: -80, backgroundColor: 'rgba(29,185,84,0.15)' }]} />
+            <View style={dynamicStyles.shareTemplateCard}>
+              <View style={dynamicStyles.shareAvatarWrapper}>
+                {auth.user?.avatar ? (
+                  <Image source={{ uri: auth.user.avatar }} style={dynamicStyles.shareAvatar} />
+                ) : (
+                  <View style={[dynamicStyles.shareAvatar, dynamicStyles.shareAvatarPlaceholder]}>
+                    <Text style={dynamicStyles.shareAvatarInitial}>{auth.user?.name?.charAt(0).toUpperCase() || 'A'}</Text>
+                  </View>
+                )}
+              </View>
+              <View style={dynamicStyles.shareQuestionBox}>
+                <Text style={dynamicStyles.shareQuestionTitle}>ANONYMOUS QUESTION</Text>
+                <Text style={dynamicStyles.templateQuestionText}>{sharePrompt}</Text>
+              </View>
+              <View style={dynamicStyles.shareLinkSticker}>
+                <MaterialCommunityIcons name="link-variant" size={20} color={accentColor} />
+                <Text style={dynamicStyles.shareLinkStickerText} numberOfLines={1}>Paste link</Text>
+              </View>
+              <View style={dynamicStyles.shareFooter}>
+                <MaterialCommunityIcons name="incognito" size={24} color={accentColor} />
+                <View>
+                  <Text style={dynamicStyles.shareBrandName}>Syncognito</Text>
+                  <Text style={dynamicStyles.shareTagline}>Stay Anonymous • Stay Connected</Text>
+                </View>
+              </View>
+            </View>
+            <Text style={dynamicStyles.shareLinkHint}>Link in bio / syncognito-nine.vercel.app</Text>
           </View>
-          
-          <Text style={dynamicStyles.shareLinkHint}>Link in bio / syncognito-nine.vercel.app</Text>
-        </LinearGradient>
+        ) : (
+          <LinearGradient
+            colors={cardThemeIndex === 0 ? ['#434343', '#000000'] : CARD_THEMES[cardThemeIndex]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={dynamicStyles.shareTemplateContainer}
+          >
+            {/* Decorative Circles */}
+            <View style={[dynamicStyles.shareCircle, { top: -50, left: -50, backgroundColor: 'rgba(255,255,255,0.1)' }]} />
+            <View style={[dynamicStyles.shareCircle, { bottom: -80, right: -80, backgroundColor: 'rgba(29,185,84,0.15)' }]} />
+
+            <View style={dynamicStyles.shareTemplateCard}>
+              <View style={dynamicStyles.shareAvatarWrapper}>
+                {auth.user?.avatar ? (
+                  <Image source={{ uri: auth.user.avatar }} style={dynamicStyles.shareAvatar} />
+                ) : (
+                  <View style={[dynamicStyles.shareAvatar, dynamicStyles.shareAvatarPlaceholder]}>
+                    <Text style={dynamicStyles.shareAvatarInitial}>{auth.user?.name?.charAt(0).toUpperCase() || 'A'}</Text>
+                  </View>
+                )}
+              </View>
+
+              <View style={dynamicStyles.shareQuestionBox}>
+                <Text style={dynamicStyles.shareQuestionTitle}>ANONYMOUS QUESTION</Text>
+                <Text style={dynamicStyles.templateQuestionText}>{sharePrompt}</Text>
+              </View>
+
+              {/* Link Sticker Placement Area (Visual Only) */}
+              <View style={dynamicStyles.shareLinkSticker}>
+                <MaterialCommunityIcons name="link-variant" size={20} color={accentColor} />
+                <Text style={dynamicStyles.shareLinkStickerText} numberOfLines={1}>
+                  Paste link
+                </Text>
+              </View>
+
+              <View style={dynamicStyles.shareFooter}>
+                <MaterialCommunityIcons name="incognito" size={24} color={accentColor} />
+                <View>
+                  <Text style={dynamicStyles.shareBrandName}>Syncognito</Text>
+                  <Text style={dynamicStyles.shareTagline}>Stay Anonymous • Stay Connected</Text>
+                </View>
+              </View>
+            </View>
+            
+            <Text style={dynamicStyles.shareLinkHint}>Link in bio / syncognito-nine.vercel.app</Text>
+          </LinearGradient>
+        )}
       </ViewShot>
     </View>
   );

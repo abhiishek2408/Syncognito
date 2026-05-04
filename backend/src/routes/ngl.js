@@ -4,6 +4,7 @@ import { body, param, validationResult } from 'express-validator';
 import NglMessage from '../models/NglMessage.js';
 import User from '../models/User.js';
 import NglLinkView from '../models/NglLinkView.js';
+import NglPoll from '../models/NglPoll.js';
 import dotenv from 'dotenv';
 import geoip from 'geoip-lite';
 import { authenticateToken } from '../middleware/auth.js';
@@ -366,6 +367,86 @@ router.post('/premium-toggle', authenticateToken, async (req, res) => {
     await user.save();
     res.json({ isPremium: user.isPremium });
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// --- POLL ROUTES ---
+
+// Create a new poll
+router.post('/poll/create', authenticateToken, async (req, res) => {
+  const { question, options } = req.body;
+  if (!question || !options || options.length < 2) {
+    return res.status(400).json({ message: 'Question and at least 2 options are required' });
+  }
+  try {
+    const poll = await NglPoll.create({
+      creatorId: req.user.id,
+      question,
+      options: options.map(opt => ({ text: opt, votes: 0 }))
+    });
+    res.status(201).json(poll);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get poll by ID (public)
+router.get('/poll/:id', async (req, res) => {
+  try {
+    const poll = await NglPoll.findById(req.params.id);
+    if (!poll) return res.status(404).json({ message: 'Poll not found' });
+    res.json(poll);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Vote on a poll (public)
+router.post('/poll/:id/vote', async (req, res) => {
+  const { optionId } = req.body;
+  const voterIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
+  try {
+    const poll = await NglPoll.findById(req.params.id);
+    if (!poll) return res.status(404).json({ message: 'Poll not found' });
+    if (poll.isClosed || (poll.expiresAt && new Date() > poll.expiresAt)) {
+      return res.status(400).json({ message: 'Poll is closed' });
+    }
+    if (poll.voters.includes(voterIp)) {
+      return res.status(400).json({ message: 'You have already voted' });
+    }
+
+    const option = poll.options.id(optionId);
+    if (!option) return res.status(400).json({ message: 'Invalid option' });
+
+    option.votes += 1;
+    poll.voters.push(voterIp);
+    await poll.save();
+
+    res.json({ message: 'Vote cast!', poll });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get my polls
+router.get('/poll/me', authenticateToken, async (req, res) => {
+  try {
+    const polls = await NglPoll.find({ creatorId: req.user.id }).sort({ createdAt: -1 });
+    res.json(polls);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get total view count for a user (public endpoint)
+router.get('/views/:id', async (req, res) => {
+  try {
+    const total = await NglLinkView.countDocuments({ recipientId: req.params.id });
+    res.json({ totalViews: total });
+  } catch (err) {
+    console.warn('[NGL] View count error:', err);
     res.status(500).json({ message: err.message });
   }
 });
